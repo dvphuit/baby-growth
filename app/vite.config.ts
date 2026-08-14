@@ -31,11 +31,15 @@ export default defineConfig({
         short_name: 'BabyGrowth',
         description: 'Ứng dụng theo dõi phát triển Bé & Chăm sóc Mẹ chuẩn WHO (0-18 tuổi)',
         lang: 'vi',
+        id: '/',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        display_override: ['standalone', 'minimal-ui', 'browser'],
+        orientation: 'portrait',
+        prefer_related_applications: false,
         theme_color: '#FAF8F5',
         background_color: '#FAF8F5',
-        display: 'standalone',
-        orientation: 'portrait',
-        start_url: '/',
         icons: [
           {
             src: '/pwa-64x64.png',
