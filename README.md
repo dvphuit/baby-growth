@@ -124,7 +124,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open the profile page, select **Kết nối Google & đồng bộ**, and approve the Google consent dialog. On later devices using the same Google Account, the app compares the local IndexedDB snapshot with the Drive snapshot. If only one side changed, it automatically downloads or uploads the changed version. If both sides changed, the profile page presents an explicit choice between keeping the local data and using the Drive data.
+Open the profile page, select **Kết nối Google & đồng bộ**, and approve the Google consent dialog. In the same card, select **Bật tự động đồng bộ** to make local IndexedDB changes upload automatically after a short debounce, when the browser is online, and at a periodic five-minute check. The app also checks again when the tab becomes visible or the connection returns. Google access tokens are kept in memory and are not treated as permanent credentials; after a token expires, a user gesture is required to connect again.
+
+On later devices using the same Google Account, the app compares the local IndexedDB snapshot with the Drive snapshot. If only one side changed, it automatically downloads or uploads the changed version. If both sides changed, the profile page presents an explicit choice between keeping the local data and using the Drive data. While offline, all changes remain in IndexedDB and the app waits until connectivity returns.
 
 Never commit `.env.local` or OAuth client secrets. The browser client ID is not a secret, but the authorized origins and requested scopes must be configured deliberately.
 

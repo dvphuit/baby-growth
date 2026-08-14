@@ -29,6 +29,7 @@ import { EditProfileModal } from './components/modals/EditProfileModal';
 
 // Hooks
 import { useToast } from './hooks/useToast';
+import { startAutoSync } from './services/googleDriveSync';
 
 // Local state
 import { useState, useEffect } from 'react';
@@ -42,6 +43,13 @@ export const AppContent: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    void startAutoSync();
+    const handleRemoteUpdate = () => window.location.reload();
+    window.addEventListener('babygrowth:remote-updated', handleRemoteUpdate);
+    return () => window.removeEventListener('babygrowth:remote-updated', handleRemoteUpdate);
+  }, []);
 
   // Toast System
   const { toasts, addToast } = useToast();

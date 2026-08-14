@@ -1,8 +1,15 @@
-import { getAllLocalRecords, getLocalRecord, setLocalRecord } from './localDb';
+import {
+  getAllLocalRecords,
+  getLocalRecord,
+  setLocalRecord,
+  subscribeLocalRecordChanges,
+} from './localDb';
 
 const SYNC_FILE_NAME = 'babygrowth-sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const SYNC_META_KEY = 'babygrowth_v2_sync_meta';
+const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+const AUTO_SYNC_DEBOUNCE_MS = 1200;
 const SYNC_KEYS = [
   'babygrowth_v2_baby',
   'babygrowth_v2_mom',
@@ -10,9 +17,11 @@ const SYNC_KEYS = [
   'babygrowth_v2_timeline',
   'babygrowth_v2_ui',
 ] as const;
+const AUTO_SYNC_KEYS = new Set<string>(SYNC_KEYS);
 
 interface GoogleTokenResponse {
   access_token?: string;
+  expires_in?: number;
   error?: string;
   error_description?: string;
 }
@@ -52,7 +61,15 @@ interface SyncMeta {
   lastSyncedFingerprint: string | null;
   remoteFileId: string | null;
   lastSyncedAt: string | null;
+  autoSyncEnabled: boolean;
 }
+
+const DEFAULT_META: SyncMeta = {
+  lastSyncedFingerprint: null,
+  remoteFileId: null,
+  lastSyncedAt: null,
+  autoSyncEnabled: false,
+};
 
 export type SyncResult =
   | { status: 'uploaded'; snapshot: SyncSnapshot }
@@ -60,9 +77,67 @@ export type SyncResult =
   | { status: 'unchanged'; snapshot: SyncSnapshot }
   | { status: 'conflict'; reason: SyncConflictReason; local: SyncSnapshot; remote: SyncSnapshot };
 
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'offline' | 'auth-required' | 'error' | 'conflict';
+
+export interface SyncState {
+  status: SyncStatus;
+  lastSyncedAt: string | null;
+  autoSyncEnabled: boolean;
+  error: string | null;
+  conflict: Extract<SyncResult, { status: 'conflict' }> | null;
+}
+
+export class GoogleAuthRequiredError extends Error {
+  constructor() {
+    super('Cần kết nối lại Google để tiếp tục tự động đồng bộ.');
+    this.name = 'GoogleAuthRequiredError';
+  }
+}
+
+interface DriveFile {
+  id: string;
+  name: string;
+  modifiedTime?: string;
+}
+
+interface DriveFileList {
+  files?: DriveFile[];
+}
+
 let accessToken: string | null = null;
+let accessTokenExpiresAt = 0;
 let tokenClient: GoogleTokenClient | null = null;
 let tokenScriptPromise: Promise<void> | null = null;
+let autoSyncStop: (() => void) | null = null;
+let autoSyncStartPromise: Promise<() => void> | null = null;
+let autoSyncTimer: number | null = null;
+let autoSyncDebounceTimer: number | null = null;
+let autoSyncInFlight = false;
+let suppressAutoSync = false;
+
+let syncState: SyncState = {
+  status: 'idle',
+  lastSyncedAt: null,
+  autoSyncEnabled: false,
+  error: null,
+  conflict: null,
+};
+const syncStateListeners = new Set<(state: SyncState) => void>();
+
+function publishSyncState(partial: Partial<SyncState>): void {
+  syncState = { ...syncState, ...partial };
+  syncStateListeners.forEach((listener) => listener(syncState));
+}
+
+export function getSyncState(): SyncState {
+  return syncState;
+}
+
+export function subscribeSyncState(listener: (state: SyncState) => void): () => void {
+  syncStateListeners.add(listener);
+  listener(syncState);
+  return () => syncStateListeners.delete(listener);
+}
 
 function getClientId(): string | null {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -100,16 +175,24 @@ function createSnapshot(records: Record<string, string>): SyncSnapshot {
 
 async function readMeta(): Promise<SyncMeta> {
   const raw = await getLocalRecord(SYNC_META_KEY);
-  if (!raw) return { lastSyncedFingerprint: null, remoteFileId: null, lastSyncedAt: null };
+  if (!raw) return { ...DEFAULT_META };
   try {
-    return JSON.parse(raw) as SyncMeta;
+    const parsed = JSON.parse(raw) as Partial<SyncMeta>;
+    return {
+      ...DEFAULT_META,
+      ...parsed,
+      autoSyncEnabled: parsed.autoSyncEnabled === true,
+    };
   } catch {
-    return { lastSyncedFingerprint: null, remoteFileId: null, lastSyncedAt: null };
+    return { ...DEFAULT_META };
   }
 }
 
-async function writeMeta(meta: SyncMeta): Promise<void> {
-  await setLocalRecord(SYNC_META_KEY, JSON.stringify(meta));
+async function updateMeta(patch: Partial<SyncMeta>): Promise<SyncMeta> {
+  const next = { ...(await readMeta()), ...patch };
+  await setLocalRecord(SYNC_META_KEY, JSON.stringify(next));
+  publishSyncState({ autoSyncEnabled: next.autoSyncEnabled, lastSyncedAt: next.lastSyncedAt });
+  return next;
 }
 
 async function loadGoogleScript(): Promise<void> {
@@ -119,8 +202,13 @@ async function loadGoogleScript(): Promise<void> {
   tokenScriptPromise = new Promise((resolve, reject) => {
     const existingScript = document.querySelector<HTMLScriptElement>('script[data-google-identity-services]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(), { once: true });
-      existingScript.addEventListener('error', () => reject(new Error('Không tải được Google Identity Services')), { once: true });
+      const onLoad = () => resolve();
+      const onError = () => reject(new Error('Không tải được Google Identity Services'));
+      existingScript.addEventListener('load', onLoad, { once: true });
+      existingScript.addEventListener('error', onError, { once: true });
+      window.setTimeout(() => {
+        if (window.google?.accounts?.oauth2) resolve();
+      }, 0);
       return;
     }
 
@@ -142,7 +230,7 @@ export function isGoogleConfigured(): boolean {
 }
 
 export function isGoogleConnected(): boolean {
-  return Boolean(accessToken);
+  return Boolean(accessToken && Date.now() < accessTokenExpiresAt);
 }
 
 export async function requestGoogleAccessToken(): Promise<void> {
@@ -166,6 +254,8 @@ export async function requestGoogleAccessToken(): Promise<void> {
           return;
         }
         accessToken = response.access_token;
+        accessTokenExpiresAt = Date.now() + Math.max((response.expires_in ?? 3600) - 60, 60) * 1000;
+        publishSyncState({ status: 'idle', error: null });
         resolve();
       },
       error_callback: (error) => reject(new Error(error.message || 'Không thể mở cửa sổ cấp quyền Google.')),
@@ -174,14 +264,17 @@ export async function requestGoogleAccessToken(): Promise<void> {
   });
 }
 
-async function ensureAccessToken(): Promise<string> {
-  if (!accessToken) await requestGoogleAccessToken();
-  if (!accessToken) throw new Error('Chưa có quyền truy cập Google Drive.');
+async function ensureAccessToken(interactive: boolean): Promise<string> {
+  if (isGoogleConnected()) return accessToken!;
+  accessToken = null;
+  if (!interactive) throw new GoogleAuthRequiredError();
+  await requestGoogleAccessToken();
+  if (!accessToken) throw new GoogleAuthRequiredError();
   return accessToken;
 }
 
-async function driveRequest<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const token = await ensureAccessToken();
+async function driveRequest<T>(url: string, init: RequestInit = {}, interactive = true): Promise<T> {
+  const token = await ensureAccessToken(interactive);
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -192,6 +285,8 @@ async function driveRequest<T>(url: string, init: RequestInit = {}): Promise<T> 
 
   if (response.status === 401) {
     accessToken = null;
+    accessTokenExpiresAt = 0;
+    if (!interactive) throw new GoogleAuthRequiredError();
     throw new Error('Phiên Google đã hết hạn. Hãy bấm đồng bộ lại để cấp quyền mới.');
   }
   if (!response.ok) {
@@ -201,27 +296,21 @@ async function driveRequest<T>(url: string, init: RequestInit = {}): Promise<T> 
   return response.json() as Promise<T>;
 }
 
-interface DriveFile {
-  id: string;
-  name: string;
-  modifiedTime?: string;
-}
-
-interface DriveFileList {
-  files?: DriveFile[];
-}
-
-async function findSyncFile(): Promise<DriveFile | null> {
+async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
   const query = encodeURIComponent(`'appDataFolder' in parents and name = '${SYNC_FILE_NAME}' and trashed = false`);
   const result = await driveRequest<DriveFileList>(
-    `https://www.googleapis.com/drive/v3/files?q=${query}&spaces=appDataFolder&fields=files(id,name,modifiedTime)`
+    `https://www.googleapis.com/drive/v3/files?q=${query}&spaces=appDataFolder&fields=files(id,name,modifiedTime)`,
+    {},
+    interactive
   );
   return result.files?.[0] ?? null;
 }
 
-async function readRemoteSnapshot(fileId: string): Promise<SyncSnapshot> {
+async function readRemoteSnapshot(fileId: string, interactive: boolean): Promise<SyncSnapshot> {
   const result = await driveRequest<SyncSnapshot>(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
+    {},
+    interactive
   );
   if (!result || result.schemaVersion !== 1 || !result.records || !result.fingerprint) {
     throw new Error('Tệp đồng bộ trên Google Drive không đúng định dạng BabyGrowth.');
@@ -229,7 +318,7 @@ async function readRemoteSnapshot(fileId: string): Promise<SyncSnapshot> {
   return result;
 }
 
-async function writeRemoteSnapshot(snapshot: SyncSnapshot, file: DriveFile | null): Promise<DriveFile> {
+async function writeRemoteSnapshot(snapshot: SyncSnapshot, file: DriveFile | null, interactive: boolean): Promise<DriveFile> {
   const metadata = file
     ? { name: SYNC_FILE_NAME, mimeType: 'application/json' }
     : { name: SYNC_FILE_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
@@ -255,7 +344,8 @@ async function writeRemoteSnapshot(snapshot: SyncSnapshot, file: DriveFile | nul
       method: file ? 'PATCH' : 'POST',
       headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
       body,
-    }
+    },
+    interactive
   );
 }
 
@@ -264,72 +354,210 @@ async function getLocalSnapshot(): Promise<SyncSnapshot> {
 }
 
 async function saveSyncedState(snapshot: SyncSnapshot, remoteFileId: string): Promise<void> {
-  await writeMeta({
+  await updateMeta({
     lastSyncedFingerprint: snapshot.fingerprint,
     remoteFileId,
     lastSyncedAt: new Date().toISOString(),
   });
 }
 
-export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
-  await Promise.all(SYNC_KEYS.map(async (key) => {
-    const value = snapshot.records[key];
-    if (value) await setLocalRecord(key, value);
-  }));
+function publishSyncResult(result: SyncResult): void {
+  if (result.status === 'downloaded') {
+    window.dispatchEvent(new Event('babygrowth:remote-updated'));
+  }
+  if (result.status === 'conflict') {
+    publishSyncState({ status: 'conflict', conflict: result, error: null });
+    return;
+  }
+  publishSyncState({
+    status: 'synced',
+    conflict: null,
+    error: null,
+    lastSyncedAt: new Date().toISOString(),
+  });
 }
 
-export async function syncWithGoogleDrive(): Promise<SyncResult> {
-  const local = await getLocalSnapshot();
-  const meta = await readMeta();
-  const remoteFile = await findSyncFile();
+export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
+  suppressAutoSync = true;
+  try {
+    await Promise.all(SYNC_KEYS.map(async (key) => {
+      const value = snapshot.records[key];
+      if (value) await setLocalRecord(key, value);
+    }));
+  } finally {
+    suppressAutoSync = false;
+  }
+}
 
-  if (!remoteFile) {
-    const created = await writeRemoteSnapshot(local, null);
-    await saveSyncedState(local, created.id);
-    return { status: 'uploaded', snapshot: local };
+export async function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
+  const interactive = options.interactive !== false;
+  if (!navigator.onLine) {
+    publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
+    throw new Error('Đang offline; hãy thử đồng bộ lại khi có kết nối mạng.');
   }
 
-  const remote = await readRemoteSnapshot(remoteFile.id);
-  if (remote.fingerprint === local.fingerprint) {
-    await saveSyncedState(local, remoteFile.id);
-    return { status: 'unchanged', snapshot: local };
-  }
+  publishSyncState({ status: 'syncing', error: null });
+  try {
+    const local = await getLocalSnapshot();
+    const meta = await readMeta();
+    const remoteFile = await findSyncFile(interactive);
 
-  if (!meta.lastSyncedFingerprint) {
-    return { status: 'conflict', reason: 'first_sync', local, remote };
-  }
+    if (!remoteFile) {
+      const created = await writeRemoteSnapshot(local, null, interactive);
+      await saveSyncedState(local, created.id);
+      const result: SyncResult = { status: 'uploaded', snapshot: local };
+      publishSyncResult(result);
+      return result;
+    }
 
-  if (local.fingerprint === meta.lastSyncedFingerprint) {
-    await applyRemoteSnapshot(remote);
-    await saveSyncedState(remote, remoteFile.id);
-    return { status: 'downloaded', snapshot: remote };
-  }
+    const remote = await readRemoteSnapshot(remoteFile.id, interactive);
+    if (remote.fingerprint === local.fingerprint) {
+      await saveSyncedState(local, remoteFile.id);
+      const result: SyncResult = { status: 'unchanged', snapshot: local };
+      publishSyncResult(result);
+      return result;
+    }
 
-  if (remote.fingerprint === meta.lastSyncedFingerprint) {
-    const updated = await writeRemoteSnapshot(local, remoteFile);
-    await saveSyncedState(local, updated.id);
-    return { status: 'uploaded', snapshot: local };
-  }
+    if (!meta.lastSyncedFingerprint) {
+      const result: SyncResult = { status: 'conflict', reason: 'first_sync', local, remote };
+      publishSyncResult(result);
+      return result;
+    }
 
-  return { status: 'conflict', reason: 'both_changed', local, remote };
+    if (local.fingerprint === meta.lastSyncedFingerprint) {
+      await applyRemoteSnapshot(remote);
+      await saveSyncedState(remote, remoteFile.id);
+      const result: SyncResult = { status: 'downloaded', snapshot: remote };
+      publishSyncResult(result);
+      return result;
+    }
+
+    if (remote.fingerprint === meta.lastSyncedFingerprint) {
+      const updated = await writeRemoteSnapshot(local, remoteFile, interactive);
+      await saveSyncedState(local, updated.id);
+      const result: SyncResult = { status: 'uploaded', snapshot: local };
+      publishSyncResult(result);
+      return result;
+    }
+
+    const result: SyncResult = { status: 'conflict', reason: 'both_changed', local, remote };
+    publishSyncResult(result);
+    return result;
+  } catch (error) {
+    if (error instanceof GoogleAuthRequiredError) {
+      publishSyncState({ status: 'auth-required', error: error.message });
+    } else if (!navigator.onLine) {
+      publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
+    } else {
+      publishSyncState({
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Không thể đồng bộ Google Drive.',
+      });
+    }
+    throw error;
+  }
 }
 
 export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
-  const remoteFile = await findSyncFile();
+  const remoteFile = await findSyncFile(true);
   if (!remoteFile) throw new Error('Không tìm thấy tệp đồng bộ trên Google Drive.');
 
   if (choice === 'remote') {
     await applyRemoteSnapshot(remoteSnapshot);
     await saveSyncedState(remoteSnapshot, remoteFile.id);
+    window.dispatchEvent(new Event('babygrowth:remote-updated'));
+    publishSyncState({ status: 'synced', conflict: null, error: null });
     return 'downloaded';
   }
 
   const local = await getLocalSnapshot();
-  const updated = await writeRemoteSnapshot(local, remoteFile);
+  const updated = await writeRemoteSnapshot(local, remoteFile, true);
   await saveSyncedState(local, updated.id);
+  publishSyncState({ status: 'synced', conflict: null, error: null });
   return 'uploaded';
 }
 
 export async function getLastSyncedAt(): Promise<string | null> {
   return (await readMeta()).lastSyncedAt;
+}
+
+export async function isAutoSyncEnabled(): Promise<boolean> {
+  return (await readMeta()).autoSyncEnabled;
+}
+
+export async function setAutoSyncEnabled(enabled: boolean): Promise<void> {
+  await updateMeta({ autoSyncEnabled: enabled });
+  publishSyncState({ autoSyncEnabled: enabled, status: enabled && !isGoogleConnected() ? 'auth-required' : syncState.status });
+  if (enabled && autoSyncStop) scheduleAutoSync(0);
+}
+
+function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
+  if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
+  autoSyncDebounceTimer = window.setTimeout(() => {
+    autoSyncDebounceTimer = null;
+    void runAutoSync();
+  }, delay);
+}
+
+async function runAutoSync(): Promise<void> {
+  if (autoSyncInFlight || suppressAutoSync || !navigator.onLine) return;
+  const meta = await readMeta();
+  if (!meta.autoSyncEnabled) return;
+  if (!isGoogleConnected()) {
+    publishSyncState({ status: 'auth-required', autoSyncEnabled: true, error: 'Bấm kết nối Google để bật lại auto-sync.' });
+    return;
+  }
+
+  autoSyncInFlight = true;
+  try {
+    await syncWithGoogleDrive({ interactive: false });
+  } catch {
+    // The sync state already contains a user-facing error. Local writes continue normally.
+  } finally {
+    autoSyncInFlight = false;
+  }
+}
+
+export async function startAutoSync(): Promise<() => void> {
+  if (autoSyncStop) return autoSyncStop;
+  if (autoSyncStartPromise) return autoSyncStartPromise;
+
+  autoSyncStartPromise = (async () => {
+    const meta = await readMeta();
+    publishSyncState({ autoSyncEnabled: meta.autoSyncEnabled, lastSyncedAt: meta.lastSyncedAt });
+
+  const onLocalRecordChanged = (key: string) => {
+    if (suppressAutoSync) return;
+    if (AUTO_SYNC_KEYS.has(key)) scheduleAutoSync();
+  };
+  const onOnline = () => scheduleAutoSync(500);
+  const onVisibilityChange = () => {
+    if (document.visibilityState === 'visible') scheduleAutoSync(500);
+  };
+
+  const unsubscribe = subscribeLocalRecordChanges(onLocalRecordChanged);
+  window.addEventListener('online', onOnline);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  autoSyncTimer = window.setInterval(() => scheduleAutoSync(0), AUTO_SYNC_INTERVAL_MS);
+
+  autoSyncStop = () => {
+    unsubscribe();
+    window.removeEventListener('online', onOnline);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    if (autoSyncTimer !== null) window.clearInterval(autoSyncTimer);
+    if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
+    autoSyncTimer = null;
+    autoSyncDebounceTimer = null;
+    autoSyncStop = null;
+  };
+
+    scheduleAutoSync(2000);
+    return autoSyncStop!;
+  })();
+
+  try {
+    return await autoSyncStartPromise;
+  } finally {
+    autoSyncStartPromise = null;
+  }
 }

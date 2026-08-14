@@ -4,6 +4,9 @@ const DB_NAME = 'babygrowth-local';
 const STORE_NAME = 'zustand';
 const DB_VERSION = 1;
 
+type LocalRecordChangeListener = (key: string) => void;
+const localRecordChangeListeners = new Set<LocalRecordChangeListener>();
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function openDb(): Promise<IDBDatabase> {
@@ -56,6 +59,15 @@ async function removeValue(key: string): Promise<void> {
  * migrated lazily the first time each key is read, so current user data is
  * preserved during the upgrade.
  */
+export function subscribeLocalRecordChanges(listener: LocalRecordChangeListener): () => void {
+  localRecordChangeListeners.add(listener);
+  return () => localRecordChangeListeners.delete(listener);
+}
+
+function notifyLocalRecordChanged(key: string): void {
+  localRecordChangeListeners.forEach((listener) => listener(key));
+}
+
 export const indexedDbStorage: StateStorage = {
   getItem: async (name) => {
     const indexedValue = await readValue(name);
@@ -71,6 +83,7 @@ export const indexedDbStorage: StateStorage = {
   },
   setItem: async (name, value) => {
     await writeValue(name, value);
+    notifyLocalRecordChanged(name);
   },
   removeItem: async (name) => {
     await removeValue(name);
@@ -83,6 +96,7 @@ export async function getLocalRecord(key: string): Promise<string | null> {
 
 export async function setLocalRecord(key: string, value: string): Promise<void> {
   await writeValue(key, value);
+  notifyLocalRecordChanged(key);
 }
 
 export async function removeLocalRecord(key: string): Promise<void> {

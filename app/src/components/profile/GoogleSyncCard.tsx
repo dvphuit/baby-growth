@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import { Cloud, CloudDownload, CloudUpload, RefreshCw, ShieldCheck } from 'lucide-react';
 import {
   getLastSyncedAt,
+  getSyncState,
   isGoogleConfigured,
   isGoogleConnected,
   requestGoogleAccessToken,
   resolveSyncConflict,
+  setAutoSyncEnabled,
+  subscribeSyncState,
   syncWithGoogleDrive,
   type SyncResult,
+  type SyncState,
 } from '@/services/googleDriveSync';
 
 interface GoogleSyncCardProps {
@@ -19,38 +23,56 @@ function formatSyncTime(value: string | null): string {
   return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
 }
 
+const STATUS_LABELS: Record<SyncState['status'], string> = {
+  idle: 'Sẵn sàng',
+  syncing: 'Đang đồng bộ...',
+  synced: 'Đã đồng bộ',
+  offline: 'Offline · Lưu cục bộ',
+  'auth-required': 'Cần kết nối Google',
+  error: 'Cần thử lại',
+  conflict: 'Cần chọn dữ liệu',
+};
+
 export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) => {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(isGoogleConnected());
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  const [conflict, setConflict] = useState<Extract<SyncResult, { status: 'conflict' }> | null>(null);
+  const [syncState, setSyncState] = useState<SyncState>(getSyncState());
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(getSyncState().lastSyncedAt);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getLastSyncedAt().then(setLastSyncedAt).catch(() => {});
+    const unsubscribe = subscribeSyncState((state) => {
+      setSyncState(state);
+      setLastSyncedAt(state.lastSyncedAt);
+      setConnected(isGoogleConnected());
+      if (state.error) setError(state.error);
+    });
+    getLastSyncedAt().then((value) => {
+      setLastSyncedAt(value);
+    }).catch(() => {});
+    return unsubscribe;
   }, []);
 
   const showResult = (result: Exclude<SyncResult, { status: 'conflict' }>) => {
     setLastSyncedAt(new Date().toISOString());
-    if (result.status === 'uploaded') onShowToast?.('Đã đẩy dữ liệu lên Google Drive.', '☁️');
-    if (result.status === 'downloaded') onShowToast?.('Đã tải dữ liệu mới từ Google Drive. Ứng dụng sẽ tải lại.', '⬇️');
-    if (result.status === 'unchanged') onShowToast?.('Dữ liệu trên thiết bị và Google Drive đã đồng nhất.', '✓');
+    if (result.status === 'uploaded') onShowToast?.('Đã tự động đẩy dữ liệu lên Google Drive.', '☁️');
+    if (result.status === 'downloaded') onShowToast?.('Đã nhận dữ liệu mới từ Google Drive.', '⬇️');
+    if (result.status === 'unchanged') onShowToast?.('Dữ liệu local và Google Drive đã đồng nhất.', '✓');
   };
 
   const handleSync = async () => {
     setBusy(true);
     setError(null);
     try {
-      if (!connected) {
+      if (!isGoogleConnected()) {
         await requestGoogleAccessToken();
         setConnected(true);
       }
       const result = await syncWithGoogleDrive();
       if (result.status === 'conflict') {
-        setConflict(result);
+        onShowToast?.('Phát hiện hai phiên bản dữ liệu khác nhau. Hãy chọn bản muốn giữ.', '⚠️');
       } else {
         showResult(result);
-        if (result.status === 'downloaded') window.location.reload();
       }
     } catch (syncError) {
       setError(syncError instanceof Error ? syncError.message : 'Không thể đồng bộ với Google Drive.');
@@ -59,19 +81,46 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
     }
   };
 
+  const handleToggleAutoSync = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      if (syncState.autoSyncEnabled) {
+        await setAutoSyncEnabled(false);
+        onShowToast?.('Đã tắt tự động đồng bộ. Dữ liệu vẫn được lưu local.', '◌');
+        return;
+      }
+
+      if (!isGoogleConnected()) {
+        await requestGoogleAccessToken();
+        setConnected(true);
+      }
+      await setAutoSyncEnabled(true);
+      const result = await syncWithGoogleDrive();
+      if (result.status === 'conflict') {
+        onShowToast?.('Auto-sync đã bật nhưng cần chọn bản dữ liệu đầu tiên.', '⚠️');
+      } else {
+        showResult(result);
+        onShowToast?.('Đã bật tự động đồng bộ khi dữ liệu thay đổi.', '↻');
+      }
+    } catch (toggleError) {
+      setError(toggleError instanceof Error ? toggleError.message : 'Không thể bật auto-sync.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleResolve = async (choice: 'local' | 'remote') => {
+    const conflict = syncState.conflict;
     if (!conflict) return;
     setBusy(true);
     setError(null);
     try {
       const result = await resolveSyncConflict(choice, conflict.remote);
-      setConflict(null);
-      setLastSyncedAt(new Date().toISOString());
       if (result === 'downloaded') {
-        onShowToast?.('Đã chọn dữ liệu trên Drive. Ứng dụng sẽ tải lại.', '⬇️');
-        window.location.reload();
+        onShowToast?.('Đã chọn dữ liệu trên Drive. Giao diện sẽ tải lại.', '⬇️');
       } else {
-        onShowToast?.('Đã chọn dữ liệu trên thiết bị và ghi đè bản Drive.', '☁️');
+        onShowToast?.('Đã chọn dữ liệu local và cập nhật bản Drive.', '☁️');
       }
     } catch (resolveError) {
       setError(resolveError instanceof Error ? resolveError.message : 'Không thể xử lý xung đột.');
@@ -101,6 +150,9 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
     );
   }
 
+  const conflict = syncState.conflict;
+  const statusLabel = STATUS_LABELS[syncState.status];
+
   return (
     <div className="profile-section-block">
       <div className="section-title-row">
@@ -114,7 +166,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
             <div className="medical-item-icon"><ShieldCheck size={15} /></div>
             <div>
               <span className="medical-item-lbl">IndexedDB trên thiết bị + Google Drive</span>
-              <span className="medical-item-val">Dữ liệu được lưu cục bộ trước; Drive chỉ giữ bản đồng bộ riêng cho ứng dụng.</span>
+              <span className="medical-item-val">Dữ liệu được lưu cục bộ trước; Drive giữ bản đồng bộ riêng cho ứng dụng.</span>
             </div>
           </div>
         </div>
@@ -123,10 +175,24 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
           <div className="medical-info-item full">
             <div className="medical-item-icon"><RefreshCw size={15} /></div>
             <div>
-              <span className="medical-item-lbl">Trạng thái</span>
-              <span className="medical-item-val">{formatSyncTime(lastSyncedAt)}</span>
+              <span className="medical-item-lbl">Trạng thái: {statusLabel}</span>
+              <span className="medical-item-val">Lần cuối: {formatSyncTime(lastSyncedAt)}</span>
             </div>
           </div>
+        </div>
+
+        <div className="medical-allergy-box" style={{ marginTop: 16 }}>
+          <div className="allergy-header"><RefreshCw size={14} color="var(--color-sage-dark)" /> Tự động đồng bộ</div>
+          <p className="summary-desc">Khi bật, thay đổi mới sẽ được đẩy lên Drive sau một khoảng ngắn, khi app online và tối đa mỗi 5 phút. Google chỉ yêu cầu cấp quyền lại khi access token hết hạn.</p>
+          <button
+            className={`profile-action-btn ${syncState.autoSyncEnabled ? 'primary' : 'secondary'}`}
+            style={{ marginTop: 12 }}
+            onClick={handleToggleAutoSync}
+            disabled={busy || syncState.status === 'syncing'}
+          >
+            <RefreshCw size={16} className={syncState.status === 'syncing' ? 'spin' : ''} />
+            <span>{syncState.autoSyncEnabled ? 'Tắt tự động đồng bộ' : 'Bật tự động đồng bộ'}</span>
+          </button>
         </div>
 
         {conflict && (
@@ -148,7 +214,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
 
         <button className="profile-action-btn secondary" style={{ marginTop: 16 }} onClick={handleSync} disabled={busy}>
           <RefreshCw size={16} className={busy ? 'spin' : ''} />
-          <span>{busy ? 'Đang đồng bộ...' : connected ? 'Đồng bộ với Google Drive' : 'Kết nối Google & đồng bộ'}</span>
+          <span>{busy ? 'Đang đồng bộ...' : connected ? 'Đồng bộ ngay với Google Drive' : 'Kết nối Google & đồng bộ'}</span>
         </button>
       </div>
     </div>
