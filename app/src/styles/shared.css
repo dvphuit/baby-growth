@@ -104,9 +104,27 @@
 }
 
 .section-more-btn {
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
   font-size: 13px;
   color: var(--color-text-muted);
   cursor: pointer;
+}
+
+.section-more-button:hover,
+.section-more-button:focus-visible {
+  background: var(--color-card-warm);
+  color: var(--color-text-primary);
+}
+
+.section-more-button:focus-visible {
+  outline: 3px solid rgba(126, 175, 80, 0.55);
+  outline-offset: 2px;
 }
 
 .section-action-button {

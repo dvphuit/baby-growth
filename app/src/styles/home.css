@@ -132,15 +132,28 @@
 }
 
 .habit-card-item {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 38px;
   padding: 6px 7px;
+  border: 0;
   border-radius: var(--radius-sm);
   background: var(--color-card-warm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.habit-card-item:focus-visible,
+.tracker-list-item:focus-visible,
+.freud-score-card:focus-visible,
+.mood-highlight-card:focus-visible {
+  outline: 3px solid rgba(126, 175, 80, 0.55);
+  outline-offset: 2px;
 }
 
 .habit-card-item:hover {
@@ -153,6 +166,27 @@
 
 .habit-card-item.completed {
   opacity: 0.65;
+}
+
+.habits-empty-state {
+  display: grid;
+  gap: 3px;
+  padding: 12px 10px;
+  border: 1px dashed var(--color-border-hover);
+  border-radius: var(--radius-md);
+  background: var(--color-card-warm);
+}
+
+.habits-empty-state-title {
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.habits-empty-state-copy {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .habit-checkbox-circle {
@@ -224,6 +258,10 @@
 }
 
 .freud-score-card {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: initial;
   background: var(--color-sage);
   border-radius: var(--radius-xl);
   padding: 12px 10px;
@@ -274,6 +312,10 @@
 }
 
 .mood-highlight-card {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: initial;
   background: linear-gradient(145deg, #F37D34 0%, #E96424 100%);
   border-radius: var(--radius-xl);
   padding: 12px 10px;
@@ -354,10 +396,14 @@
 }
 
 .tracker-list-item {
+  width: 100%;
+  border: 1px solid var(--color-border-subtle);
+  font: inherit;
+  color: var(--color-text-primary);
+  text-align: initial;
   background: #FFFFFF;
   border-radius: var(--radius-lg);
   padding: 10px 12px;
-  border: 1px solid var(--color-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -818,4 +864,42 @@
 .score-badge-circle-right.high {
   background: var(--color-sage-light);
   color: var(--color-sage-dark);
+}
+
+@media (max-width: 360px) {
+  .home-view-container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .metrics-carousel-grid {
+    gap: 8px;
+  }
+
+  .freud-score-card,
+  .mood-highlight-card {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .tracker-list-item {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .resource-item-card {
+    min-width: 145px;
+    max-width: 145px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habit-card-item,
+  .freud-score-card,
+  .mood-highlight-card,
+  .tracker-list-item,
+  .ai-banner-btn-circle,
+  .resource-item-card {
+    transition: none;
+  }
 }

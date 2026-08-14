@@ -45,3 +45,11 @@ Console smoke check cho viewport hiện tại cho thấy `horizontalOverflow: fa
 Build production, lint và `git diff --check` đều đạt. Preview render thành công ở mode Bé và Mẹ; stage picker cập nhật dữ liệu theo stage; search compact mở/đóng đúng; CTA pumping mở đúng modal; AI modal mở đúng và copy mới hiển thị. Smoke check cuối cho kết quả `horizontalOverflow: false` và `interactiveWithoutLabel: []` ở viewport kiểm tra.
 
 Build vẫn phát cảnh báo chunk JavaScript lớn hơn 500 kB sau minification; đây là warning có sẵn/không chặn build, chưa xử lý trong phạm vi Home.
+
+## P2 follow-up preview
+
+Preview sau semantic refactor render thành công ở mode Mẹ và Bé. Các health card, tracker row, DailyHabits item và AI CTA đều được browser nhận diện là `button` với accessible hint tương ứng. DailyHabits vẫn hiển thị tiến độ 3/5, layout không vỡ và không có lỗi runtime trong preview.
+
+## P2 regression
+
+DOM smoke check ở preview cho kết quả `horizontalOverflow: false` và `unlabeledControls: []`. Health card `btnOpenFreudScore` vẫn mở đúng Score Detail sau khi chuyển sang button semantic.
