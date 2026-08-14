@@ -60,9 +60,21 @@
 }
 
 .search-filter-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
   font-size: 13px;
   color: var(--color-text-secondary);
   cursor: pointer;
+}
+
+.search-filter-icon:hover,
+.search-filter-icon:focus-visible {
+  background: var(--color-card-warm);
 }
 
 .age-stages-pills {
@@ -95,6 +107,26 @@
   font-size: 13px;
   color: var(--color-text-muted);
   cursor: pointer;
+}
+
+.section-action-button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  color: var(--color-sage-dark);
+  background: var(--color-sage-light);
+  font-size: 10px;
+  font-weight: 700;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.section-action-button:hover,
+.section-action-button:focus-visible {
+  background: var(--color-sage-subtle);
+}
+
+.section-action-button:active {
+  transform: scale(0.97);
 }
 
 .card-top-tag-row {
@@ -788,6 +820,13 @@
   align-items: center;
   gap: 3px;
   white-space: nowrap;
+}
+
+.ai-chat-disclaimer {
+  margin: 0 4px 6px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  line-height: 1.4;
 }
 
 .ai-chat-messages-container {

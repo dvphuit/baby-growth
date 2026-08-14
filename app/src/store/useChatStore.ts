@@ -15,7 +15,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'm_init_1',
     sender: 'ai',
-    text: 'Xin chào Mẹ Thảo! Tôi là Bác sĩ Freud AI (Chuyên khoa Nhi & Sản phụ khoa). Hôm nay Bé Bơ ăn ngủ thế nào? Tôi có thể hỗ trợ gì cho gia đình mình?',
+    text: 'Xin chào Mẹ Thảo! Tôi là Trợ lý Freud AI về chăm sóc Bé & Mẹ. Hôm nay Bé Bơ ăn ngủ thế nào? Tôi có thể cung cấp thông tin tham khảo gì cho gia đình mình?',
     time: '09:00',
   },
 ];

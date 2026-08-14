@@ -84,18 +84,23 @@ export const AIDoctorChatModal: React.FC<AIDoctorChatModalProps> = ({
             </div>
             <div className="ai-doc-name-col">
               <span className="ai-doc-name">{AI_CHAT_KNOWLEDGE.doctorName}</span>
-              <span className="ai-doc-status">● Trực tuyến 24/7 (AI Nhi)</span>
+              <span className="ai-doc-status">● {AI_CHAT_KNOWLEDGE.status} · Thông tin tham khảo</span>
             </div>
           </div>
           <button
             className="sheet-close-btn"
             id="modalCloseBtn"
+            aria-label="Đóng trợ lý AI"
             onClick={onClose}
             style={{ color: '#FFFFFF', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <X size={14} />
           </button>
         </div>
+
+        <p className="ai-chat-disclaimer">
+          Trợ lý AI cung cấp thông tin tham khảo và không thay thế chẩn đoán hoặc tư vấn trực tiếp từ nhân viên y tế.
+        </p>
 
         <div
           className="ai-chat-messages-container"
@@ -156,6 +161,7 @@ export const AIDoctorChatModal: React.FC<AIDoctorChatModalProps> = ({
           <button
             className="chat-send-btn"
             id="btnChatSend"
+            aria-label="Gửi tin nhắn"
             onClick={() => handleSendMessage()}
           >
             <Send size={14} />

@@ -146,6 +146,7 @@ export const AppContent: React.FC = () => {
                   onOpenQuickLog={() => setIsQuickLogOpen(true)}
                   onOpenAiChat={() => setIsAiChatOpen(true)}
                   onOpenPumping={() => setIsAddPumpingOpen(true)}
+                  onShowToast={addToast}
                 />
               )
             }
