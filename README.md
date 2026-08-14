@@ -128,6 +128,34 @@ Open the profile page, select **Kết nối Google & đồng bộ**, and approve
 
 Never commit `.env.local` or OAuth client secrets. The browser client ID is not a secret, but the authorized origins and requested scopes must be configured deliberately.
 
+## Test Deployment to Firebase Hosting
+
+A test deployment script is available at `app/scripts/deploy-test.sh`. It runs linting and a production build, then deploys a Firebase Hosting preview channel named `test` for seven days. The script includes the public Google OAuth Client ID supplied for BabyGrowth and supports overrides through environment variables.
+
+Install and authenticate the Firebase CLI once:
+
+```bash
+npm install --global firebase-tools
+firebase login
+```
+
+Run the test deployment from the application directory:
+
+```bash
+cd app
+npm run deploy:test
+```
+
+The script defaults to Firebase project `baby-growth-dvphu` and uses the preview channel `test`. To override either value:
+
+```bash
+FIREBASE_PROJECT_ID=baby-growth-dvphu \\
+FIREBASE_CHANNEL_ID=qa \\
+npm run deploy:test
+```
+
+Firebase prints a preview URL after deployment. Add the exact preview origin, containing only the scheme and hostname, to **Google Auth Platform → Clients → Authorized JavaScript origins** before testing OAuth. Preview URLs may contain a generated host, so do not add `/profile` or other paths as origins. The preview channel expires after seven days.
+
 ## Build and Deploy to Firebase Hosting
 
 Firebase Hosting configuration is stored in `app/firebase.json`. The deployment directory is `app/dist/`, and all routes are rewritten to `index.html` to support SPA routing.
