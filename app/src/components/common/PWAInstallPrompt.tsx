@@ -48,8 +48,18 @@ export const PWAInstallPrompt: React.FC = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Samsung Internet has no native install button & no beforeinstallprompt event.
+    // Auto-open the manual install guide so users immediately see how to install.
+    let guideTimer: ReturnType<typeof setTimeout> | undefined;
+    if (isSamsung && !isStandaloneMode) {
+      guideTimer = setTimeout(() => {
+        setShowGuide(true);
+      }, 1200);
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      if (guideTimer) clearTimeout(guideTimer);
     };
   }, []);
 
