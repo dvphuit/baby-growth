@@ -30,6 +30,7 @@ export default defineConfig({
         name: 'BabyGrowth AI - Theo dõi Bé & Mẹ',
         short_name: 'BabyGrowth',
         description: 'Ứng dụng theo dõi phát triển Bé & Chăm sóc Mẹ chuẩn WHO (0-18 tuổi)',
+        lang: 'vi',
         theme_color: '#FAF8F5',
         background_color: '#FAF8F5',
         display: 'standalone',

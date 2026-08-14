@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { BottomSheet } from './BottomSheet';
-import { Smartphone, Plus, X, Share2, PlusSquare, Check } from 'lucide-react';
+import { Smartphone, Plus, X, Share2, PlusSquare, Check, Menu } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+type BrowserType = 'samsung' | 'ios' | 'android' | 'other';
+
 export const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
-  const [showIosGuide, setShowIosGuide] = useState<boolean>(false);
-  const [isIos, setIsIos] = useState<boolean>(false);
+  const [showGuide, setShowGuide] = useState<boolean>(false);
+  const [browserType, setBrowserType] = useState<BrowserType>('other');
 
   useEffect(() => {
     // Check if already in standalone mode
@@ -21,12 +23,24 @@ export const PWAInstallPrompt: React.FC = () => {
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setIsStandalone(isStandaloneMode);
 
-    // Detect iOS
+    // Detect browser type
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
-    setIsIos(isIosDevice);
+    const isIosDevice =
+      /iphone|ipad|ipod/.test(userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    const isSamsung = /samsungbrowser/.test(userAgent);
 
-    // Listen for beforeinstallprompt event on Android / Chrome / Edge
+    if (isSamsung) {
+      setBrowserType('samsung');
+    } else if (isIosDevice) {
+      setBrowserType('ios');
+    } else if (/android/.test(userAgent)) {
+      setBrowserType('android');
+    } else {
+      setBrowserType('other');
+    }
+
+    // Listen for beforeinstallprompt event (Chrome / Edge / Android WebView)
+    // NOTE: Samsung Internet does NOT fire this event, so it falls back to manual guide.
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -51,11 +65,116 @@ export const PWAInstallPrompt: React.FC = () => {
         setIsDismissed(true);
       }
       setDeferredPrompt(null);
-    } else if (isIos) {
-      setShowIosGuide(true);
     } else {
-      setShowIosGuide(true);
+      // Samsung, iOS, or browsers without beforeinstallprompt → show manual guide
+      setShowGuide(true);
     }
+  };
+
+  const renderGuideSteps = () => {
+    if (browserType === 'samsung') {
+      return (
+        <>
+          <div className="ios-step-item">
+            <div className="ios-step-num">1</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Bấm vào biểu tượng <strong>Menu (⋮)</strong>{' '}
+                <Menu size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> ở góc dưới bên phải trình duyệt Samsung Internet.
+              </span>
+            </div>
+          </div>
+
+          <div className="ios-step-item">
+            <div className="ios-step-num">2</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Chọn <strong>"Thêm vào màn hình chính" (Add to Home screen)</strong>{' '}
+                <PlusSquare size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />.
+              </span>
+            </div>
+          </div>
+
+          <div className="ios-step-item">
+            <div className="ios-step-num">3</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Nhấn nút <strong>"Thêm" (Add)</strong> để hoàn tất. App sẽ xuất hiện trên màn hình chính.
+              </span>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    if (browserType === 'ios') {
+      return (
+        <>
+          <div className="ios-step-item">
+            <div className="ios-step-num">1</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Bấm vào biểu tượng <strong>Chia sẻ (Share)</strong>{' '}
+                <Share2 size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> ở thanh công cụ dưới đáy trình duyệt Safari.
+              </span>
+            </div>
+          </div>
+
+          <div className="ios-step-item">
+            <div className="ios-step-num">2</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Cuộn xuống và chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>{' '}
+                <PlusSquare size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />.
+              </span>
+            </div>
+          </div>
+
+          <div className="ios-step-item">
+            <div className="ios-step-num">3</div>
+            <div className="ios-step-content">
+              <span className="ios-step-text">
+                Nhấn nút <strong>"Thêm" (Add)</strong> ở góc trên bên phải để hoàn tất.
+              </span>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // Android / other browsers
+    return (
+      <>
+        <div className="ios-step-item">
+          <div className="ios-step-num">1</div>
+          <div className="ios-step-content">
+            <span className="ios-step-text">
+              Bấm vào biểu tượng <strong>Menu (⋮)</strong>{' '}
+              <Menu size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> ở góc trên bên phải trình duyệt.
+            </span>
+          </div>
+        </div>
+
+        <div className="ios-step-item">
+          <div className="ios-step-num">2</div>
+          <div className="ios-step-content">
+            <span className="ios-step-text">
+              Chọn <strong>"Thêm vào màn hình chính" (Add to Home screen)</strong>{' '}
+              <PlusSquare size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />.
+            </span>
+          </div>
+        </div>
+
+        <div className="ios-step-item">
+          <div className="ios-step-num">3</div>
+          <div className="ios-step-content">
+            <span className="ios-step-text">
+              Nhấn nút <strong>"Thêm" (Add)</strong> để hoàn tất. App sẽ xuất hiện trên màn hình chính.
+            </span>
+          </div>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -86,10 +205,10 @@ export const PWAInstallPrompt: React.FC = () => {
         </div>
       </div>
 
-      {/* iOS & Manual Installation Instruction Modal */}
+      {/* Manual Installation Instruction Modal */}
       <BottomSheet
-        isOpen={showIosGuide}
-        onClose={() => setShowIosGuide(false)}
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
         title="Hướng Dẫn Cài Đặt PWA"
       >
         <div style={{ padding: '4px 0 12px 0' }}>
@@ -117,41 +236,12 @@ export const PWAInstallPrompt: React.FC = () => {
             </div>
           </div>
 
-          <div className="ios-install-steps">
-            <div className="ios-step-item">
-              <div className="ios-step-num">1</div>
-              <div className="ios-step-content">
-                <span className="ios-step-text">
-                  Bấm vào biểu tượng <strong>Chia sẻ (Share)</strong>{' '}
-                  <Share2 size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} /> ở thanh công cụ dưới đáy trình duyệt Safari / Chrome.
-                </span>
-              </div>
-            </div>
-
-            <div className="ios-step-item">
-              <div className="ios-step-num">2</div>
-              <div className="ios-step-content">
-                <span className="ios-step-text">
-                  Cuộn xuống và chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>{' '}
-                  <PlusSquare size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 2px' }} />.
-                </span>
-              </div>
-            </div>
-
-            <div className="ios-step-item">
-              <div className="ios-step-num">3</div>
-              <div className="ios-step-content">
-                <span className="ios-step-text">
-                  Nhấn nút <strong>"Thêm" (Add)</strong> ở góc trên bên phải để hoàn tất.
-                </span>
-              </div>
-            </div>
-          </div>
+          <div className="ios-install-steps">{renderGuideSteps()}</div>
 
           <button
             className="log-btn-primary"
             style={{ marginTop: '16px' }}
-            onClick={() => setShowIosGuide(false)}
+            onClick={() => setShowGuide(false)}
           >
             <span>Đã Hiểu</span>
             <Check size={16} strokeWidth={2.4} />
