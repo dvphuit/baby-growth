@@ -3,6 +3,7 @@ import { useBabyStore } from '@/store/useBabyStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useUIStore } from '@/store/useUIStore';
 import { useFamily } from '@/hooks/useFamily';
+import { GoogleSyncCard } from './GoogleSyncCard';
 import { formatDateDisplay } from '@/utils/date';
 import {
   ArrowLeft,
@@ -409,7 +410,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </div>
 
-      {/* Section 5: Hành động nhanh & Tiện ích */}
+      {/* Section 5: Đồng bộ dữ liệu cục bộ với Google Drive */}
+      <GoogleSyncCard onShowToast={onShowToast} />
+
+      {/* Section 6: Hành động nhanh & Tiện ích */}
       <div className="profile-action-buttons-group">
         <button
           className="profile-action-btn primary"

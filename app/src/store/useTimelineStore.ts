@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { indexedDbStorage } from '@/services/localDb';
 import type { TimelineItem, CalendarViewMode } from '@/types';
 import { INITIAL_TIMELINE_ITEMS, FAMILY_DATA } from '@/data/seedData';
 import { todayStr, currentTimeStr } from '@/utils/date';
@@ -98,6 +99,7 @@ export const useTimelineStore = create<TimelineStoreState>()(
     }),
     {
       name: 'babygrowth_v2_timeline',
+      storage: createJSONStorage(() => indexedDbStorage),
       partialize: (state) => ({
         timelineItems: state.timelineItems,
         selectedCalendarDate: state.selectedCalendarDate,

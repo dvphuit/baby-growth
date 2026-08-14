@@ -2,7 +2,7 @@
 
 BabyGrowth AI is a web application that helps families track a baby’s development and support the mother’s well-being in one place. The application provides an overview dashboard, daily logs, growth tracking, expense management, family profiles, and care-support interactions.
 
-> **Current status:** This is a frontend prototype/working demo built with React and TypeScript. The current implementation loads local seed data; the service layer is separated so it can be replaced with a real backend API in a later phase.
+> **Current status:** This is a frontend-only, local-first web app built with React and TypeScript. User data is stored in the browser's IndexedDB and can be synchronized to the user's Google Drive `appDataFolder` without a dedicated application backend.
 
 ## Key Features
 
@@ -16,6 +16,8 @@ BabyGrowth AI is a web application that helps families track a baby’s developm
 | Baby profile | Displays personal information, current measurements, vaccinations, milestones, and family details. |
 | AI support | Provides a chat interface and suggested care questions based on the current sample knowledge base. |
 | PWA | Can be installed as an application on supported devices and uses caching/offline mechanisms for precached assets. |
+| Local data | Zustand persistence backed by IndexedDB, with lazy migration from the previous localStorage keys. |
+| Google sync | Google Identity Services token model + Google Drive API `appDataFolder`; synchronization is initiated from the browser. |
 
 ## Technology Stack
 
@@ -103,9 +105,28 @@ baby-growth/
 
 ## Data and Backend
 
-The application currently does not require environment variables or a separate backend to run the demo. Functions in `app/src/services/api.ts` currently return data from `app/src/data/seedData.ts`. When a backend becomes available, the current implementations can be replaced with `fetch()` calls without changing the interfaces used by the UI.
+BabyGrowth is intentionally **local-first** and does not require an application server. The persisted Zustand stores use IndexedDB through `app/src/services/localDb.ts`. Existing values from the old `localStorage` keys are migrated lazily when each store is first opened, so the architecture change does not discard current browser data.
 
-For clarity, the current seed data is intended only for development and demonstration. It must not be treated as real medical or financial data, and the application does not replace advice from a doctor or qualified healthcare professional.
+The optional Google integration is implemented in `app/src/services/googleDriveSync.ts`. After the user grants permission, the browser obtains a short-lived access token through Google Identity Services and stores one JSON snapshot in the application's private Drive space, `appDataFolder`. The app does not store a Google refresh token or require a server-side credential. This is device-to-Drive backup/synchronization, not real-time multi-user collaboration.
+
+The `app/src/services/api.ts` module still returns seed data for the read-only demo knowledge and reference content. User-generated state is persisted locally and included in the sync snapshot. The seed data is intended only for development and demonstration; it must not be treated as real medical or financial data, and the application does not replace advice from a doctor or qualified healthcare professional.
+
+## Configure Google Drive Sync
+
+Create an OAuth 2.0 **Web application** client in Google Cloud Console, configure the OAuth consent screen, enable the Google Drive API, and add each development or production origin to the client's Authorized JavaScript origins. The app requests the narrow `https://www.googleapis.com/auth/drive.appdata` scope, which is intended for application-specific data.
+
+Copy `app/.env.example` to `app/.env.local` and replace the placeholder value:
+
+```bash
+cd app
+cp .env.example .env.local
+# Edit .env.local and set VITE_GOOGLE_CLIENT_ID
+npm run dev
+```
+
+Open the profile page, select **Kết nối Google & đồng bộ**, and approve the Google consent dialog. On later devices using the same Google Account, the app compares the local IndexedDB snapshot with the Drive snapshot. If only one side changed, it automatically downloads or uploads the changed version. If both sides changed, the profile page presents an explicit choice between keeping the local data and using the Drive data.
+
+Never commit `.env.local` or OAuth client secrets. The browser client ID is not a secret, but the authorized origins and requested scopes must be configured deliberately.
 
 ## Build and Deploy to Firebase Hosting
 

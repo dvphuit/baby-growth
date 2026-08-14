@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { indexedDbStorage } from '@/services/localDb';
 import type { StageKey, StageData, DailyHabit, GrowthHistoryRecord, FamilyData } from '@/types';
 import { INITIAL_STAGES, INITIAL_DAILY_HABITS, FAMILY_DATA } from '@/data/seedData';
 import { generateId } from '@/utils/format';
@@ -128,6 +129,7 @@ export const useBabyStore = create<BabyStoreState>()(
     }),
     {
       name: 'babygrowth_v2_baby',
+      storage: createJSONStorage(() => indexedDbStorage),
     }
   )
 );

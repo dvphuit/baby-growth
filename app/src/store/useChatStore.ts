@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { indexedDbStorage } from '@/services/localDb';
 import type { ChatMessage } from '@/types';
 import { currentTimeStr } from '@/utils/date';
 import { generateId } from '@/utils/format';
@@ -37,6 +38,7 @@ export const useChatStore = create<ChatStoreState>()(
     }),
     {
       name: 'babygrowth_v2_chat',
+      storage: createJSONStorage(() => indexedDbStorage),
     }
   )
 );

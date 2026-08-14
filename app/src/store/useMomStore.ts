@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { indexedDbStorage } from '@/services/localDb';
 import type { MomData } from '@/types';
 import { INITIAL_MOM_DATA, FAMILY_DATA } from '@/data/seedData';
 import { currentTimeStr } from '@/utils/date';
@@ -57,6 +58,7 @@ export const useMomStore = create<MomStoreState>()(
     }),
     {
       name: 'babygrowth_v2_mom',
+      storage: createJSONStorage(() => indexedDbStorage),
     }
   )
 );

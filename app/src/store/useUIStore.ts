@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { indexedDbStorage } from '@/services/localDb';
 import type { TabType, ProfileMode } from '@/types';
 
 interface UIStoreState {
@@ -27,6 +28,7 @@ export const useUIStore = create<UIStoreState>()(
     }),
     {
       name: 'babygrowth_v2_ui',
+      storage: createJSONStorage(() => indexedDbStorage),
       partialize: (state) => ({
         currentTab: state.currentTab,
         profileMode: state.profileMode,
