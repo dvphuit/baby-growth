@@ -1,0 +1,275 @@
+/* ==========================================================================
+   COMPONENTS DESIGN SYSTEM
+   Baby & Child Growth Tracker (0 - 18 Years)
+   Exact Mockup Match (Freud.ai Warm & Earthy Minimalist Ecosystem)
+   Polished Compact Typography & Single-Line No-Wrap Layouts
+   ========================================================================== */
+
+/* ==========================================================================
+   1. APP HEADER & TOP PROFILE SEARCH ROW
+   ========================================================================== */
+
+.app-header {
+  padding: calc(10px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 8px var(--page-padding-x);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--color-canvas);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.header-date-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.header-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Header AI Doctor Pill Button */
+.header-ai-pill-btn {
+  border: none;
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  font-family: var(--font-family-display);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(51, 37, 31, 0.2);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.header-ai-pill-btn:hover {
+  background: var(--color-primary-dark-hover);
+  transform: translateY(-1px);
+}
+
+.header-notification-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  flex-shrink: 0;
+}
+
+.header-notification-btn::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  background: var(--color-sad);
+  border-radius: 50%;
+}
+
+/* User Profile Row */
+.header-profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.header-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.header-avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: relative;
+  background: #E8DFD8;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.header-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-profile-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header-welcome-title {
+  font-family: var(--font-family-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-status-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+}
+
+/* Dual Mode Toggle (Baby vs Mom) */
+.dual-mode-toggle {
+  display: flex;
+  background: #ECE5DC;
+  padding: 2.5px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.dual-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.dual-mode-btn.active {
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.2);
+}
+
+/* Search Bar */
+.header-search-bar {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0 12px;
+  height: 38px;
+  box-shadow: 0 2px 8px rgba(51, 37, 31, 0.03);
+  margin-bottom: 8px;
+}
+
+.search-input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-family-body);
+  font-size: 11.5px;
+  color: var(--color-text-primary);
+  margin-left: 6px;
+}
+
+.search-input-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Age Simulator Pills Bar */
+.age-simulator-wrapper {
+  background: var(--color-card-warm);
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.age-simulator-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.stage-pill {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  padding: 4px 2px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.stage-pill .stage-name {
+  font-family: var(--font-family-display);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.stage-pill .stage-age {
+  font-size: 8px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.stage-pill.active {
+  background: var(--color-sage);
+  border-color: var(--color-sage);
+  box-shadow: 0 3px 8px rgba(141, 160, 111, 0.3);
+}
+
+.stage-pill.active .stage-name {
+  color: #FFFFFF;
+}
+
+.stage-pill.active .stage-age {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}

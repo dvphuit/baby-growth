@@ -1,0 +1,234 @@
+/* ==========================================================================
+   8. EXPENSES TAB & FUTURE PLANNING DESIGN
+   ========================================================================== */
+
+.expense-summary-hero {
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  border-radius: var(--radius-xl);
+  padding: var(--card-padding);
+  margin-bottom: 0;
+  box-shadow: 0 8px 22px rgba(51, 37, 31, 0.2);
+}
+
+.expense-hero-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+.expense-hero-amount {
+  font-family: var(--font-family-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  white-space: nowrap;
+}
+
+.expense-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.expense-cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 8px;
+  background: var(--color-canvas);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Future Calc Card */
+.future-calc-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  padding: 14px 12px;
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 12px;
+}
+
+.future-calc-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+.future-calc-title {
+  font-family: var(--font-family-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
+}
+
+.future-result-box {
+  background: var(--color-canvas);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  text-align: center;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.future-result-label {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.future-result-amount {
+  font-family: var(--font-family-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  margin: 3px 0 1px 0;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   9. EXPENSE CREATOR MODAL SYSTEM
+   ========================================================================== */
+
+.expense-creator-subnav {
+  display: flex;
+  background: #ECE5DC;
+  border-radius: var(--radius-pill);
+  padding: 2.5px;
+  margin-bottom: 10px;
+}
+
+.expense-creator-subbtn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-display);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.expense-creator-subbtn.active {
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.2);
+}
+
+/* Big Numerical Display Box */
+.expense-display-hero-box {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 10px 14px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.expense-display-cat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+.expense-display-number {
+  font-family: var(--font-family-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.expense-display-note {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 1-Tap Preset Grid */
+.expense-preset-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+/* Recurring Subscriptions */
+.recurring-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.recurring-row-item {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recurring-toggle-switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  background: #D9D2C9;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.recurring-toggle-switch.active {
+  background: var(--color-sage);
+}
+
+.recurring-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+}
+
+.recurring-toggle-switch.active::after {
+  transform: translateX(14px);
+}

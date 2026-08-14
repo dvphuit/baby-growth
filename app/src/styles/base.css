@@ -1,0 +1,83 @@
+/* ==========================================================================
+   BASE STYLES & UNIFIED PAGE LAYOUT
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: var(--font-family-body);
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+/* Unified Application Container */
+.app-container {
+  width: 100%;
+  max-width: 500px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background-color: var(--color-canvas);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Content Area with unified 16px horizontal margins */
+.view-content-wrapper {
+  flex: 1;
+  width: 100%;
+  padding: var(--page-padding-top) var(--page-padding-x) 0 var(--page-padding-x);
+  box-sizing: border-box;
+}
+
+/* Safe Spacer above fixed floating bottom dock */
+.bottom-safe-spacer {
+  display: block !important;
+  width: 100% !important;
+  height: 84px !important;
+  height: calc(76px + env(safe-area-inset-bottom, 12px)) !important;
+  min-height: 76px !important;
+  flex-shrink: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

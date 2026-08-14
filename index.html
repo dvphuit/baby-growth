@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>BabyGrowth AI | Theo dõi phát triển Bé & Mẹ (0 - 18 Tuổi)</title>
+  
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js for WHO Growth & Financial Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Application Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=2.5" />
+  <link rel="stylesheet" href="css/components.css?v=2.5" />
+  <link rel="stylesheet" href="css/animations.css?v=2.5" />
+</head>
+<body>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="app-container" id="appContainer">
+    
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- STICKY HEADER & CONTROLLER BARS -->
+    <header class="app-header" id="mainHeader">
+      <!-- Rendered dynamically by js/app.js -->
+    </header>
+
+    <!-- DYNAMIC VIEW CONTAINER -->
+    <main id="appMainContent" class="view-content-wrapper">
+      <!-- Rendered dynamically by js/app.js -->
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (Spacious 4 Tabs + Center FAB) -->
+    <nav class="bottom-nav-container">
+      
+      <!-- Tab 1: Trang chủ -->
+      <button class="nav-tab-item active" data-tab="home" id="navTabHome">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span class="nav-tab-label">Trang chủ</span>
+      </button>
+
+      <!-- Tab 2: Timeline & Nhật ký -->
+      <button class="nav-tab-item" data-tab="timeline" id="navTabTimeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="4" width="18" height="18" rx="3" ry="3"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+          <circle cx="8" cy="15" r="1.5" fill="currentColor"></circle>
+          <circle cx="16" cy="15" r="1.5" fill="currentColor"></circle>
+        </svg>
+        <span class="nav-tab-label">Nhật ký</span>
+      </button>
+
+      <!-- Center Floating Action Button (FAB) -->
+      <div class="fab-center-wrapper">
+        <button class="fab-center-btn" id="fabCenterBtn" title="Ghi chép nhanh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Tab 3: Thống kê & Đồ thị tăng trưởng -->
+      <button class="nav-tab-item" data-tab="growth" id="navTabGrowth">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 20V10"></path>
+          <path d="M12 20V4"></path>
+          <path d="M6 20v-6"></path>
+          <circle cx="12" cy="4" r="1.5" fill="currentColor"></circle>
+        </svg>
+        <span class="nav-tab-label">Tăng trưởng</span>
+      </button>
+
+      <!-- Tab 4: Chi tiêu & Quỹ tương lai -->
+      <button class="nav-tab-item" data-tab="expenses" id="navTabExpenses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v10"></path>
+          <path d="M9.5 9.5a2.5 2.5 0 0 1 5 0c0 2-3 2-3 4h3"></path>
+        </svg>
+        <span class="nav-tab-label">Chi tiêu</span>
+      </button>
+
+    </nav>
+
+    <!-- MODAL & BOTTOM SHEET CONTAINER -->
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="bottom-sheet" id="modalContentContainer">
+        <!-- Dynamic Form or Details injected here -->
+      </div>
+    </div>
+
+    <!-- MEDIA LIGHTBOX MODAL -->
+    <div class="media-lightbox" id="mediaLightbox">
+      <button class="lightbox-close-btn" id="lightboxCloseBtn">✕</button>
+      <div class="lightbox-content-box" id="lightboxContentBox"></div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="js/mockData.js?v=2.5"></script>
+  <script src="js/state.js?v=2.5"></script>
+  <script src="js/charts.js?v=2.5"></script>
+  <script src="js/app.js?v=2.5"></script>
+
+</body>
+</html>

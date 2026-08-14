@@ -1,0 +1,53 @@
+.bottom-sheet {
+  background: #FFFFFF;
+  border-radius: 28px 28px 0 0;
+  padding: 14px 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px;
+  max-height: 88vh;
+  max-height: 88dvh;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  transform: translateY(100%);
+  transition: transform var(--transition-smooth);
+}
+
+.sheet-handle-bar {
+  width: 36px;
+  height: 4px;
+  background: var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  margin: 0 auto 12px auto;
+}
+
+.sheet-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  white-space: nowrap;
+}
+
+.sheet-title {
+  font-family: var(--font-family-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
+}
+
+.sheet-close-btn {
+  border: none;
+  background: var(--color-canvas);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}

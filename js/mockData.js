@@ -1,0 +1,722 @@
+/**
+ * Mock Data Store for Baby & Child Growth Tracker (0 - 18 Years)
+ * Fully tailored to Earthy Organic Minimalist Design System
+ */
+
+const MOCK_DATA = {
+  // Family & Profiles
+  family: {
+    childName: "Bé Bơ",
+    childFullName: "Nguyễn Minh Khang",
+    birthDate: "2025-11-20",
+    gender: "boy",
+    bloodType: "O+",
+    childAvatar: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=200&auto=format&fit=crop&q=80",
+    momName: "Mẹ Thảo",
+    momAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+    dadName: "Bố Tuấn",
+    dadAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+  },
+
+  // 4 Main Age Stages (0 - 18 Years)
+  stages: {
+    stage_0_1: {
+      id: "stage_0_1",
+      name: "Sơ sinh & Nhũ nhi",
+      ageRange: "0 - 12 Tháng",
+      currentAgeText: "8 tháng 24 ngày",
+      growthScore: 92,
+      growthScoreLabel: "Phát triển Tối ưu",
+      wellnessCategory: "Normal",
+      todayVitals: {
+        weight: "8.6 kg",
+        height: "71.5 cm",
+        headCirc: "44.2 cm",
+        temperature: "36.8 °C",
+        sleepTotal: "13.5 giờ",
+        milkTotal: "780 ml",
+        diaperCount: 5,
+        mood: "Happy",
+        moodEmoji: "😊"
+      },
+      // WHO Growth Charts Data (0 - 12 Months)
+      growthChart: {
+        labels: ["0m", "2m", "4m", "6m", "8m", "10m", "12m"],
+        height: {
+          child: [50.0, 58.4, 64.0, 68.2, 71.5, null, null],
+          whoP50: [49.9, 58.4, 63.9, 67.6, 70.6, 73.3, 75.7],
+          whoP97: [53.4, 62.2, 68.0, 71.9, 75.0, 77.9, 80.5],
+          whoP3: [46.3, 54.7, 59.9, 63.3, 66.2, 68.7, 71.0]
+        },
+        weight: {
+          child: [3.3, 5.6, 7.0, 8.0, 8.6, null, null],
+          whoP50: [3.3, 5.6, 7.0, 7.9, 8.6, 9.2, 9.6],
+          whoP97: [4.3, 7.1, 8.7, 9.8, 10.5, 11.2, 11.8],
+          whoP3: [2.5, 4.4, 5.6, 6.4, 7.0, 7.5, 7.9]
+        },
+        headCirc: {
+          child: [34.5, 38.2, 41.0, 42.8, 44.2, null, null],
+          whoP50: [34.5, 38.3, 41.0, 42.8, 44.1, 45.1, 45.9],
+          whoP97: [36.7, 40.5, 43.2, 45.0, 46.3, 47.3, 48.1],
+          whoP3: [32.2, 36.1, 38.8, 40.6, 41.9, 42.8, 43.6]
+        }
+      },
+      // Measurement History Logs (Chỉ số đo thực tế)
+      growthHistory: [
+        {
+          id: "gh_8m",
+          date: "2026-08-14",
+          ageText: "8 tháng 24 ngày (8m)",
+          labelIndex: 4, // 8m
+          weight: 8.6,
+          height: 71.5,
+          headCirc: 44.2,
+          percentileLabel: "P50 - P65 (Chuẩn Tối ưu)",
+          status: "optimal",
+          note: "Trương lực cơ tốt, ăn dặm đều đặn, ngủ sâu giấc."
+        },
+        {
+          id: "gh_6m",
+          date: "2026-05-20",
+          ageText: "6 tháng (6m)",
+          labelIndex: 3,
+          weight: 8.0,
+          height: 68.2,
+          headCirc: 42.8,
+          percentileLabel: "P50 (Chuẩn WHO)",
+          status: "optimal",
+          note: "Bắt đầu ăn dặm bơ và yến mạch, tập ngồi có gối đỡ."
+        },
+        {
+          id: "gh_4m",
+          date: "2026-03-20",
+          ageText: "4 tháng (4m)",
+          labelIndex: 2,
+          weight: 7.0,
+          height: 64.0,
+          headCirc: 41.0,
+          percentileLabel: "P50 (Chuẩn WHO)",
+          status: "optimal",
+          note: "Lẫy thành thạo, ngẩng đầu 90 độ vững vàng."
+        },
+        {
+          id: "gh_2m",
+          date: "2026-01-20",
+          ageText: "2 tháng (2m)",
+          labelIndex: 1,
+          weight: 5.6,
+          height: 58.4,
+          headCirc: 38.2,
+          percentileLabel: "P50 (Chuẩn WHO)",
+          status: "optimal",
+          note: "Tiêm phòng 6in1 mũi 1, bú mẹ hoàn toàn."
+        },
+        {
+          id: "gh_0m",
+          date: "2025-11-20",
+          ageText: "Sơ sinh (0m)",
+          labelIndex: 0,
+          weight: 3.3,
+          height: 50.0,
+          headCirc: 34.5,
+          percentileLabel: "P50 (Chuẩn Sơ sinh)",
+          status: "optimal",
+          note: "Bé sinh tại BV Quốc tế, da hồng hào, bú tốt."
+        }
+      ],
+      // Motor Milestones (Lẫy -> Ngồi -> Bò -> Đi)
+      motorMilestones: {
+        score: 94,
+        scoreLabel: "Vận động thô Đạt chuẩn WHO",
+        doctorNote: "Trương lực cơ cổ và lưng của Bé Bơ phát triển rất khỏe. Bé đã lẫy thành thạo và đang tập ngồi vững vàng.",
+        items: [
+          {
+            id: "roll",
+            name: "Lẫy & Lật người (Rolling)",
+            ageWindow: "3 - 5 tháng (Bé đạt: 3m 20d)",
+            icon: "🔄",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "10/03/2026",
+            note: "Bé tự lật sấp và ngẩng cao đầu 90 độ rất vững."
+          },
+          {
+            id: "sit",
+            name: "Ngồi vững không tựa (Sitting)",
+            ageWindow: "6 - 8 tháng (Hiện tại)",
+            icon: "🧘",
+            status: "in-progress",
+            statusLabel: "Đang tập (85%)",
+            dateAchieved: null,
+            note: "Ngồi chơi đồ chơi vững 10-15 phút không cần gối đỡ."
+          },
+          {
+            id: "crawl",
+            name: "Bò trườn & Khám phá (Crawling)",
+            ageWindow: "7 - 10 tháng",
+            icon: "🐛",
+            status: "in-progress",
+            statusLabel: "Đang tập (45%)",
+            dateAchieved: null,
+            note: "Bé đã biết nhổm mông và đẩy người tiến lên phía trước."
+          },
+          {
+            id: "stand_walk",
+            name: "Đứng vịn & Chập chững đi (Walking)",
+            ageWindow: "9 - 14 tháng",
+            icon: "🚶",
+            status: "upcoming",
+            statusLabel: "Sắp tới",
+            dateAchieved: null,
+            note: "Mục tiêu quan trọng cột mốc 1 tuổi."
+          }
+        ]
+      },
+      // Expenses for Stage 0-1
+      expenses: {
+        totalMonth: "4,850,000 đ",
+        budgetMonth: "6,000,000 đ",
+        budgetPercent: 80,
+        categories: [
+          { name: "Tã bỉm & Vệ sinh", amount: "1,250,000 đ", percent: 26, color: "#8DA06F" },
+          { name: "Sữa mẹ & Ăn dặm", amount: "1,450,000 đ", percent: 30, color: "#E97332" },
+          { name: "Tiêm chủng vắc-xin", amount: "1,200,000 đ", percent: 25, color: "#9477ED" },
+          { name: "Quần áo & Đồ dùng", amount: "650,000 đ", percent: 13, color: "#F5B842" },
+          { name: "Sách & Đồ chơi giác quan", amount: "300,000 đ", percent: 6, color: "#33251F" }
+        ]
+      }
+    },
+
+    stage_1_5: {
+      id: "stage_1_5",
+      name: "Mầm non & Khám phá",
+      ageRange: "1 - 5 Tuổi",
+      currentAgeText: "3 tuổi 2 tháng",
+      growthScore: 88,
+      growthScoreLabel: "Năng động & Khỏe mạnh",
+      wellnessCategory: "Normal",
+      todayVitals: {
+        weight: "14.2 kg",
+        height: "96.5 cm",
+        headCirc: "49.0 cm",
+        temperature: "36.6 °C",
+        sleepTotal: "11.5 giờ",
+        milkTotal: "400 ml",
+        diaperCount: 0,
+        mood: "Overjoyed",
+        moodEmoji: "🤩"
+      },
+      growthChart: {
+        labels: ["1y", "2y", "3y", "4y", "5y"],
+        height: {
+          child: [76.0, 87.5, 96.5, null, null],
+          whoP50: [75.7, 87.1, 96.1, 103.3, 110.0],
+          whoP97: [80.5, 92.5, 102.1, 109.8, 117.0],
+          whoP3: [71.0, 81.7, 90.1, 96.8, 103.0]
+        },
+        weight: {
+          child: [9.8, 12.2, 14.2, null, null],
+          whoP50: [9.6, 12.2, 14.3, 16.3, 18.3],
+          whoP97: [11.8, 14.9, 17.6, 20.3, 23.1],
+          whoP3: [7.9, 9.9, 11.5, 12.9, 14.4]
+        },
+        headCirc: {
+          child: [46.0, 48.2, 49.0, null, null],
+          whoP50: [45.9, 48.0, 49.2, 50.1, 50.7],
+          whoP97: [48.1, 50.2, 51.5, 52.4, 53.1],
+          whoP3: [43.6, 45.8, 46.9, 47.7, 48.3]
+        }
+      },
+      motorMilestones: {
+        score: 92,
+        scoreLabel: "Vận động & Ngôn ngữ Tốt",
+        doctorNote: "Bé chạy nhảy linh hoạt, leo cầu thang vững và nói được câu phức tạp 5-6 từ.",
+        items: [
+          {
+            id: "run",
+            name: "Chạy nhảy & Leo cầu thang",
+            ageWindow: "18 - 24 tháng",
+            icon: "🏃",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "15/05/2025",
+            note: "Leo trèo nhanh nhẹn, giữ thăng bằng tốt."
+          },
+          {
+            id: "spoon",
+            name: "Tự xúc ăn & Cầm bút màu",
+            ageWindow: "2 - 3 tuổi",
+            icon: "🎨",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "20/01/2026",
+            note: "Biết cầm thìa ăn gọn gàng và vẽ vòng tròn."
+          },
+          {
+            id: "talk",
+            name: "Nói câu dài & Kể chuyện",
+            ageWindow: "2.5 - 4 tuổi",
+            icon: "🗣️",
+            status: "in-progress",
+            statusLabel: "Đang tập (80%)",
+            dateAchieved: null,
+            note: "Hát thuộc các bài đồng dao và hỏi 'Tại sao?' liên tục."
+          },
+          {
+            id: "social",
+            name: "Chơi hòa nhập & Kết bạn",
+            ageWindow: "3 - 5 tuổi",
+            icon: "🤝",
+            status: "in-progress",
+            statusLabel: "Đang tập (60%)",
+            dateAchieved: null,
+            note: "Biết chia sẻ đồ chơi với bạn ở lớp mầm non."
+          }
+        ]
+      },
+      expenses: {
+        totalMonth: "6,500,000 đ",
+        budgetMonth: "8,000,000 đ",
+        budgetPercent: 81,
+        categories: [
+          { name: "Học phí Mầm non Montessori", amount: "4,200,000 đ", percent: 64, color: "#8DA06F" },
+          { name: "Dinh dưỡng & Trái cây hữu cơ", amount: "1,200,000 đ", percent: 18, color: "#E97332" },
+          { name: "Khu vui chơi & Thể thao", amount: "600,000 đ", percent: 10, color: "#9477ED" },
+          { name: "Quần áo & Giày dép", amount: "500,000 đ", percent: 8, color: "#F5B842" }
+        ]
+      }
+    },
+
+    stage_6_12: {
+      id: "stage_6_12",
+      name: "Tiểu học & Phát triển",
+      ageRange: "6 - 12 Tuổi",
+      currentAgeText: "8 tuổi",
+      growthScore: 90,
+      growthScoreLabel: "Phát triển Chuẩn WHO",
+      wellnessCategory: "Normal",
+      todayVitals: {
+        weight: "25.8 kg",
+        height: "128.5 cm",
+        headCirc: "52.0 cm",
+        temperature: "36.7 °C",
+        sleepTotal: "9.5 giờ",
+        milkTotal: "450 ml",
+        diaperCount: 0,
+        mood: "Happy",
+        moodEmoji: "😊"
+      },
+      growthChart: {
+        labels: ["6y", "7y", "8y", "9y", "10y", "11y", "12y"],
+        height: {
+          child: [116.0, 122.0, 128.5, null, null, null, null],
+          whoP50: [115.5, 121.7, 127.3, 132.6, 137.8, 143.5, 149.8],
+          whoP97: [123.7, 130.4, 136.5, 142.3, 148.0, 154.5, 161.5],
+          whoP3: [107.4, 113.1, 118.2, 123.0, 127.7, 132.6, 138.2]
+        },
+        weight: {
+          child: [20.5, 23.2, 25.8, null, null, null, null],
+          whoP50: [20.5, 22.9, 25.6, 28.6, 31.9, 35.6, 40.0],
+          whoP97: [27.0, 30.7, 35.1, 40.1, 45.8, 52.3, 59.5],
+          whoP3: [16.0, 17.7, 19.5, 21.6, 23.8, 26.3, 29.2]
+        },
+        headCirc: {
+          child: [51.2, 51.7, 52.0, null, null, null, null],
+          whoP50: [51.2, 51.6, 52.0, 52.3, 52.6, 53.0, 53.3],
+          whoP97: [53.5, 53.9, 54.3, 54.6, 54.9, 55.3, 55.7],
+          whoP3: [48.9, 49.3, 49.7, 50.0, 50.3, 50.7, 51.0]
+        }
+      },
+      motorMilestones: {
+        score: 90,
+        scoreLabel: "Kỹ năng Vận động Thể thao Tốt",
+        doctorNote: "Bé bơi lội thành thạo, đi xe đạp 2 bánh tốt và viết chữ chuẩn.",
+        items: [
+          {
+            id: "bike",
+            name: "Đi xe đạp 2 bánh & Bơi Ếch 50m",
+            ageWindow: "6 - 8 tuổi",
+            icon: "🚴",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "12/08/2024",
+            note: "Tự tin bơi hồ bơi sâu và đạp xe công viên."
+          },
+          {
+            id: "write",
+            name: "Viết chữ nhanh & Khéo tay",
+            ageWindow: "6 - 7 tuổi",
+            icon: "✍️",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "05/01/2025",
+            note: "Giữ vở sạch chữ đẹp, tập vẽ tranh màu nước."
+          },
+          {
+            id: "sports",
+            name: "Bóng rổ / Bóng đá Học đường",
+            ageWindow: "8 - 10 tuổi",
+            icon: "⚽",
+            status: "in-progress",
+            statusLabel: "Đang tập (75%)",
+            dateAchieved: null,
+            note: "Tham gia CLB bóng rổ nhí rèn luyện chiều cao."
+          }
+        ]
+      },
+      expenses: {
+        totalMonth: "8,200,000 đ",
+        budgetMonth: "10,000,000 đ",
+        budgetPercent: 82,
+        categories: [
+          { name: "Học phí & Bán trú", amount: "5,000,000 đ", percent: 61, color: "#8DA06F" },
+          { name: "Tiếng Anh & Bơi lội", amount: "2,000,000 đ", percent: 24, color: "#E97332" },
+          { name: "Sách giáo khoa & Dụng cụ", amount: "600,000 đ", percent: 8, color: "#9477ED" },
+          { name: "Dinh dưỡng Canxi/D3", amount: "600,000 đ", percent: 7, color: "#F5B842" }
+        ]
+      }
+    },
+
+    stage_13_18: {
+      id: "stage_13_18",
+      name: "Vị thành niên & Dậy thì",
+      ageRange: "13 - 18 Tuổi",
+      currentAgeText: "15 tuổi",
+      growthScore: 95,
+      growthScoreLabel: "Bứt phá Chiều cao Tốt",
+      wellnessCategory: "Normal",
+      todayVitals: {
+        weight: "54.5 kg",
+        height: "168.0 cm",
+        headCirc: "54.5 cm",
+        temperature: "36.6 °C",
+        sleepTotal: "8.0 giờ",
+        milkTotal: "500 ml",
+        diaperCount: 0,
+        mood: "Happy",
+        moodEmoji: "😊"
+      },
+      growthChart: {
+        labels: ["13y", "14y", "15y", "16y", "17y", "18y"],
+        height: {
+          child: [156.0, 163.0, 168.0, null, null, null],
+          whoP50: [156.2, 163.8, 170.1, 173.4, 175.2, 176.0],
+          whoP97: [168.0, 175.8, 182.2, 185.5, 187.3, 188.0],
+          whoP3: [144.5, 151.8, 158.0, 161.3, 163.1, 164.0]
+        },
+        weight: {
+          child: [45.0, 50.0, 54.5, null, null, null],
+          whoP50: [45.8, 51.0, 56.3, 60.8, 64.4, 66.8],
+          whoP97: [67.0, 74.5, 81.2, 86.8, 91.0, 93.5],
+          whoP3: [33.5, 37.2, 41.2, 44.8, 47.6, 49.5]
+        },
+        headCirc: {
+          child: [53.8, 54.2, 54.5, null, null, null],
+          whoP50: [53.8, 54.2, 54.5, 54.8, 55.0, 55.2],
+          whoP97: [56.2, 56.6, 56.9, 57.2, 57.4, 57.6],
+          whoP3: [51.5, 51.8, 52.1, 52.4, 52.6, 52.8]
+        }
+      },
+      motorMilestones: {
+        score: 95,
+        scoreLabel: "Thể lực & Chiều cao Dậy thì",
+        doctorNote: "Bé trong giai đoạn bứt phá chiều cao mạnh mẽ. Cần duy trì chế độ ngủ trước 22h và tập bóng rổ/bơi lội.",
+        items: [
+          {
+            id: "height_surge",
+            name: "Bứt phá chiều cao dậy thì (+8-10cm/năm)",
+            ageWindow: "13 - 16 tuổi",
+            icon: "⚡",
+            status: "completed",
+            statusLabel: "Đạt chuẩn",
+            dateAchieved: "10/06/2025",
+            note: "Tăng 9cm trong năm vừa qua, dinh dưỡng canxi tối ưu."
+          },
+          {
+            id: "endurance",
+            name: "Sức bền & Thể lực vượt bậc",
+            ageWindow: "15 - 18 tuổi",
+            icon: "🏋️",
+            status: "in-progress",
+            statusLabel: "Đang tập (85%)",
+            dateAchieved: null,
+            note: "Chạy 1500m đạt loại Giỏi môn Giáo dục thể chất."
+          },
+          {
+            id: "independence",
+            name: "Tư duy phản biện & Quản lý bản thân",
+            ageWindow: "16 - 18 tuổi",
+            icon: "🧠",
+            status: "in-progress",
+            statusLabel: "Đang tập (70%)",
+            dateAchieved: null,
+            note: "Tự lập kế hoạch ôn thi đại học và quản lý tài chính cá nhân."
+          }
+        ]
+      },
+      expenses: {
+        totalMonth: "12,500,000 đ",
+        budgetMonth: "15,000,000 đ",
+        budgetPercent: 83,
+        categories: [
+          { name: "Học phí THPT & Luyện thi IELTS", amount: "7,500,000 đ", percent: 60, color: "#8DA06F" },
+          { name: "Quỹ tiết kiệm Đại học", amount: "3,000,000 đ", percent: 24, color: "#E97332" },
+          { name: "Dinh dưỡng dậy thì & Thể thao", amount: "1,200,000 đ", percent: 10, color: "#9477ED" },
+          { name: "Trang phục & Chi tiêu cá nhân", amount: "800,000 đ", percent: 6, color: "#F5B842" }
+        ]
+      }
+    }
+  },
+
+  // Mom Postpartum Wellness Data
+  momData: {
+    name: "Mẹ Thảo",
+    postpartumDay: "Ngày 84 sau sinh (Tháng thứ 3)",
+    wellnessScore: 94,
+    mentalHealth: {
+      epdsScore: "3/30",
+      status: "Tâm lý Ổn định & Hồi phục Tốt",
+      sleepDebt: "-1.5 giờ / ngày"
+    },
+    pumping: {
+      todayTotal: "720 ml",
+      sessionsToday: 4,
+      freezerStock: "4,850 ml (24 túi trữ)",
+      lastSession: "180 ml",
+      time: "11:45",
+      history: [
+        { time: "11:45", amount: "180 ml", note: "2 bên đều nhau" },
+        { time: "08:15", amount: "200 ml", note: "Ngực căng" }
+      ]
+    },
+    recovery: {
+      uterusStatus: "Co hồi tốt",
+      lochia: "Đã hết hoàn toàn",
+      weightLoss: "Giảm 8.5 kg sau sinh (Cách mốc trước bầu 2.5kg)"
+    }
+  },
+
+  // Calendar Multi-Day Range Events (Like Sage Green Bars in Design)
+  calendarRangeEvents: [
+    {
+      id: "range_wonder_week",
+      title: "Tuần lễ Wonder Week 37 (Đột phá vận động)",
+      subtitle: "Bé tập ngồi vững, bò trườn và phát triển nhận thức không gian",
+      startDate: "2025-01-09",
+      endDate: "2025-01-16",
+      color: "#8DA85C",
+      icon: "🌱",
+      badge: "Wonder Week",
+      note: "Giai đoạn con dễ quấy khóc nhẹ về đêm nhưng ban ngày tiếp thu cực nhanh."
+    },
+    {
+      id: "range_vaccine_care",
+      title: "Theo dõi sau tiêm vắc-xin 6in1 & Phế cầu",
+      subtitle: "Theo dõi nhiệt độ cơ thể, dinh dưỡng lỏng và giấc ngủ sâu",
+      startDate: "2026-08-10",
+      endDate: "2026-08-14",
+      color: "#8DA85C",
+      icon: "🩺",
+      badge: "Sức khỏe",
+      note: "Bé hơi ấm nhẹ ngày đầu, đã hạ sốt và ăn ngủ lại bình thường."
+    }
+  ],
+
+  // Daily Schedule & Timeline Entries keyed by date string (YYYY-MM-DD) or list
+  timelineEntries: [
+    // --- January 28, 2025 (The active selected date from design mockup) ---
+    {
+      id: "item_jan_28_1",
+      date: "2025-01-28",
+      timeFormatted: "19:00",
+      time: "28/01/2025 • 19:00",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Cữ ăn dặm tối: Bơ sáp nghiền yến mạch hữu cơ 🥑",
+      content: "Bé Bơ ăn hết veo 120ml yến mạch bơ nghiền trộn sữa mẹ. Miệng chúm chím cười tít mắt mỗi khi mẹ đút thìa!",
+      mediaUrl: "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=600&auto=format&fit=crop&q=80",
+      mediaType: "photo",
+      stats: ["120ml Ăn dặm", "Tâm trạng: 🤩 Hào hứng", "Nhiệt độ: 36.8°C"],
+      likes: 18,
+      comments: 5,
+      userLiked: true,
+      tag: "Ăn dặm",
+      tagType: "feeding"
+    },
+    {
+      id: "item_jan_28_2",
+      date: "2025-01-28",
+      timeFormatted: "15:20",
+      time: "28/01/2025 • 15:20",
+      author: "Bố Tuấn",
+      authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      title: "Cột mốc mới: Bé tự ngồi thẳng lưng vững vàng! 🧘",
+      content: "Lần đầu tiên con ngồi chơi chú hươu bông hơn 15 phút mà không cần ba mẹ đỡ sau lưng. Trộm vía lưng con cứng cáp lắm rồi!",
+      mediaUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&auto=format&fit=crop&q=80",
+      mediaType: "photo",
+      stats: ["Vận động thô", "Ngồi vững 15p", "Tháng thứ 8"],
+      likes: 29,
+      comments: 9,
+      userLiked: true,
+      tag: "Cột mốc vàng",
+      tagType: "milestone"
+    },
+    {
+      id: "item_jan_28_3",
+      date: "2025-01-28",
+      timeFormatted: "08:30",
+      time: "28/01/2025 • 08:30",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Cữ sữa sáng & Tắm nắng ban công ☀️",
+      content: "Bé bú 180ml sữa mẹ rồi cùng mẹ phơi nắng sớm 15 phút. Bé hóng chuyện ríu rít và ngắm chim hót ngoài vườn.",
+      mediaUrl: null,
+      mediaType: null,
+      stats: ["180ml Sữa mẹ", "15p Tắm nắng", "SpO2: 99%"],
+      likes: 12,
+      comments: 2,
+      userLiked: false,
+      tag: "Dinh dưỡng",
+      tagType: "feeding"
+    },
+
+    // --- Range: January 09 - 16, 2025 (Wonder Week Range) ---
+    {
+      id: "item_jan_09",
+      date: "2025-01-09",
+      timeFormatted: "09:00",
+      time: "09/01/2025 • 09:00",
+      author: "Bác sĩ AI",
+      authorAvatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80",
+      title: "Bắt đầu Tuần lễ Wonder Week 37 🌱",
+      content: "Bé bắt đầu bước vào tuần bứt phá nhận thức. Bé có thể bám mẹ nhiều hơn và thích khám phá quan hệ nguyên nhân - kết quả.",
+      mediaUrl: null,
+      mediaType: null,
+      stats: ["Wonder Week 37", "Khám phá", "Cảm xúc: Tò mò"],
+      likes: 14,
+      comments: 3,
+      userLiked: true,
+      tag: "Wonder Week",
+      tagType: "milestone"
+    },
+    {
+      id: "item_jan_12",
+      date: "2025-01-12",
+      timeFormatted: "16:45",
+      time: "12/01/2025 • 16:45",
+      author: "Bố Tuấn",
+      authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      title: "Tập bò & với lấy bóng xúc xắc 🐛",
+      content: "Bé nhổm mông rất cao và rướn người trườn tới quả bóng cách 1 mét. Cả nhà vỗ tay cổ vũ con nhiệt tình!",
+      mediaUrl: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80",
+      mediaType: "photo",
+      stats: ["Vận động", "Trườn 1.2m", "Tâm trạng: 🤩"],
+      likes: 21,
+      comments: 6,
+      userLiked: true,
+      tag: "Vận động",
+      tagType: "milestone"
+    },
+    {
+      id: "item_jan_15",
+      date: "2025-01-15",
+      timeFormatted: "14:15",
+      time: "15/01/2025 • 14:15",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Khám phá cấu trúc thức ăn: Tự bốc cà rốt hấp 🥕",
+      content: "Lần đầu tập ăn dặm tự chỉ huy (BLW). Con dùng 2 ngón tay nhón lấy miếng cà rốt đưa vào miệng chuẩn xác.",
+      mediaUrl: null,
+      mediaType: null,
+      stats: ["BLW Thực hành", "Kỹ năng cầm nhón", "Ăn vui vẻ"],
+      likes: 19,
+      comments: 4,
+      userLiked: true,
+      tag: "Ăn dặm",
+      tagType: "feeding"
+    },
+    {
+      id: "item_jan_16",
+      date: "2025-01-16",
+      timeFormatted: "20:00",
+      time: "16/01/2025 • 20:00",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Tổng kết Wonder Week 37: Thành công rực rỡ! 🌟",
+      content: "Bé đã ngồi thẳng 15 phút, biết vẫy tay chào 'bye-bye' và ngủ một mạch từ 20:30 đến 06:00 sáng hôm sau.",
+      mediaUrl: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&auto=format&fit=crop&q=80",
+      mediaType: "photo",
+      stats: ["Hoàn thành WW37", "Ngủ 9.5h", "Kỹ năng: ★★★★★"],
+      likes: 31,
+      comments: 11,
+      userLiked: true,
+      tag: "Tổng kết",
+      tagType: "milestone"
+    },
+
+    // --- August 2026 entries (Current date context) ---
+    {
+      id: "item_aug_14_1",
+      date: "2026-08-14",
+      timeFormatted: "19:00",
+      time: "14/08/2026 • 19:00",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Cữ ăn tối dinh dưỡng: Cháo cá hồi bí đỏ 🍲",
+      content: "Con ăn hết bát cháo 150ml đặc sánh, trộm vía tiêu hóa rất tốt và chơi ngoan.",
+      mediaUrl: "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=600&auto=format&fit=crop&q=80",
+      mediaType: "photo",
+      stats: ["150ml Cháo", "Tâm trạng: 😊", "Nhiệt độ: 36.7°C"],
+      likes: 15,
+      comments: 4,
+      userLiked: true,
+      tag: "Ăn dặm",
+      tagType: "feeding"
+    },
+    {
+      id: "item_aug_13",
+      date: "2026-08-13",
+      timeFormatted: "11:45",
+      time: "13/08/2026 • 11:45",
+      author: "Mẹ Thảo",
+      authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+      title: "Cữ hút sữa trưa: Trữ thêm 180ml sữa ngọt 🥛",
+      content: "Cữ trưa sau khi massage ngực ấm được 180ml sữa đặc sánh. Đã cho vào túi trữ số 24.",
+      mediaUrl: null,
+      mediaType: null,
+      stats: ["180ml Sữa mẹ", "Hút 2 bên 20p", "Trữ đông"],
+      likes: 8,
+      comments: 2,
+      userLiked: false,
+      tag: "Chăm sóc Mẹ",
+      tagType: "mom"
+    }
+  ],
+
+  // AI Doctor Knowledge & Responses
+  aiChatKnowledge: {
+    doctorName: "Bác sĩ Freud AI (Nhi khoa & Sản khoa)",
+    status: "Trực tuyến 24/7",
+    suggestedQuestions: [
+      "Bé 8 tháng sốt 38.2°C sau tiêm 6in1 thì hạ sốt thế nào?",
+      "Thực đơn ăn dặm giàu sắt và kẽm cho bé 8 tháng?",
+      "Làm sao tập cho bé tự ngủ xuyên đêm không dậy bú?",
+      "Làm sao kích sữa mẹ về nhiều sau 3 tháng sinh?"
+    ],
+    mockReplies: {
+      sot: "Chào Ba/Mẹ! Với mức sốt 38.2°C sau tiêm chủng, đây là phản ứng miễn dịch bình thường. Mẹ hãy: 1. Nới lỏng quần áo thoáng mát. 2. Lau người bằng nước ấm (36-37°C) ở nách và bẹn. 3. Cho bé bú thêm nhiều cữ nhỏ. 4. Chỉ dùng Paracetamol khi bé sốt từ 38.5°C trở lên theo đúng liều lượng cân nặng (10-15mg/kg).",
+      an_dam: "Thực đơn ăn dặm 8 tháng cần ưu tiên: Lòng đỏ trứng, thịt bò băm nhuyễn, gan gà hữu cơ, bột yến mạch, bơ và rau bina. Mẹ hãy kết hợp trái cây giàu Vitamin C (cam, dâu tây) để tăng hấp thu sắt gấp 3 lần nhé!",
+      ngu: "Để bé ngủ xuyên đêm ở tháng thứ 8: 1. Đảm bảo ban ngày bé ăn no đủ calo. 2. Tạo thói quen ngủ nhất quán (Tắm ấm -> Đọc truyện -> Tắt đèn mở tiếng ồn trắng). 3. Khi bé cựa quậy, mẹ hãy đợi 3-5 phút trước khi bế để bé học cách tự dỗ giấc.",
+      chieu_cao: "Để con đạt chiều cao tối ưu giai đoạn dậy thì: 1. Đảm bảo giấc ngủ sâu từ 22h - 02h sáng (lúc hormone tăng trưởng GH tiết ra gấp 4 lần). 2. Bổ sung Canxi hữu cơ + D3 + K2. 3. Khuyến khích bé tập bóng rổ, bơi lội hoặc đu xà ít nhất 45 phút/ngày."
+    }
+  }
+};
+
+// Aliases for compatibility
+MOCK_DATA.timelineFeed = MOCK_DATA.timelineEntries;
+Object.values(MOCK_DATA.stages).forEach(stage => {
+  stage.growthWHO = stage.growthChart;
+});
+
+window.MOCK_DATA = MOCK_DATA;
+

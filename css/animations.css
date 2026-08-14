@@ -1,0 +1,61 @@
+/* ==========================================================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   Baby & Child Growth Tracker (0 - 18 Years)
+   Earthy Organic Minimalist Micro-Animations
+   ========================================================================== */
+
+/* Fade-in with slight upward drift */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulse Glow for Floating Action Button and Highlights */
+@keyframes sagePulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(141, 160, 111, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(141, 160, 111, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(141, 160, 111, 0);
+  }
+}
+
+.fab-center-btn {
+  animation: sagePulseGlow 3s infinite;
+}
+
+/* Heart Pop animation */
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.btn-like.liked span:first-child {
+  animation: heartPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Shimmer placeholder */
+@keyframes earthShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-placeholder {
+  background: linear-gradient(90deg, #F6F3ED 25%, #ECE6DD 50%, #F6F3ED 75%);
+  background-size: 200% 100%;
+  animation: earthShimmer 1.8s infinite;
+}
