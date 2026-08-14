@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:test": "bash scripts/deploy-test.sh"
+    "deploy:test": "bash scripts/deploy-test.sh",
+    "deploy:production": "bash scripts/deploy-production.sh"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

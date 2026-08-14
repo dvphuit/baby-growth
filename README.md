@@ -158,17 +158,39 @@ npm run deploy:test
 
 Firebase prints a preview URL after deployment. Add the exact preview origin, containing only the scheme and hostname, to **Google Auth Platform → Clients → Authorized JavaScript origins** before testing OAuth. Preview URLs may contain a generated host, so do not add `/profile` or other paths as origins. The preview channel expires after seven days.
 
+## Continuous Deployment with GitHub Actions
+
+The project includes a GitHub Actions workflow at `.github/workflows/firebase-hosting-merge.yml` that automatically deploys to Firebase Hosting whenever code is pushed to the `master` branch. To enable this, you must configure the following **GitHub Secrets** in your repository settings (**Settings → Secrets and variables → Actions**):
+
+| Secret Name | Description |
+| --- | --- |
+| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Web Client ID. |
+| `FIREBASE_SERVICE_ACCOUNT_BABY_GROWTH_DVPHU` | The JSON key of a Google Cloud Service Account with Firebase Hosting Admin permissions. |
+
+### How to get the Firebase Service Account Key
+
+1.  Go to the [Google Cloud Console Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) page.
+2.  Select your Firebase project (`baby-growth-dvphu`).
+3.  Click **Create Service Account**, name it `github-actions-deploy`, and grant it the **Firebase Hosting Admin** role.
+4.  After creating, click on the service account, go to the **Keys** tab, and click **Add Key → Create new key → JSON**.
+5.  Download the JSON file, copy its entire content, and paste it as the value for the `FIREBASE_SERVICE_ACCOUNT_BABY_GROWTH_DVPHU` secret in GitHub.
+
 ## Build and Deploy to Firebase Hosting
 
 Firebase Hosting configuration is stored in `app/firebase.json`. The deployment directory is `app/dist/`, and all routes are rewritten to `index.html` to support SPA routing.
 
-After installing the Firebase CLI and signing in with an account that has access to the Firebase project, build and deploy with:
+After installing the Firebase CLI and signing in with an account that has access to the Firebase project, deploy the current production bundle with:
 
 ```bash
 cd app
 npm install
-npm run build
-firebase deploy --only hosting
+npm run deploy:production
+```
+
+The production deployment script builds with the configured Google Client ID and deploys project `baby-growth-dvphu`. The OAuth client must contain this exact Authorized JavaScript origin:
+
+```text
+https://baby-growth-dvphu.web.app
 ```
 
 Confirm that the active Firebase account has access to the project before deploying. Never commit credentials or secrets to Git. When integrating a backend, use a local `.env` file for development and an appropriate secret-management solution for deployed environments.
