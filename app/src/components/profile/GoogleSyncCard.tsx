@@ -45,7 +45,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
       setSyncState(state);
       setLastSyncedAt(state.lastSyncedAt);
       setConnected(isGoogleConnected());
-      if (state.error) setError(state.error);
+      setError(state.error);
     });
     getLastSyncedAt().then((value) => {
       setLastSyncedAt(value);
@@ -54,7 +54,6 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
   }, []);
 
   const showResult = (result: Exclude<SyncResult, { status: 'conflict' }>) => {
-    setLastSyncedAt(new Date().toISOString());
     if (result.status === 'uploaded') onShowToast?.('Đã tự động đẩy dữ liệu lên Google Drive.', '☁️');
     if (result.status === 'downloaded') onShowToast?.('Đã nhận dữ liệu mới từ Google Drive.', '⬇️');
     if (result.status === 'unchanged') onShowToast?.('Dữ liệu local và Google Drive đã đồng nhất.', '✓');
@@ -175,7 +174,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
           <div className="medical-info-item full">
             <div className="medical-item-icon"><RefreshCw size={15} /></div>
             <div>
-              <span className="medical-item-lbl">Trạng thái: {statusLabel}</span>
+              <span className="medical-item-lbl" aria-live="polite">Trạng thái: {statusLabel}</span>
               <span className="medical-item-val">Lần cuối: {formatSyncTime(lastSyncedAt)}</span>
             </div>
           </div>
@@ -185,6 +184,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
           <div className="allergy-header"><RefreshCw size={14} color="var(--color-sage-dark)" /> Tự động đồng bộ</div>
           <p className="summary-desc">Khi bật, thay đổi mới sẽ được đẩy lên Drive sau một khoảng ngắn, khi app online và tối đa mỗi 5 phút. Google chỉ yêu cầu cấp quyền lại khi access token hết hạn.</p>
           <button
+            type="button"
             className={`profile-action-btn ${syncState.autoSyncEnabled ? 'primary' : 'secondary'}`}
             style={{ marginTop: 12 }}
             onClick={handleToggleAutoSync}
@@ -200,10 +200,10 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
             <div className="allergy-header"><RefreshCw size={14} color="#E97332" /> Dữ liệu đã thay đổi ở cả hai nơi</div>
             <p className="summary-desc">Chọn một bản để tiếp tục. Bản còn lại sẽ bị thay thế trên hệ thống tương ứng.</p>
             <div className="profile-action-buttons-group" style={{ marginTop: 12 }}>
-              <button className="profile-action-btn primary" onClick={() => handleResolve('local')} disabled={busy}>
+              <button type="button" className="profile-action-btn primary" onClick={() => handleResolve('local')} disabled={busy}>
                 <CloudUpload size={16} /> Giữ dữ liệu trên thiết bị
               </button>
-              <button className="profile-action-btn secondary" onClick={() => handleResolve('remote')} disabled={busy}>
+              <button type="button" className="profile-action-btn secondary" onClick={() => handleResolve('remote')} disabled={busy}>
                 <CloudDownload size={16} /> Dùng dữ liệu trên Drive
               </button>
             </div>
@@ -212,7 +212,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
 
         {error && <p className="summary-desc" style={{ color: '#B45309', marginTop: 12 }}>{error}</p>}
 
-        <button className="profile-action-btn secondary" style={{ marginTop: 16 }} onClick={handleSync} disabled={busy}>
+        <button type="button" className="profile-action-btn secondary" style={{ marginTop: 16 }} onClick={handleSync} disabled={busy}>
           <RefreshCw size={16} className={busy ? 'spin' : ''} />
           <span>{busy ? 'Đang đồng bộ...' : connected ? 'Đồng bộ ngay với Google Drive' : 'Kết nối Google & đồng bộ'}</span>
         </button>
