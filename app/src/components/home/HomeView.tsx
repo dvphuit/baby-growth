@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useUIStore } from '@/store/useUIStore';
+import { DailyHabits } from './DailyHabits';
 import {
   Sparkles,
   MoreHorizontal,
@@ -27,19 +28,42 @@ interface HomeViewProps {
   onOpenQuickLog: () => void;
   onOpenAiChat: () => void;
   onOpenPumping: () => void;
+  onShowToast?: (message: string, icon?: string) => void;
 }
+
+const MOOD_LABELS: Record<string, string> = {
+  Overjoyed: 'Rất vui',
+  Happy: 'Vui vẻ',
+  Neutral: 'Bình thường',
+  Sad: 'Buồn',
+  Depressed: 'Cần được quan tâm',
+};
+
+const getMoodLabel = (mood?: string) => {
+  if (!mood) return 'Chưa cập nhật';
+  return MOOD_LABELS[mood] ?? mood;
+};
 
 export const HomeView: React.FC<HomeViewProps> = ({
   onOpenScoreDetail,
   onOpenQuickLog,
   onOpenAiChat,
   onOpenPumping,
+  onShowToast,
 }) => {
   const navigate = useNavigate();
   const profileMode = useUIStore(s => s.profileMode);
   const currentStageData = useBabyStore(s => s.currentStageData());
+  const dailyHabits = useBabyStore(s => s.dailyHabits);
   const momData = useMomStore(s => s.momData);
   const isMom = profileMode === 'mom';
+  const completedHabitsCount = dailyHabits.filter(habit => habit.completed).length;
+  const totalHabitsCount = dailyHabits.length;
+  const todayInsight = !currentStageData.todayVitals.milkTotal
+    ? 'Hôm nay bé chưa có ghi chép về cữ bú.'
+    : !currentStageData.todayVitals.sleepTotal
+      ? 'Bé đã có ghi chép ăn uống; hãy cập nhật thêm giấc ngủ hôm nay.'
+      : 'Các chỉ số chính của bé đang được theo dõi tốt hôm nay.';
 
   if (isMom) {
     return (
@@ -52,10 +76,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         <div className="metrics-carousel-grid">
-          <div
+          <button
+            type="button"
             className="freud-score-card"
             id="btnOpenMomScoreDetail"
-            style={{ background: 'var(--color-mom-rose)', cursor: 'pointer' }}
+            aria-label="Xem chi tiết chỉ số hồi phục của mẹ"
+            style={{ background: 'var(--color-mom-rose)' }}
             onClick={onOpenScoreDetail}
           >
             <div className="card-top-tag-row">
@@ -74,7 +100,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span>Xem chi tiết</span>
               <ArrowRight size={10} />
             </div>
-          </div>
+          </button>
 
           <div
             className="mood-highlight-card"
@@ -106,18 +132,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         <div className="section-title-row">
-          <span className="section-main-title">Nhật ký Hôm nay</span>
-          <span className="section-more-btn">
-            <MoreHorizontal size={14} />
-          </span>
+          <span className="section-main-title">Nhật ký hôm nay</span>
+          <button
+            type="button"
+            className="section-action-button"
+            aria-label="Thêm ghi chép hôm nay"
+            onClick={onOpenPumping}
+          >
+            + Thêm
+          </button>
         </div>
 
         <div className="tracker-list-group">
-          <div
+          <button
+            type="button"
             className="tracker-list-item"
             id="btnMomPumpingRow"
+            aria-label="Ghi nhận cữ hút sữa mẹ"
             onClick={onOpenPumping}
-            style={{ cursor: 'pointer' }}
           >
             <div className="tracker-item-left">
               <div className="tracker-icon-circle rose">
@@ -135,7 +167,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 +180ml
               </span>
             </div>
-          </div>
+          </button>
 
           <div className="tracker-list-item">
             <div className="tracker-item-left">
@@ -175,33 +207,47 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* AI Pediatric & Parenting Banner */}
-        <div
-          className="ai-chatbot-banner-card"
-          id="btnOpenAiFromHome"
-          onClick={onOpenAiChat}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className="ai-chatbot-banner-card">
           <div className="ai-chatbot-banner-content">
-            <div className="ai-banner-left">
-              <span className="ai-banner-num">2,541</span>
-              <span className="ai-banner-label">Tư vấn AI</span>
-              <div className="ai-banner-sub-pills">
-                <span className="ai-banner-pill">● 83 lượt miễn phí</span>
-                <span className="ai-banner-pill ai-banner-pro">★ Bác sĩ Nhi & Sản 24/7</span>
+              <div className="ai-banner-left">
+                <span className="ai-banner-num">Hỏi trợ lý AI</span>
+                <span className="ai-banner-label">Về phục hồi, giấc ngủ và sức khỏe của mẹ</span>
+                <div className="ai-banner-sub-pills">
+                  <span className="ai-banner-pill">Gợi ý dựa trên ghi chép hôm nay</span>
+                  <span className="ai-banner-pill ai-banner-pro">AI chỉ mang tính tham khảo</span>
+                </div>
               </div>
-            </div>
             <div className="ai-banner-robot-art">
               <Bot size={28} strokeWidth={2} />
               <span className="ai-floating-speech-bubble">...</span>
             </div>
           </div>
           <div className="ai-banner-bottom-row">
-            <div className="ai-banner-btn-circle">
+            <button
+              type="button"
+              className="ai-banner-btn-circle ai-banner-action"
+              id="btnOpenAiFromHome"
+              aria-label="Mở tư vấn AI"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenAiChat();
+              }}
+            >
               <Plus size={14} strokeWidth={2.4} />
-            </div>
-            <div className="ai-banner-btn-circle gear">
+              <span>Mở tư vấn</span>
+            </button>
+            <button
+              type="button"
+              className="ai-banner-btn-circle gear ai-banner-action"
+              aria-label="Tùy chỉnh trợ lý AI"
+              onClick={(event) => {
+                event.stopPropagation();
+                onShowToast?.('Tùy chỉnh trợ lý AI sẽ có trong bản cập nhật sau.');
+              }}
+            >
               <Settings size={12} strokeWidth={2.2} />
-            </div>
+              <span>Tùy chỉnh</span>
+            </button>
           </div>
         </div>
       </div>
@@ -212,47 +258,73 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div className="home-view-container">
       <div className="section-title-row">
-        <span className="section-main-title">Chỉ số Sức khỏe</span>
-        <span
-          className="section-more-btn"
-          onClick={() => navigate('/profile')}
-          title="Xem hồ sơ chi tiết bé"
-          style={{ cursor: 'pointer' }}
-        >
-          <MoreHorizontal size={14} />
+        <span className="section-main-title">Tóm tắt hôm nay</span>
+        <span className="today-progress-badge">
+          {completedHabitsCount}/{totalHabitsCount || 0} việc
         </span>
       </div>
 
-      <div className="metrics-carousel-grid">
-        <div
-          className="freud-score-card"
-          id="btnOpenFreudScore"
-          onClick={onOpenScoreDetail}
-          style={{ cursor: 'pointer' }}
+      <div className="today-summary-card">
+        <div className="today-summary-copy">
+          <span className="today-summary-eyebrow">Dành cho {currentStageData.currentAgeText}</span>
+          <strong>{todayInsight}</strong>
+          <span className="today-summary-meta">
+            {currentStageData.growthScore != null
+              ? `Điểm tăng trưởng ${currentStageData.growthScore}/100`
+              : 'Chưa có điểm tăng trưởng'}
+          </span>
+        </div>
+        <button type="button" className="today-summary-action" onClick={onOpenQuickLog}>
+          + Ghi chép
+        </button>
+      </div>
+
+      <DailyHabits />
+
+      <div className="section-title-row home-section-heading">
+        <span className="section-main-title">Chỉ số sức khỏe</span>
+        <button
+          type="button"
+          className="section-more-btn section-more-button"
+          aria-label="Xem hồ sơ chi tiết của bé"
+          onClick={() => navigate('/profile')}
         >
+          <MoreHorizontal size={14} />
+        </button>
+      </div>
+
+      <div className="metrics-carousel-grid">
+          <button
+            type="button"
+            className="freud-score-card"
+            id="btnOpenFreudScore"
+            aria-label="Xem chi tiết điểm tăng trưởng"
+            onClick={onOpenScoreDetail}
+          >
           <div className="card-top-tag-row">
             <span className="card-top-pill-left">
-              <Sparkles size={10} /> Growth
+              <Sparkles size={10} /> Tăng trưởng
             </span>
             <MoreHorizontal size={12} />
           </div>
           <div className="score-concentric-circles-box">
             <div className="score-inner-badge">
-              <div className="num">{currentStageData.growthScore || 92}</div>
-              <div className="lbl">Healthy</div>
+                <div className="num">{currentStageData.growthScore ?? '—'}</div>
+                <div className="lbl">{currentStageData.growthScoreLabel || 'Chưa cập nhật'}</div>
             </div>
           </div>
           <div style={{ fontSize: '9px', opacity: 0.9, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
             <span>Xem chi tiết</span>
             <ArrowRight size={10} />
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           className="mood-highlight-card"
           id="btnOpenMoodTracker"
+          aria-label="Cập nhật tâm trạng của bé"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="card-top-tag-row">
             <span className="card-top-pill-left" style={{ background: 'rgba(255,255,255,0.25)' }}>
@@ -260,10 +332,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </span>
             <MoreHorizontal size={12} />
           </div>
-          <div>
-            <div className="mood-card-title">Happy</div>
-            <div style={{ fontSize: '10.5px', opacity: 0.9 }}>Bé vui vẻ, hoạt bát</div>
-          </div>
+            <div>
+              <div className="mood-card-title">{getMoodLabel(currentStageData.todayVitals.mood)}</div>
+              <div style={{ fontSize: '10.5px', opacity: 0.9 }}>
+                {currentStageData.todayVitals.mood
+                  ? 'Tâm trạng đã được ghi nhận hôm nay'
+                  : 'Hãy cập nhật tâm trạng của bé'}
+              </div>
+            </div>
           <div className="mood-dots-track">
             <div className="mood-dot-step"></div>
             <div className="mood-dot-step"></div>
@@ -271,7 +347,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="mood-dot-step"></div>
             <div className="mood-dot-step"></div>
           </div>
-        </div>
+        </button>
       </div>
 
       <div className="carousel-indicators-dots">
@@ -281,19 +357,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="carousel-dot"></div>
       </div>
 
-      <div className="section-title-row">
-        <span className="section-main-title">Nhật ký Hôm nay</span>
-        <span className="section-more-btn">
-          <MoreHorizontal size={14} />
-        </span>
-      </div>
+        <div className="section-title-row">
+          <span className="section-main-title">Nhật ký hôm nay</span>
+          <button
+            type="button"
+            className="section-action-button"
+            aria-label="Thêm ghi chép hôm nay"
+            onClick={onOpenQuickLog}
+          >
+            + Thêm
+          </button>
+        </div>
 
       <div className="tracker-list-group">
-        <div
+        <button
+          type="button"
           className="tracker-list-item"
           data-action="feeding"
+          aria-label="Cập nhật cữ bú và ăn dặm"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="tracker-item-left">
             <div className="tracker-icon-circle sage">
@@ -301,7 +383,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
             <div className="tracker-item-info">
               <span className="tracker-item-title">Cữ bú & Ăn dặm</span>
-              <span className="tracker-item-sub">160ml Sữa mẹ (~1h trước)</span>
+                <span className="tracker-item-sub">
+                  {currentStageData.todayVitals.milkTotal
+                    ? `${currentStageData.todayVitals.milkTotal} trong ngày`
+                    : 'Chưa cập nhật'}
+                </span>
             </div>
           </div>
           <div className="tracker-item-right">
@@ -314,13 +400,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
               />
             </svg>
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           className="tracker-list-item"
           data-action="sleep"
+          aria-label="Cập nhật giấc ngủ của bé"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="tracker-item-left">
             <div className="tracker-icon-circle purple">
@@ -329,20 +416,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="tracker-item-info">
               <span className="tracker-item-title">Giấc ngủ của Bé</span>
               <span className="tracker-item-sub">
-                {currentStageData.todayVitals.sleepTotal || '13.5h'} (10h đêm + 2 nap)
+                {currentStageData.todayVitals.sleepTotal || 'Chưa cập nhật'}
               </span>
             </div>
           </div>
           <div className="tracker-item-right">
-            <div className="mini-score-pill">{currentStageData.growthScore || 92}</div>
+            <div className="mini-score-pill">{currentStageData.growthScore ?? '—'}</div>
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           className="tracker-list-item"
           data-action="diaper"
+          aria-label="Cập nhật thay tã và vệ sinh"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="tracker-item-left">
             <div className="tracker-icon-circle amber">
@@ -351,22 +439,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="tracker-item-info">
               <span className="tracker-item-title">Thay tã & Vệ sinh</span>
               <span className="tracker-item-sub">
-                {currentStageData.todayVitals.diaperCount || 4} lần (3 ướt, 1 bẩn)
+                {currentStageData.todayVitals.diaperCount != null
+                  ? `${currentStageData.todayVitals.diaperCount} lần trong ngày`
+                  : 'Chưa cập nhật'}
               </span>
             </div>
           </div>
           <div className="tracker-item-right">
-            <span style={{ fontSize: '13px', letterSpacing: '2px', color: '#F5B842' }}>
-              ●●●●
-            </span>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#E89E23' }}>
+                {currentStageData.todayVitals.diaperCount != null ? 'Đã ghi nhận' : 'Cập nhật'}
+              </span>
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           className="tracker-list-item"
           data-action="health"
+          aria-label="Cập nhật thân nhiệt và thể trạng"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="tracker-item-left">
             <div className="tracker-icon-circle green">
@@ -375,24 +466,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="tracker-item-info">
               <span className="tracker-item-title">Thân nhiệt & Thể trạng</span>
               <span className="tracker-item-sub">
-                {currentStageData.todayVitals.temperature || '36.8 °C'} (Bình thường)
+                {currentStageData.todayVitals.temperature || 'Chưa cập nhật'}
               </span>
             </div>
           </div>
           <div className="tracker-item-right">
             <span
               style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--color-overjoyed)' }}
-            >
-              Chuẩn
-            </span>
+              >
+                {currentStageData.todayVitals.temperature ? 'Bình thường' : 'Cập nhật'}
+              </span>
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           className="tracker-list-item"
           data-action="mood"
+          aria-label="Cập nhật tâm trạng của bé"
           onClick={onOpenQuickLog}
-          style={{ cursor: 'pointer' }}
         >
           <div className="tracker-item-left">
             <div className="tracker-icon-circle rose">
@@ -400,63 +492,83 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
             <div className="tracker-item-info">
               <span className="tracker-item-title">Tâm trạng Bé</span>
-              <span className="tracker-item-sub">Ngoan → Hào hứng</span>
+                <span className="tracker-item-sub">
+                  {currentStageData.todayVitals.mood
+                    ? `Đang ${getMoodLabel(currentStageData.todayVitals.mood).toLowerCase()}`
+                    : 'Chưa cập nhật'}
+                </span>
             </div>
           </div>
           <div className="tracker-item-right">
-            <Smile size={18} color="var(--color-overjoyed)" strokeWidth={2.4} />
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>
+                {currentStageData.todayVitals.moodEmoji || '—'}
+              </span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* AI Pediatric Chatbot Banner */}
-      <div
-        className="ai-chatbot-banner-card"
-        id="btnOpenAiBanner"
-        onClick={onOpenAiChat}
-        style={{ cursor: 'pointer' }}
-      >
+          <div className="ai-chatbot-banner-card">
         <div className="ai-chatbot-banner-content">
-          <div className="ai-banner-left">
-            <span className="ai-banner-num">2,541</span>
-            <span className="ai-banner-label">Tư vấn AI</span>
-            <div className="ai-banner-sub-pills">
-              <span className="ai-banner-pill">● 83 lượt miễn phí</span>
-              <span className="ai-banner-pill ai-banner-pro">★ Bác sĩ Nhi 24/7</span>
-            </div>
-          </div>
+              <div className="ai-banner-left">
+                <span className="ai-banner-num">Hỏi trợ lý AI</span>
+                <span className="ai-banner-label">Về giấc ngủ, bú và phát triển của bé</span>
+                <div className="ai-banner-sub-pills">
+                  <span className="ai-banner-pill">Gợi ý dựa trên ghi chép hôm nay</span>
+                  <span className="ai-banner-pill ai-banner-pro">AI chỉ mang tính tham khảo</span>
+                </div>
+              </div>
           <div className="ai-banner-robot-art">
             <Bot size={28} strokeWidth={2} />
             <span className="ai-floating-speech-bubble">...</span>
           </div>
         </div>
         <div className="ai-banner-bottom-row">
-          <div className="ai-banner-btn-circle">
+          <button
+            type="button"
+            className="ai-banner-btn-circle ai-banner-action"
+            id="btnOpenAiBanner"
+            aria-label="Mở tư vấn AI"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenAiChat();
+            }}
+          >
             <Plus size={14} strokeWidth={2.4} />
-          </div>
-          <div className="ai-banner-btn-circle gear">
+            <span>Mở tư vấn</span>
+          </button>
+          <button
+            type="button"
+            className="ai-banner-btn-circle gear ai-banner-action"
+            aria-label="Tùy chỉnh trợ lý AI"
+            onClick={(event) => {
+              event.stopPropagation();
+              onShowToast?.('Tùy chỉnh trợ lý AI sẽ có trong bản cập nhật sau.');
+            }}
+          >
             <Settings size={12} strokeWidth={2.2} />
-          </div>
+            <span>Tùy chỉnh</span>
+          </button>
         </div>
       </div>
 
       <div className="section-title-row">
         <span className="section-main-title">Cẩm nang Chăm sóc</span>
-        <span
-          className="card-action-link"
-          style={{
-            fontSize: '10.5px',
-            color: 'var(--color-sage-dark)',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Xem tất cả
-        </span>
+          <button
+            type="button"
+            className="card-action-link"
+            onClick={() => onShowToast?.('Cẩm nang chi tiết đang được hoàn thiện.')}
+          >
+            Xem tất cả
+          </button>
       </div>
 
       <div className="resources-horizontal-list">
-        <div className="resource-item-card">
+        <button
+          type="button"
+          className="resource-item-card"
+          onClick={() => onShowToast?.('Bài viết này sẽ mở trong phiên bản tiếp theo.')}
+        >
           <div className="resource-item-thumb">
             <BookOpen size={20} color="var(--color-sage-dark)" />
           </div>
@@ -466,9 +578,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span><Eye size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> 5.2k</span>
             <span><Heart size={11} fill="currentColor" style={{ display: 'inline', verticalAlign: 'middle' }} /> 987</span>
           </div>
-        </div>
+        </button>
 
-        <div className="resource-item-card">
+        <button
+          type="button"
+          className="resource-item-card"
+          onClick={() => onShowToast?.('Bài viết này sẽ mở trong phiên bản tiếp theo.')}
+        >
           <div className="resource-item-thumb">
             <Moon size={20} color="#9579EE" />
           </div>
@@ -478,9 +594,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span><Eye size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> 8.4k</span>
             <span><Heart size={11} fill="currentColor" style={{ display: 'inline', verticalAlign: 'middle' }} /> 1.4k</span>
           </div>
-        </div>
+        </button>
 
-        <div className="resource-item-card">
+        <button
+          type="button"
+          className="resource-item-card"
+          onClick={() => onShowToast?.('Bài viết này sẽ mở trong phiên bản tiếp theo.')}
+        >
           <div className="resource-item-thumb">
             <Syringe size={20} color="#E87A90" />
           </div>
@@ -490,7 +610,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span><Eye size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> 6.1k</span>
             <span><Heart size={11} fill="currentColor" style={{ display: 'inline', verticalAlign: 'middle' }} /> 890</span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

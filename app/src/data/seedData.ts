@@ -770,7 +770,7 @@ export const INITIAL_TIMELINE_ITEMS: TimelineItem[] = [
     date: '2025-01-09',
     timeFormatted: '09:00',
     time: '09/01/2025 • 09:00',
-    author: 'Bác sĩ AI',
+    author: 'Trợ lý AI',
     authorAvatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80',
     title: 'Bắt đầu Tuần lễ Wonder Week 37 🌱',
     content: 'Bé bắt đầu bước vào tuần bứt phá nhận thức. Bé có thể bám mẹ nhiều hơn và thích khám phá quan hệ nguyên nhân - kết quả.',
@@ -848,8 +848,8 @@ export const INITIAL_DAILY_HABITS: DailyHabit[] = [
 ];
 
 export const AI_CHAT_KNOWLEDGE: AIChatKnowledge = {
-  doctorName: 'Bác sĩ Freud AI (Nhi khoa & Sản khoa)',
-  status: 'Trực tuyến 24/7',
+  doctorName: 'Trợ lý Freud AI về chăm sóc Bé & Mẹ',
+  status: 'Sẵn sàng hỗ trợ',
   suggestedQuestions: [
     'Bé 8 tháng sốt 38.2°C sau tiêm 6in1 thì hạ sốt thế nào?',
     'Thực đơn ăn dặm giàu sắt và kẽm cho bé 8 tháng?',

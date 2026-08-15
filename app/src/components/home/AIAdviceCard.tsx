@@ -31,9 +31,9 @@ export const AIAdviceCard: React.FC<AIAdviceCardProps> = ({ onOpenAiChat, onAskQ
         <div className="ai-advice-header">
           <div className="ai-doctor-avatar-tag">
             <span className="doctor-emoji">🩺</span>
-            <span className="doctor-tag-title">Lời khuyên Bác sĩ Freud AI</span>
+            <span className="doctor-tag-title">Gợi ý từ Trợ lý Freud AI</span>
           </div>
-          <span className="ai-live-badge">Trực tuyến 24/7</span>
+          <span className="ai-live-badge">Thông tin tham khảo</span>
         </div>
 
         <p className="ai-advice-body-text">{adviceText}</p>
@@ -53,7 +53,7 @@ export const AIAdviceCard: React.FC<AIAdviceCardProps> = ({ onOpenAiChat, onAskQ
 
         <button className="ai-advice-chat-cta" onClick={onOpenAiChat}>
           <span>💬</span>
-          <span>Trò chuyện trực tiếp với Bác sĩ AI &rarr;</span>
+          <span>Trò chuyện với Trợ lý AI &rarr;</span>
         </button>
       </div>
     </div>

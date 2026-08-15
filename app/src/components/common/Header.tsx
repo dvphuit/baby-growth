@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useUIStore } from '@/store/useUIStore';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useFamily } from '@/hooks/useFamily';
+import { BottomSheet } from './BottomSheet';
 import { formatVietnameseDate } from '@/utils/date';
 import type { StageKey } from '@/types';
 import {
@@ -36,6 +38,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiChat, onOpenNotification
   const { profileMode, setProfileMode, searchQuery, setSearchQuery } = useUIStore();
   const { currentStage, setStage } = useBabyStore();
   const currentStageData = useBabyStore((s) => s.currentStageData());
+  const [isStagePickerOpen, setIsStagePickerOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { momData } = useMomStore();
   const family = useFamily();
 
@@ -44,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiChat, onOpenNotification
   const avatar = isMom ? family.momAvatar : family.childAvatar;
   const scoreVal = isMom ? momData.wellnessScore : (currentStageData.growthScore || 92);
   const todayFormatted = formatVietnameseDate(new Date());
+  const currentStageMeta = STAGES_LIST.find((stage) => stage.key === currentStage);
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -61,21 +66,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiChat, onOpenNotification
           <button
             className="header-ai-pill-btn"
             id="btnHeaderAiChat"
-            title="Hỏi Bác sĩ AI"
+            title="Mở trợ lý AI"
             onClick={onOpenAiChat}
           >
             <Stethoscope size={13} strokeWidth={2.2} />
-            <span>Bác sĩ AI</span>
+            <span>Trợ lý AI</span>
             <span className="ai-live-dot"></span>
           </button>
-          <div
+          <button
+            type="button"
             className="header-notification-btn"
             id="btnNotification"
             title="Thông báo"
+            aria-label="Mở thông báo"
             onClick={onOpenNotifications}
           >
             <Bell size={14} strokeWidth={2.2} />
-          </div>
+          </button>
         </div>
       </div>
 
@@ -128,46 +135,90 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiChat, onOpenNotification
         </div>
       </div>
 
-      {/* Pill Search Bar */}
-      <div className="header-search-bar">
-        <Search size={14} color="var(--color-text-muted)" strokeWidth={2.2} />
-        <input
-          type="text"
-          className="search-input-field"
-          placeholder="Tìm cữ bú, chỉ số, lời khuyên..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <span className="search-filter-icon" id="btnSearchFilter" title="Bộ lọc">
-          <SlidersHorizontal size={13} strokeWidth={2.2} />
-        </span>
-      </div>
-
-      {/* Age Simulator (4 Phases) - When in Baby Mode */}
-      {!isMom && (
-        <div className="age-simulator-wrapper">
-          <div className="age-simulator-label">
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Sparkles size={11} color="var(--color-sage-dark)" /> Giả lập độ tuổi (0 - 18 tuổi):
-            </span>
-            <span style={{ fontSize: '8.5px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              Đổi mốc
-            </span>
-          </div>
-          <div className="age-stages-pills">
-            {STAGES_LIST.map((stage) => (
-              <div
-                key={stage.key}
-                className={`stage-pill ${currentStage === stage.key ? 'active' : ''}`}
-                onClick={() => setStage(stage.key)}
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="stage-name">{stage.name}</span>
-                <span className="stage-age">{stage.age}</span>
-              </div>
-            ))}
-          </div>
+      {/* Compact Search */}
+      {isSearchOpen || searchQuery ? (
+        <div className="header-search-bar">
+          <Search size={14} color="var(--color-text-muted)" strokeWidth={2.2} />
+          <input
+            autoFocus={isSearchOpen}
+            type="text"
+            className="search-input-field"
+            placeholder="Tìm cữ bú, chỉ số, lời khuyên..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button
+            type="button"
+            className="search-filter-icon"
+            id="btnSearchFilter"
+            title="Đóng tìm kiếm"
+            aria-label="Đóng tìm kiếm"
+            onClick={() => {
+              setSearchQuery('');
+              setIsSearchOpen(false);
+            }}
+          >
+            <SlidersHorizontal size={13} strokeWidth={2.2} />
+          </button>
         </div>
+      ) : (
+        <button
+          type="button"
+          className="header-search-trigger"
+          aria-label="Mở tìm kiếm"
+          onClick={() => setIsSearchOpen(true)}
+        >
+          <Search size={14} color="var(--color-text-muted)" strokeWidth={2.2} />
+          <span>Tìm trong nhật ký và lời khuyên</span>
+        </button>
+      )}
+
+      {/* Compact Age Stage Picker - When in Baby Mode */}
+      {!isMom && (
+        <>
+          <button
+            type="button"
+            className="header-stage-compact"
+            aria-expanded={isStagePickerOpen}
+            aria-controls="age-stage-picker"
+            onClick={() => setIsStagePickerOpen(true)}
+          >
+            <span className="header-stage-compact-main">
+              <Sparkles size={11} color="var(--color-sage-dark)" />
+              <span>{currentStageMeta?.name || 'Chọn giai đoạn'}</span>
+            </span>
+            <span className="header-stage-compact-age">
+              {currentStageData.currentAgeText || currentStageMeta?.age || 'Đổi mốc'}
+              <ChevronRight size={12} />
+            </span>
+          </button>
+
+          <BottomSheet
+            isOpen={isStagePickerOpen}
+            onClose={() => setIsStagePickerOpen(false)}
+            title="Chọn giai đoạn phát triển"
+          >
+            <p className="stage-picker-description">
+              Chọn mốc phù hợp để xem các chỉ số và gợi ý theo độ tuổi của bé.
+            </p>
+            <div id="age-stage-picker" className="age-stages-pills stage-picker-grid">
+              {STAGES_LIST.map((stage) => (
+                <button
+                  type="button"
+                  key={stage.key}
+                  className={`stage-pill ${currentStage === stage.key ? 'active' : ''}`}
+                  onClick={() => {
+                    setStage(stage.key);
+                    setIsStagePickerOpen(false);
+                  }}
+                >
+                  <span className="stage-name">{stage.name}</span>
+                  <span className="stage-age">{stage.age}</span>
+                </button>
+              ))}
+            </div>
+          </BottomSheet>
+        </>
       )}
     </header>
   );

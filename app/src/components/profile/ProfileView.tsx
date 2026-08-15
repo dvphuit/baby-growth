@@ -357,9 +357,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <Stethoscope size={20} />
             </div>
             <div className="family-member-meta">
-              <span className="family-member-name">Bác sĩ Freud AI</span>
-              <span className="family-member-role">Cố vấn Nhi khoa & Sản khoa 24/7</span>
-              <span className="family-member-status doc">Trực tuyến • Phản hồi tức thì</span>
+              <span className="family-member-name">Trợ lý Freud AI</span>
+              <span className="family-member-role">Thông tin tham khảo về Bé & Mẹ</span>
+              <span className="family-member-status doc">Sẵn sàng hỗ trợ</span>
             </div>
           </div>
         </div>
