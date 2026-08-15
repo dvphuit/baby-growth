@@ -86,10 +86,24 @@ export const AppContent: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    void startAutoSync();
+    let disposed = false;
+    let stopAutoSync: (() => void) | undefined;
+
+    void startAutoSync().then((stop) => {
+      if (disposed) {
+        stop();
+      } else {
+        stopAutoSync = stop;
+      }
+    }).catch(() => {});
+
     const handleRemoteUpdate = () => window.location.reload();
     window.addEventListener('babygrowth:remote-updated', handleRemoteUpdate);
-    return () => window.removeEventListener('babygrowth:remote-updated', handleRemoteUpdate);
+    return () => {
+      disposed = true;
+      stopAutoSync?.();
+      window.removeEventListener('babygrowth:remote-updated', handleRemoteUpdate);
+    };
   }, []);
 
   // Toast System

@@ -2,6 +2,7 @@ import {
   getAllLocalRecords,
   getLocalRecord,
   setLocalRecord,
+  removeLocalRecord,
   subscribeLocalRecordChanges,
 } from './localDb';
 
@@ -275,31 +276,44 @@ async function ensureAccessToken(interactive: boolean): Promise<string> {
 
 async function driveRequest<T>(url: string, init: RequestInit = {}, interactive = true): Promise<T> {
   const token = await ensureAccessToken(interactive);
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(init.headers || {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
 
-  if (response.status === 401) {
+  try {
+    const response = await fetch(url, {
+      ...init,
+      signal: init.signal ?? controller.signal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(init.headers || {}),
+      },
+    });
+
+    if (response.status === 401) {
     accessToken = null;
     accessTokenExpiresAt = 0;
     if (!interactive) throw new GoogleAuthRequiredError();
     throw new Error('Phiên Google đã hết hạn. Hãy bấm đồng bộ lại để cấp quyền mới.');
   }
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Google Drive trả về lỗi ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Google Drive trả về lỗi ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+    }
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Google Drive không phản hồi kịp thời. Hãy kiểm tra kết nối rồi thử lại.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-  return response.json() as Promise<T>;
 }
 
 async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
   const query = encodeURIComponent(`'appDataFolder' in parents and name = '${SYNC_FILE_NAME}' and trashed = false`);
   const result = await driveRequest<DriveFileList>(
-    `https://www.googleapis.com/drive/v3/files?q=${query}&spaces=appDataFolder&fields=files(id,name,modifiedTime)`,
+    `https://www.googleapis.com/drive/v3/files?q=${query}&spaces=appDataFolder&orderBy=modifiedTime desc&pageSize=1&fields=files(id,name,modifiedTime)`,
     {},
     interactive
   );
@@ -312,7 +326,14 @@ async function readRemoteSnapshot(fileId: string, interactive: boolean): Promise
     {},
     interactive
   );
-  if (!result || result.schemaVersion !== 1 || !result.records || !result.fingerprint) {
+  if (
+    !result
+    || result.schemaVersion !== 1
+    || !result.updatedAt
+    || !result.deviceId
+    || !result.records
+    || !result.fingerprint
+  ) {
     throw new Error('Tệp đồng bộ trên Google Drive không đúng định dạng BabyGrowth.');
   }
   return result;
@@ -382,7 +403,11 @@ export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void>
   try {
     await Promise.all(SYNC_KEYS.map(async (key) => {
       const value = snapshot.records[key];
-      if (value) await setLocalRecord(key, value);
+      if (value) {
+        await setLocalRecord(key, value);
+      } else {
+        await removeLocalRecord(key);
+      }
     }));
   } finally {
     suppressAutoSync = false;
@@ -459,6 +484,11 @@ export async function syncWithGoogleDrive(options: { interactive?: boolean } = {
 }
 
 export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
+  if (!navigator.onLine) {
+    publishSyncState({ status: 'offline', error: 'Đang offline; hãy kết nối mạng trước khi xử lý xung đột.' });
+    throw new Error('Đang offline; hãy kết nối mạng trước khi xử lý xung đột.');
+  }
+
   const remoteFile = await findSyncFile(true);
   if (!remoteFile) throw new Error('Không tìm thấy tệp đồng bộ trên Google Drive.');
 
@@ -487,7 +517,14 @@ export async function isAutoSyncEnabled(): Promise<boolean> {
 
 export async function setAutoSyncEnabled(enabled: boolean): Promise<void> {
   await updateMeta({ autoSyncEnabled: enabled });
-  publishSyncState({ autoSyncEnabled: enabled, status: enabled && !isGoogleConnected() ? 'auth-required' : syncState.status });
+  publishSyncState({
+    autoSyncEnabled: enabled,
+    status: !navigator.onLine
+      ? 'offline'
+      : enabled && !isGoogleConnected()
+        ? 'auth-required'
+        : syncState.status,
+  });
   if (enabled && autoSyncStop) scheduleAutoSync(0);
 }
 
@@ -524,25 +561,38 @@ export async function startAutoSync(): Promise<() => void> {
 
   autoSyncStartPromise = (async () => {
     const meta = await readMeta();
-    publishSyncState({ autoSyncEnabled: meta.autoSyncEnabled, lastSyncedAt: meta.lastSyncedAt });
+    publishSyncState({
+      autoSyncEnabled: meta.autoSyncEnabled,
+      lastSyncedAt: meta.lastSyncedAt,
+      status: navigator.onLine ? 'idle' : 'offline',
+      error: navigator.onLine ? null : 'Đang offline; dữ liệu vẫn được lưu cục bộ.',
+    });
 
   const onLocalRecordChanged = (key: string) => {
     if (suppressAutoSync) return;
     if (AUTO_SYNC_KEYS.has(key)) scheduleAutoSync();
   };
-  const onOnline = () => scheduleAutoSync(500);
+  const onOnline = () => {
+    publishSyncState({ status: 'idle', error: null });
+    scheduleAutoSync(500);
+  };
+  const onOffline = () => {
+    publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
+  };
   const onVisibilityChange = () => {
     if (document.visibilityState === 'visible') scheduleAutoSync(500);
   };
 
   const unsubscribe = subscribeLocalRecordChanges(onLocalRecordChanged);
   window.addEventListener('online', onOnline);
+  window.addEventListener('offline', onOffline);
   document.addEventListener('visibilitychange', onVisibilityChange);
   autoSyncTimer = window.setInterval(() => scheduleAutoSync(0), AUTO_SYNC_INTERVAL_MS);
 
   autoSyncStop = () => {
     unsubscribe();
     window.removeEventListener('online', onOnline);
+    window.removeEventListener('offline', onOffline);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     if (autoSyncTimer !== null) window.clearInterval(autoSyncTimer);
     if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
