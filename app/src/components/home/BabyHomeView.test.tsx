@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BabyHomeView } from './BabyHomeView';
 
 const navigate = vi.fn();
+let milkTotal = '540 ml';
+let sleepTotal = '12h 30p';
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -22,8 +24,8 @@ vi.mock('@/store/useBabyStore', () => ({
         growthScore: 92,
         growthScoreLabel: 'Tối ưu',
         todayVitals: {
-          milkTotal: '540 ml',
-          sleepTotal: '12h 30p',
+          milkTotal,
+          sleepTotal,
           diaperCount: 6,
           temperature: '36.8°C',
           mood: 'Happy',
@@ -37,17 +39,33 @@ vi.mock('@/store/useBabyStore', () => ({
     }),
 }));
 
+const renderView = () =>
+  render(
+    <MemoryRouter>
+      <BabyHomeView
+        onOpenScoreDetail={vi.fn()}
+        onOpenQuickLog={vi.fn()}
+        onOpenAiChat={vi.fn()}
+      />
+    </MemoryRouter>,
+  );
+
 describe('BabyHomeView', () => {
-  it('preserves baby landmarks and actions', () => {
+  beforeEach(() => {
+    navigate.mockReset();
+    milkTotal = '540 ml';
+    sleepTotal = '12h 30p';
+  });
+
+  it('preserves baby composition and profile navigation', () => {
     const onOpenScoreDetail = vi.fn();
-    const onOpenQuickLog = vi.fn();
     const onOpenAiChat = vi.fn();
 
     render(
       <MemoryRouter>
         <BabyHomeView
           onOpenScoreDetail={onOpenScoreDetail}
-          onOpenQuickLog={onOpenQuickLog}
+          onOpenQuickLog={vi.fn()}
           onOpenAiChat={onOpenAiChat}
         />
       </MemoryRouter>,
@@ -62,5 +80,22 @@ describe('BabyHomeView', () => {
     expect(onOpenScoreDetail).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenCalledWith('/profile');
     expect(onOpenAiChat).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the no-feeding insight when milk is empty', () => {
+    milkTotal = '';
+    renderView();
+    expect(screen.getByText('Hôm nay bé chưa có ghi chép về cữ bú.')).toBeInTheDocument();
+  });
+
+  it('asks for sleep when feeding exists but sleep is empty', () => {
+    sleepTotal = '';
+    renderView();
+    expect(screen.getByText('Bé đã có ghi chép ăn uống; hãy cập nhật thêm giấc ngủ hôm nay.')).toBeInTheDocument();
+  });
+
+  it('shows the tracked-well insight when feeding and sleep both exist', () => {
+    renderView();
+    expect(screen.getByText('Các chỉ số chính của bé đang được theo dõi tốt hôm nay.')).toBeInTheDocument();
   });
 });
