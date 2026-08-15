@@ -1,0 +1,33 @@
+name: App shell verification
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        run: |
+          cd app
+          npm install --save-dev vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
+          npm pkg set scripts.test="vitest run"
+      - name: Upload generated package metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-package-metadata
+          path: |
+            app/package.json
+            app/package-lock.json
+      - name: Test
+        run: cd app && npm test
+      - name: Lint
+        run: cd app && npm run lint
+      - name: Build
+        run: cd app && npm run build
