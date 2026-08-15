@@ -55,7 +55,7 @@ describe('BabyTodayTracker', () => {
 
     expect(screen.getAllByText('Chưa cập nhật').length).toBeGreaterThanOrEqual(4);
     expect(screen.getAllByText('Cập nhật').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2);
 
     rerender(
       <BabyTodayTracker
