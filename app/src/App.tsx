@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useUIStore } from './store/useUIStore';
+import { lazy, Suspense, useState, useEffect } from 'react';
 
 // Common Components
 import { Header } from './components/common/Header';
@@ -11,28 +12,68 @@ import PWABadge from './PWABadge';
 
 // Tab Views & Pages
 import { HomeView } from './components/home/HomeView';
-import { ScoreDetailView } from './components/home/ScoreDetailView';
-import { TimelineView } from './components/timeline/TimelineView';
-import { GrowthView } from './components/growth/GrowthView';
-import { ExpensesView } from './components/expenses/ExpensesView';
-import { ProfileView } from './components/profile/ProfileView';
 
 // Modals
-import { QuickLogModal } from './components/modals/QuickLogModal';
-import { AddGrowthModal } from './components/modals/AddGrowthModal';
-import { AddPumpingModal } from './components/modals/AddPumpingModal';
-import { AddExpenseModal } from './components/modals/AddExpenseModal';
-import { AddPostModal } from './components/modals/AddPostModal';
-import { AIDoctorChatModal } from './components/modals/AIDoctorChatModal';
-import { NotificationModal } from './components/modals/NotificationModal';
-import { EditProfileModal } from './components/modals/EditProfileModal';
+
 
 // Hooks
 import { useToast } from './hooks/useToast';
 import { startAutoSync } from './services/googleDriveSync';
 
+// Lazy-loaded routes and modal surfaces
+const ScoreDetailView = lazy(async () => ({
+  default: (await import('./components/home/ScoreDetailView')).ScoreDetailView,
+}));
+const TimelineView = lazy(async () => ({
+  default: (await import('./components/timeline/TimelineView')).TimelineView,
+}));
+const GrowthView = lazy(async () => ({
+  default: (await import('./components/growth/GrowthView')).GrowthView,
+}));
+const ExpensesView = lazy(async () => ({
+  default: (await import('./components/expenses/ExpensesView')).ExpensesView,
+}));
+const ProfileView = lazy(async () => ({
+  default: (await import('./components/profile/ProfileView')).ProfileView,
+}));
+const QuickLogModal = lazy(async () => ({
+  default: (await import('./components/modals/QuickLogModal')).QuickLogModal,
+}));
+const AddGrowthModal = lazy(async () => ({
+  default: (await import('./components/modals/AddGrowthModal')).AddGrowthModal,
+}));
+const AddPumpingModal = lazy(async () => ({
+  default: (await import('./components/modals/AddPumpingModal')).AddPumpingModal,
+}));
+const AddExpenseModal = lazy(async () => ({
+  default: (await import('./components/modals/AddExpenseModal')).AddExpenseModal,
+}));
+const AddPostModal = lazy(async () => ({
+  default: (await import('./components/modals/AddPostModal')).AddPostModal,
+}));
+const AIDoctorChatModal = lazy(async () => ({
+  default: (await import('./components/modals/AIDoctorChatModal')).AIDoctorChatModal,
+}));
+const NotificationModal = lazy(async () => ({
+  default: (await import('./components/modals/NotificationModal')).NotificationModal,
+}));
+const EditProfileModal = lazy(async () => ({
+  default: (await import('./components/modals/EditProfileModal')).EditProfileModal,
+}));
+
+const RouteLoadingFallback = () => (
+  <div className="route-loading-state" role="status" aria-live="polite">
+    Đang mở trang…
+  </div>
+);
+
+const LazyModalFallback = () => (
+  <div className="lazy-modal-loading" role="status" aria-live="polite">
+    Đang mở…
+  </div>
+);
+
 // Local state
-import { useState, useEffect } from 'react';
 
 export const AppContent: React.FC = () => {
   const { currentSubView, setCurrentSubView } = useUIStore();
@@ -133,7 +174,8 @@ export const AppContent: React.FC = () => {
         {/* PWA Install Banner */}
         <PWAInstallPrompt />
 
-        <Routes>
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
           {/* Tab 1: Trang chủ (Home) */}
           <Route
             path="/"
@@ -194,7 +236,8 @@ export const AppContent: React.FC = () => {
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
 
         {/* Physical Spacer to prevent content overlapping with bottom dock */}
         <div className="bottom-safe-spacer"></div>
@@ -210,64 +253,82 @@ export const AppContent: React.FC = () => {
         onClose={() => setLightboxSrc(null)}
       />
 
-      {/* Quick Action FAB Bottom Sheet */}
-      <QuickLogModal
-        isOpen={isQuickLogOpen}
-        onClose={() => setIsQuickLogOpen(false)}
-        onSelectAction={handleSelectQuickAction}
-      />
+      <Suspense fallback={<LazyModalFallback />}>
+        {/* Quick Action FAB Bottom Sheet */}
+        {isQuickLogOpen && (
+          <QuickLogModal
+            isOpen={isQuickLogOpen}
+            onClose={() => setIsQuickLogOpen(false)}
+            onSelectAction={handleSelectQuickAction}
+          />
+        )}
 
-      {/* Add Growth Measurement Modal */}
-      <AddGrowthModal
-        isOpen={isAddGrowthOpen}
-        onClose={() => setIsAddGrowthOpen(false)}
-        onSuccessToast={addToast}
-      />
+        {/* Add Growth Measurement Modal */}
+        {isAddGrowthOpen && (
+          <AddGrowthModal
+            isOpen={isAddGrowthOpen}
+            onClose={() => setIsAddGrowthOpen(false)}
+            onSuccessToast={addToast}
+          />
+        )}
 
-      {/* Add Pumping Session Modal */}
-      <AddPumpingModal
-        isOpen={isAddPumpingOpen}
-        onClose={() => setIsAddPumpingOpen(false)}
-        onSuccessToast={addToast}
-      />
+        {/* Add Pumping Session Modal */}
+        {isAddPumpingOpen && (
+          <AddPumpingModal
+            isOpen={isAddPumpingOpen}
+            onClose={() => setIsAddPumpingOpen(false)}
+            onSuccessToast={addToast}
+          />
+        )}
 
-      {/* Add Expense Modal */}
-      <AddExpenseModal
-        isOpen={isAddExpenseOpen}
-        onClose={() => setIsAddExpenseOpen(false)}
-        onSuccessToast={addToast}
-      />
+        {/* Add Expense Modal */}
+        {isAddExpenseOpen && (
+          <AddExpenseModal
+            isOpen={isAddExpenseOpen}
+            onClose={() => setIsAddExpenseOpen(false)}
+            onSuccessToast={addToast}
+          />
+        )}
 
-      {/* Add Post Modal */}
-      <AddPostModal
-        isOpen={isAddPostOpen}
-        onClose={() => setIsAddPostOpen(false)}
-        onSuccessToast={addToast}
-        presetTagType={presetPostTagType}
-      />
+        {/* Add Post Modal */}
+        {isAddPostOpen && (
+          <AddPostModal
+            isOpen={isAddPostOpen}
+            onClose={() => setIsAddPostOpen(false)}
+            onSuccessToast={addToast}
+            presetTagType={presetPostTagType}
+          />
+        )}
 
-      {/* Edit Baby Profile Modal */}
-      <EditProfileModal
-        isOpen={isEditProfileOpen}
-        onClose={() => setIsEditProfileOpen(false)}
-        onSuccessToast={addToast}
-      />
+        {/* Edit Baby Profile Modal */}
+        {isEditProfileOpen && (
+          <EditProfileModal
+            isOpen={isEditProfileOpen}
+            onClose={() => setIsEditProfileOpen(false)}
+            onSuccessToast={addToast}
+          />
+        )}
 
-      {/* AI Doctor Chat Drawer */}
-      <AIDoctorChatModal
-        isOpen={isAiChatOpen}
-        onClose={() => {
-          setIsAiChatOpen(false);
-          setAiChatInitialQuestion(undefined);
-        }}
-        initialQuestion={aiChatInitialQuestion}
-      />
+        {/* AI Doctor Chat Drawer */}
+        {isAiChatOpen && (
+          <AIDoctorChatModal
+            isOpen={isAiChatOpen}
+            onClose={() => {
+              setIsAiChatOpen(false);
+              setAiChatInitialQuestion(undefined);
+            }}
+            initialQuestion={aiChatInitialQuestion}
+          />
+        )}
 
-      {/* Notifications Modal */}
-      <NotificationModal
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-      />
+        {/* Notifications Modal */}
+        {isNotificationOpen && (
+          <NotificationModal
+            isOpen={isNotificationOpen}
+            onClose={() => setIsNotificationOpen(false)}
+          />
+        )}
+      </Suspense>
 
       {/* PWA Update / Offline Ready Badge */}
       <PWABadge />

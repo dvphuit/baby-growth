@@ -53,3 +53,19 @@ Preview sau semantic refactor render thành công ở mode Mẹ và Bé. Các he
 ## P2 regression
 
 DOM smoke check ở preview cho kết quả `horizontalOverflow: false` và `unlabeledControls: []`. Health card `btnOpenFreudScore` vẫn mở đúng Score Detail sau khi chuyển sang button semantic.
+
+## P3 code-splitting verification
+
+Production build đã tách entry JS từ khoảng 639 kB xuống khoảng 335 kB; các route/modal tạo chunk riêng và build không còn cảnh báo chunk entry vượt 500 kB. Preview Home initial load render đúng Today-first. Route `/timeline` đã lazy-load và mở thành công, không có lỗi runtime hoặc Suspense dead-end.
+
+## P3 modal verification
+
+Đã quay về Home và mở FAB `Ghi chép nhanh`; `QuickLogModal` được tải động và hiển thị đúng sáu hành động, không có runtime error hoặc fallback bị kẹt.
+
+## On-demand modal verification
+
+Sau khi đổi sang render-on-demand, QuickLogModal và AIDoctorChatModal đều chỉ xuất hiện khi được mở. Cả hai modal hiển thị đúng nội dung, accessible labels và đóng/mở không bị kẹt.
+
+## Final P3 smoke check
+
+Console không ghi nhận runtime error. Smoke check khi AI modal mở cho kết quả `horizontalOverflow: false`, `unlabeledControls: []` và không còn fallback loading bị kẹt trong DOM.
