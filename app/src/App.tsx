@@ -9,6 +9,7 @@ import { ToastContainer } from './components/common/Toast';
 import { Lightbox } from './components/common/Lightbox';
 import { PWAInstallPrompt } from './components/common/PWAInstallPrompt';
 import PWABadge from './PWABadge';
+import { AppVersionBadge } from './components/common/AppVersionBadge';
 
 // Tab Views & Pages
 import { HomeView } from './components/home/HomeView';
@@ -256,6 +257,9 @@ export const AppContent: React.FC = () => {
         {/* Physical Spacer to prevent content overlapping with bottom dock */}
         <div className="bottom-safe-spacer"></div>
       </main>
+
+      {/* Build/version marker for deployment verification */}
+      <AppVersionBadge />
 
       {/* Bottom Navigation Dock */}
       <BottomNav onOpenQuickLog={() => setIsQuickLogOpen(true)} />

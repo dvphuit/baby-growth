@@ -15,9 +15,16 @@ jobs:
           cache-dependency-path: app/package-lock.json
       - name: Install dependencies
         run: cd app && npm ci
+      - name: Read app version
+        id: app_version
+        run: echo "version=$(node -p \"require('./app/package.json').version\")" >> "$GITHUB_OUTPUT"
       - name: Build
         run: cd app && npm run build
         env:
+          VITE_APP_VERSION: ${{ steps.app_version.outputs.version }}
+          VITE_BUILD_SHA: ${{ github.sha }}
+          VITE_BUILD_REF: ${{ github.ref_name }}
+          VITE_BUILD_TIME: ${{ github.run_started_at }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
