@@ -10,7 +10,6 @@ import {
   Eye,
   Flame,
   Heart,
-  Milk,
   Moon,
   MoreHorizontal,
   Plus,
