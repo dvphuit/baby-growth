@@ -13,6 +13,7 @@ import PWABadge from './PWABadge';
 import { useToast } from './hooks/useToast';
 import { useAutoSyncLifecycle } from './hooks/useAutoSyncLifecycle';
 import { useAppModals } from './hooks/useAppModals';
+import { useReminderLifecycle } from './hooks/useReminderLifecycle';
 
 export const AppContent: React.FC = () => {
   const { currentSubView, setCurrentSubView } = useUIStore();
@@ -27,6 +28,7 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals(addToast);
+  useReminderLifecycle({ onQuickLog: modals.handleQuickAction });
 
   return (
     <div className="app-container" id="appContainer">
@@ -64,11 +66,7 @@ export const AppContent: React.FC = () => {
 
       <BottomNav onOpenQuickLog={modals.openQuickLog} />
 
-      <Lightbox
-        mediaSrc={modals.lightboxSrc}
-        isVideo={modals.lightboxIsVideo}
-        onClose={modals.closeLightbox}
-      />
+      <Lightbox mediaSrc={modals.lightboxSrc} isVideo={modals.lightboxIsVideo} onClose={modals.closeLightbox} />
 
       <AppModals modals={modals} onSuccessToast={addToast} />
 
