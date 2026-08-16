@@ -5,6 +5,10 @@ function occurrenceId(reminderId: string, discriminator: string): string {
   return `${reminderId}@${discriminator}`;
 }
 
+function localDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function fixedOccurrence(reminder: Reminder, states: Record<string, ReminderOccurrenceState>, now: Date): ReminderOccurrence | null {
   if (!reminder.triggerAt) return null;
   const configured = new Date(reminder.triggerAt);
@@ -17,8 +21,7 @@ function fixedOccurrence(reminder: Reminder, states: Record<string, ReminderOccu
     due = todayDue.getTime() < firstAllowed.getTime() ? firstAllowed : todayDue;
 
     const currentId = occurrenceId(reminder.id, localDateKey(due));
-    const currentState = states[currentId];
-    if (currentState?.completedAt) {
+    if (states[currentId]?.completedAt) {
       due = new Date(due.getFullYear(), due.getMonth(), due.getDate() + 1, due.getHours(), due.getMinutes(), 0, 0);
     }
   }
@@ -27,38 +30,37 @@ function fixedOccurrence(reminder: Reminder, states: Record<string, ReminderOccu
     ? occurrenceId(reminder.id, localDateKey(due))
     : occurrenceId(reminder.id, due.toISOString());
   const state = states[id];
-  const effectiveDue = state?.snoozedUntil ?? due.toISOString();
-
   return {
     occurrenceId: id,
     reminderId: reminder.id,
-    dueAt: effectiveDue,
+    dueAt: state?.snoozedUntil ?? due.toISOString(),
     originalDueAt: due.toISOString(),
     reminder,
     state,
   };
 }
 
-function localDateKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
 function relativeOccurrence(
   reminder: Reminder,
   babyActivities: BabyActivity[],
   momActivities: MomActivity[],
-  states: Record<string, ReminderOccurrenceState>
+  states: Record<string, ReminderOccurrenceState>,
 ): ReminderOccurrence | null {
   const intervalMinutes = reminder.intervalMinutes ?? 0;
   if (intervalMinutes <= 0) return null;
 
-  const source = reminder.type === 'feeding'
-    ? babyActivities.filter((record): record is Extract<BabyActivity, { type: 'feeding' }> => record.type === 'feeding')
-    : reminder.type === 'pumping'
-      ? momActivities.filter((record): record is Extract<MomActivity, { type: 'pumping' }> => record.type === 'pumping')
-      : [];
+  let source: Array<{ id: string; occurredAt: string }> = [];
+  if (reminder.type === 'feeding') {
+    source = babyActivities
+      .filter((record) => record.type === 'feeding')
+      .map((record) => ({ id: record.id, occurredAt: record.occurredAt }));
+  } else if (reminder.type === 'pumping') {
+    source = momActivities
+      .filter((record) => record.type === 'pumping')
+      .map((record) => ({ id: record.id, occurredAt: record.occurredAt }));
+  }
 
-  const latest = source.reduce<(typeof source)[number] | null>((current, record) => {
+  const latest = source.reduce<{ id: string; occurredAt: string } | null>((current, record) => {
     if (!current) return record;
     return new Date(record.occurredAt).getTime() > new Date(current.occurredAt).getTime() ? record : current;
   }, null);
