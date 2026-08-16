@@ -8,9 +8,7 @@ const GrowthView = lazy(async () => ({ default: (await import('@/components/grow
 const ExpensesView = lazy(async () => ({ default: (await import('@/components/expenses/ExpensesView')).ExpensesView }));
 const ProfileView = lazy(async () => ({ default: (await import('@/components/profile/ProfileView')).ProfileView }));
 
-const RouteLoadingFallback = () => (
-  <div className="route-loading-state" role="status" aria-live="polite">Đang mở trang…</div>
-);
+const RouteLoadingFallback = () => <div className="route-loading-state" role="status" aria-live="polite">Đang mở trang…</div>;
 
 export interface AppRoutesProps {
   onOpenQuickLog: () => void;
@@ -21,6 +19,7 @@ export interface AppRoutesProps {
   onOpenAddGrowth: () => void;
   onOpenAddExpense: () => void;
   onOpenEditProfile: () => void;
+  onOpenNotifications: () => void;
 }
 
 export function AppRoutes({
@@ -32,6 +31,7 @@ export function AppRoutes({
   onOpenAddGrowth,
   onOpenAddExpense,
   onOpenEditProfile,
+  onOpenNotifications,
 }: AppRoutesProps) {
   return (
     <Suspense fallback={<RouteLoadingFallback />}>
@@ -40,7 +40,7 @@ export function AppRoutes({
         <Route path="/timeline" element={<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={onOpenAddTimelineEntry} />} />
         <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
         <Route path="/expenses" element={<ExpensesView onOpenAddExpense={onOpenAddExpense} />} />
-        <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onShowToast={onShowToast} />} />
+        <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onOpenNotifications={onOpenNotifications} onShowToast={onShowToast} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
