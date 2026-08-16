@@ -43,7 +43,7 @@ function momEntry(record: MomActivity): DerivedTimelineEntry {
 function parseGrowthDate(value: string): string | null {
   const parsed = new Date(value);
   if (Number.isFinite(parsed.getTime())) return parsed.toISOString();
-  const match = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  const match = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
   if (!match) return null;
   const [, day, month, year] = match;
   return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0).toISOString();
