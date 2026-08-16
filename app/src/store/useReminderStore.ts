@@ -23,100 +23,30 @@ export interface ReminderStoreState {
 export const useReminderStore = create<ReminderStoreState>()(
   persist(
     (set) => ({
-      reminders: [],
-      occurrenceStates: {},
-      systemNotificationsEnabled: false,
-
+      reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false,
       createReminder: (input) => {
         const now = new Date().toISOString();
-        const reminder: Reminder = {
-          ...input,
-          id: createId(),
-          enabled: input.enabled === true,
-          repeat: input.repeat ?? 'none',
-          createdAt: now,
-          updatedAt: now,
-        };
+        const reminder: Reminder = { ...input, id: createId(), enabled: input.enabled === true, repeat: input.repeat ?? 'none', createdAt: now, updatedAt: now };
         set((state) => ({ reminders: [...state.reminders, reminder] }));
         return reminder;
       },
-
-      updateReminder: (id, patch) => {
-        set((state) => ({
-          reminders: state.reminders.map((reminder) => reminder.id === id
-            ? { ...reminder, ...patch, id: reminder.id, createdAt: reminder.createdAt, updatedAt: new Date().toISOString() }
-            : reminder),
-        }));
-      },
-
-      deleteReminder: (id) => {
-        set((state) => ({
-          reminders: state.reminders.filter((reminder) => reminder.id !== id),
-          occurrenceStates: Object.fromEntries(Object.entries(state.occurrenceStates).filter(([, occurrence]) => occurrence.reminderId !== id)),
-        }));
-      },
-
+      updateReminder: (id, patch) => set((state) => ({ reminders: state.reminders.map((reminder) => reminder.id === id ? { ...reminder, ...patch, id: reminder.id, createdAt: reminder.createdAt, updatedAt: new Date().toISOString() } : reminder) })),
+      deleteReminder: (id) => set((state) => ({ reminders: state.reminders.filter((reminder) => reminder.id !== id), occurrenceStates: Object.fromEntries(Object.entries(state.occurrenceStates).filter(([, occurrence]) => occurrence.reminderId !== id)) })),
       completeOccurrence: (occurrence) => {
         const completedAt = new Date().toISOString();
-        set((state) => ({
-          occurrenceStates: {
-            ...state.occurrenceStates,
-            [occurrence.occurrenceId]: {
-              occurrenceId: occurrence.occurrenceId,
-              reminderId: occurrence.reminderId,
-              dueAt: occurrence.originalDueAt,
-              surfacedAt: occurrence.state?.surfacedAt,
-              snoozedUntil: occurrence.state?.snoozedUntil,
-              completedAt,
-            },
-          },
-        }));
+        set((state) => ({ occurrenceStates: { ...state.occurrenceStates, [occurrence.occurrenceId]: { occurrenceId: occurrence.occurrenceId, reminderId: occurrence.reminderId, dueAt: occurrence.originalDueAt, surfacedAt: occurrence.state?.surfacedAt, snoozedUntil: occurrence.state?.snoozedUntil, completedAt } } }));
       },
-
       snoozeOccurrence: (occurrence, minutes) => {
         const safeMinutes = Number.isFinite(minutes) && minutes > 0 ? minutes : 10;
         const snoozedUntil = new Date(Date.now() + safeMinutes * 60_000).toISOString();
-        set((state) => ({
-          occurrenceStates: {
-            ...state.occurrenceStates,
-            [occurrence.occurrenceId]: {
-              occurrenceId: occurrence.occurrenceId,
-              reminderId: occurrence.reminderId,
-              dueAt: occurrence.originalDueAt,
-              surfacedAt: occurrence.state?.surfacedAt,
-              snoozedUntil,
-            },
-          },
-        }));
+        set((state) => ({ occurrenceStates: { ...state.occurrenceStates, [occurrence.occurrenceId]: { occurrenceId: occurrence.occurrenceId, reminderId: occurrence.reminderId, dueAt: occurrence.originalDueAt, snoozedUntil } } }));
       },
-
       markSurfaced: (occurrence) => {
         if (occurrence.state?.surfacedAt) return;
-        set((state) => ({
-          occurrenceStates: {
-            ...state.occurrenceStates,
-            [occurrence.occurrenceId]: {
-              occurrenceId: occurrence.occurrenceId,
-              reminderId: occurrence.reminderId,
-              dueAt: occurrence.originalDueAt,
-              snoozedUntil: occurrence.state?.snoozedUntil,
-              completedAt: occurrence.state?.completedAt,
-              surfacedAt: new Date().toISOString(),
-            },
-          },
-        }));
+        set((state) => ({ occurrenceStates: { ...state.occurrenceStates, [occurrence.occurrenceId]: { occurrenceId: occurrence.occurrenceId, reminderId: occurrence.reminderId, dueAt: occurrence.originalDueAt, snoozedUntil: occurrence.state?.snoozedUntil, completedAt: occurrence.state?.completedAt, surfacedAt: new Date().toISOString() } } }));
       },
-
       setSystemNotificationsEnabled: (enabled) => set({ systemNotificationsEnabled: enabled }),
     }),
-    {
-      name: 'babygrowth_v3_reminders',
-      storage: createJSONStorage(() => indexedDbStorage),
-      partialize: (state) => ({
-        reminders: state.reminders,
-        occurrenceStates: state.occurrenceStates,
-        systemNotificationsEnabled: state.systemNotificationsEnabled,
-      }),
-    }
-  )
+    { name: 'babygrowth_v3_reminders', storage: createJSONStorage(() => indexedDbStorage), partialize: (state) => ({ reminders: state.reminders, occurrenceStates: state.occurrenceStates, systemNotificationsEnabled: state.systemNotificationsEnabled }) },
+  ),
 );
