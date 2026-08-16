@@ -9,6 +9,7 @@ import {
   Wallet,
   Camera,
   Layers,
+  Pill,
 } from 'lucide-react';
 
 interface QuickLogModalProps {
@@ -17,12 +18,8 @@ interface QuickLogModalProps {
   onSelectAction: (actionType: string) => void;
 }
 
-export const QuickLogModal: React.FC<QuickLogModalProps> = ({
-  isOpen,
-  onClose,
-  onSelectAction,
-}) => {
-  const profileMode = useUIStore(s => s.profileMode);
+export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, onSelectAction }) => {
+  const profileMode = useUIStore((state) => state.profileMode);
   const isMom = profileMode === 'mom';
 
   const handleAction = (type: string) => {
@@ -30,108 +27,31 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
     onSelectAction(type);
   };
 
+  const Action = ({ type, label, icon }: { type: string; label: string; icon: React.ReactNode }) => (
+    <button type="button" className="quick-action-item" onClick={() => handleAction(type)} style={{ cursor: 'pointer', border: 0, background: 'transparent' }}>
+      <div className="action-icon-circle">{icon}</div>
+      <span className="action-item-label">{label}</span>
+    </button>
+  );
+
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Ghi Nhanh ${isMom ? '(Mẹ)' : '(Bé)'}`}
-    >
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi Nhanh ${isMom ? '(Mẹ)' : '(Bé)'}`}>
       <div className="quick-log-actions-grid">
         {isMom ? (
           <>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('pumping')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Milk size={20} color="var(--color-mom-rose)" />
-              </div>
-              <span className="action-item-label">Hút sữa</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('sleep')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Moon size={20} color="#9579EE" />
-              </div>
-              <span className="action-item-label">Giấc ngủ</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('mood')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <HeartPulse size={20} color="var(--color-sage-dark)" />
-              </div>
-              <span className="action-item-label">Tâm lý</span>
-            </div>
+            <Action type="pumping" label="Hút sữa" icon={<Milk size={20} color="var(--color-mom-rose)" />} />
+            <Action type="mom-sleep" label="Giấc ngủ" icon={<Moon size={20} color="#9579EE" />} />
+            <Action type="mom-mood" label="Tâm lý" icon={<HeartPulse size={20} color="var(--color-sage-dark)" />} />
           </>
         ) : (
           <>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('feeding')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Baby size={20} color="var(--color-sage-dark)" />
-              </div>
-              <span className="action-item-label">Cữ bú</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('diaper')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Layers size={20} color="#F5B842" />
-              </div>
-              <span className="action-item-label">Thay tã</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('sleep')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Moon size={20} color="#9579EE" />
-              </div>
-              <span className="action-item-label">Giấc ngủ</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('growth')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Ruler size={20} color="var(--color-sage-dark)" />
-              </div>
-              <span className="action-item-label">Cân đo</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('smart-expense')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Wallet size={20} color="#E87A90" />
-              </div>
-              <span className="action-item-label">Chi tiêu</span>
-            </div>
-            <div
-              className="quick-action-item"
-              onClick={() => handleAction('diary')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="action-icon-circle">
-                <Camera size={20} color="var(--color-primary-dark)" />
-              </div>
-              <span className="action-item-label">Khoảnh khắc</span>
-            </div>
+            <Action type="feeding" label="Cữ bú" icon={<Baby size={20} color="var(--color-sage-dark)" />} />
+            <Action type="diaper" label="Thay tã" icon={<Layers size={20} color="#F5B842" />} />
+            <Action type="baby-sleep" label="Giấc ngủ" icon={<Moon size={20} color="#9579EE" />} />
+            <Action type="medicine" label="Thuốc / vitamin" icon={<Pill size={20} color="#5B8DEF" />} />
+            <Action type="growth" label="Cân đo" icon={<Ruler size={20} color="var(--color-sage-dark)" />} />
+            <Action type="smart-expense" label="Chi tiêu" icon={<Wallet size={20} color="#E87A90" />} />
+            <Action type="diary" label="Khoảnh khắc" icon={<Camera size={20} color="var(--color-primary-dark)" />} />
           </>
         )}
       </div>
