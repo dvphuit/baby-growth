@@ -6,9 +6,10 @@ import { useReminderStore } from '@/store/useReminderStore';
 
 interface ReminderLifecycleOptions {
   onQuickLog?: (action: string) => void;
+  onOpenNotifications?: () => void;
 }
 
-export function useReminderLifecycle(options: ReminderLifecycleOptions = {}) {
+export function useReminderLifecycle({ onQuickLog, onOpenNotifications }: ReminderLifecycleOptions = {}) {
   const reminders = useReminderStore((state) => state.reminders);
   const occurrenceStates = useReminderStore((state) => state.occurrenceStates);
   const systemNotificationsEnabled = useReminderStore((state) => state.systemNotificationsEnabled);
@@ -20,8 +21,7 @@ export function useReminderLifecycle(options: ReminderLifecycleOptions = {}) {
     if (runningRef.current) return;
     runningRef.current = true;
     try {
-      const now = new Date();
-      const due = getDueOccurrences({ reminders, babyActivities, momActivities, occurrenceStates, now });
+      const due = getDueOccurrences({ reminders, babyActivities, momActivities, occurrenceStates, now: new Date() });
       if (!systemNotificationsEnabled) return;
 
       for (const occurrence of due) {
@@ -54,29 +54,23 @@ export function useReminderLifecycle(options: ReminderLifecycleOptions = {}) {
     const url = new URL(window.location.href);
     const action = url.searchParams.get('reminderAction');
     const occurrenceId = url.searchParams.get('occurrenceId');
-    if (!action || !occurrenceId) return;
+    if (!action) return;
 
-    const occurrences = getReminderOccurrences({
-      reminders,
-      babyActivities,
-      momActivities,
-      occurrenceStates,
-      now: new Date(),
-    });
-    const occurrence = occurrences.find((item) => item.occurrenceId === occurrenceId);
-    if (!occurrence) return;
-
-    if (action === 'complete') {
-      useReminderStore.getState().completeOccurrence(occurrence);
-    } else if (action === 'snooze') {
-      useReminderStore.getState().snoozeOccurrence(occurrence, 10);
-    } else if (action === 'quick-log' && occurrence.reminder.quickLogAction) {
-      options.onQuickLog?.(occurrence.reminder.quickLogAction);
+    if (action === 'open') {
+      onOpenNotifications?.();
+    } else if (occurrenceId) {
+      const occurrences = getReminderOccurrences({ reminders, babyActivities, momActivities, occurrenceStates, now: new Date() });
+      const occurrence = occurrences.find((item) => item.occurrenceId === occurrenceId);
+      if (occurrence) {
+        if (action === 'complete') useReminderStore.getState().completeOccurrence(occurrence);
+        else if (action === 'snooze') useReminderStore.getState().snoozeOccurrence(occurrence, 10);
+        else if (action === 'quick-log' && occurrence.reminder.quickLogAction) onQuickLog?.(occurrence.reminder.quickLogAction);
+      }
     }
 
     url.searchParams.delete('reminderAction');
     url.searchParams.delete('reminderId');
     url.searchParams.delete('occurrenceId');
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [babyActivities, momActivities, occurrenceStates, options, reminders]);
+  }, [babyActivities, momActivities, occurrenceStates, onOpenNotifications, onQuickLog, reminders]);
 }
