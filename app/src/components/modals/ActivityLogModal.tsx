@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
 import { useActivityStore } from '@/store/useActivityStore';
 
-export type ActivityLogMode = 'feeding' | 'baby-sleep' | 'diaper' | 'mom-sleep' | 'mom-mood' | 'medicine';
+export type ActivityLogMode = 'feeding' | 'baby-sleep' | 'diaper' | 'baby-note' | 'mom-sleep' | 'mom-mood' | 'medicine';
 
 interface ActivityLogModalProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ const TITLES: Record<ActivityLogMode, string> = {
   feeding: 'Ghi cữ bú',
   'baby-sleep': 'Ghi giấc ngủ của bé',
   diaper: 'Ghi thay tã',
+  'baby-note': 'Ghi chú sức khỏe / khoảnh khắc',
   'mom-sleep': 'Ghi giấc ngủ của mẹ',
   'mom-mood': 'Ghi tâm trạng của mẹ',
   medicine: 'Ghi thuốc / vitamin',
@@ -72,6 +73,13 @@ export function ActivityLogModal({ isOpen, mode, onClose, onSaved }: ActivityLog
     } else if (mode === 'diaper') {
       addBabyActivity({ owner: 'baby', type: 'diaper', occurredAt: eventIso, diaperKind, note: note.trim() || undefined });
       onSaved('Đã lưu lần thay tã.');
+    } else if (mode === 'baby-note') {
+      if (!note.trim()) {
+        setError('Nhập nội dung ghi chú.');
+        return;
+      }
+      addBabyActivity({ owner: 'baby', type: 'health_note', occurredAt: eventIso, note: note.trim() });
+      onSaved('Đã lưu ghi chú.');
     } else if (mode === 'mom-sleep') {
       if (!Number.isFinite(duration) || duration <= 0) {
         setError('Thời lượng ngủ phải lớn hơn 0 phút.');
@@ -107,46 +115,22 @@ export function ActivityLogModal({ isOpen, mode, onClose, onSaved }: ActivityLog
 
         {mode === 'feeding' && (
           <>
-            <div className="log-form-group">
-              <label className="log-form-label">Lượng sữa (ml)</label>
-              <input className="log-input-control" type="number" min="0" inputMode="numeric" value={amountMl} onChange={(e) => setAmountMl(e.target.value)} placeholder="Ví dụ 90" />
-            </div>
-            <div className="log-form-group">
-              <label className="log-form-label">Thời lượng bú (phút)</label>
-              <input className="log-input-control" type="number" min="0" inputMode="numeric" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} placeholder="Ví dụ 20" />
-            </div>
-            <div className="log-form-group">
-              <label className="log-form-label">Cách bú</label>
-              <select className="log-input-control" value={feedingMethod} onChange={(e) => setFeedingMethod(e.target.value as typeof feedingMethod)}>
-                <option value="bottle">Bình</option><option value="breast">Trực tiếp</option><option value="other">Khác</option>
-              </select>
-            </div>
+            <div className="log-form-group"><label className="log-form-label">Lượng sữa (ml)</label><input className="log-input-control" type="number" min="0" inputMode="numeric" value={amountMl} onChange={(e) => setAmountMl(e.target.value)} placeholder="Ví dụ 90" /></div>
+            <div className="log-form-group"><label className="log-form-label">Thời lượng bú (phút)</label><input className="log-input-control" type="number" min="0" inputMode="numeric" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} placeholder="Ví dụ 20" /></div>
+            <div className="log-form-group"><label className="log-form-label">Cách bú</label><select className="log-input-control" value={feedingMethod} onChange={(e) => setFeedingMethod(e.target.value as typeof feedingMethod)}><option value="bottle">Bình</option><option value="breast">Trực tiếp</option><option value="other">Khác</option></select></div>
           </>
         )}
 
         {(mode === 'baby-sleep' || mode === 'mom-sleep') && (
-          <div className="log-form-group">
-            <label className="log-form-label">Thời lượng (phút)</label>
-            <input className="log-input-control" type="number" min="1" required value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} placeholder="Ví dụ 90" />
-          </div>
+          <div className="log-form-group"><label className="log-form-label">Thời lượng (phút)</label><input className="log-input-control" type="number" min="1" required value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} placeholder="Ví dụ 90" /></div>
         )}
 
         {mode === 'diaper' && (
-          <div className="log-form-group">
-            <label className="log-form-label">Loại tã</label>
-            <select className="log-input-control" value={diaperKind} onChange={(e) => setDiaperKind(e.target.value as typeof diaperKind)}>
-              <option value="wet">Ướt</option><option value="dirty">Bẩn</option><option value="both">Cả hai</option>
-            </select>
-          </div>
+          <div className="log-form-group"><label className="log-form-label">Loại tã</label><select className="log-input-control" value={diaperKind} onChange={(e) => setDiaperKind(e.target.value as typeof diaperKind)}><option value="wet">Ướt</option><option value="dirty">Bẩn</option><option value="both">Cả hai</option></select></div>
         )}
 
         {mode === 'mom-mood' && (
-          <div className="log-form-group">
-            <label className="log-form-label">Tâm trạng</label>
-            <select className="log-input-control" value={mood} onChange={(e) => setMood(e.target.value as typeof mood)}>
-              <option value="great">Rất tốt</option><option value="good">Tốt</option><option value="neutral">Bình thường</option><option value="low">Không tốt</option><option value="very_low">Rất không tốt</option>
-            </select>
-          </div>
+          <div className="log-form-group"><label className="log-form-label">Tâm trạng</label><select className="log-input-control" value={mood} onChange={(e) => setMood(e.target.value as typeof mood)}><option value="great">Rất tốt</option><option value="good">Tốt</option><option value="neutral">Bình thường</option><option value="low">Không tốt</option><option value="very_low">Rất không tốt</option></select></div>
         )}
 
         {mode === 'medicine' && (
@@ -157,8 +141,8 @@ export function ActivityLogModal({ isOpen, mode, onClose, onSaved }: ActivityLog
         )}
 
         <div className="log-form-group">
-          <label className="log-form-label">Ghi chú (không bắt buộc)</label>
-          <textarea className="log-input-control" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+          <label className="log-form-label">{mode === 'baby-note' ? 'Nội dung ghi chú' : 'Ghi chú (không bắt buộc)'}</label>
+          <textarea className="log-input-control" rows={3} value={note} onChange={(e) => setNote(e.target.value)} required={mode === 'baby-note'} />
         </div>
 
         {error && <p role="alert" style={{ color: '#B42318', fontSize: 13 }}>{error}</p>}
