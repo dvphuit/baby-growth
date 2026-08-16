@@ -8,6 +8,17 @@ declare let self: ServiceWorkerGlobalScope
 self.skipWaiting()
 clientsClaim()
 
+self.addEventListener('activate', (event: ExtendableEvent) => {
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    await Promise.all(clients.map(async (client) => {
+      if (new URL(client.url).origin !== self.location.origin)
+        return
+      await (client as WindowClient).navigate(client.url)
+    }))
+  })())
+})
+
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close()
 
