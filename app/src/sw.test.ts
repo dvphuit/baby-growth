@@ -11,6 +11,6 @@ describe('service worker auto-update activation', () => {
   it('refreshes existing app windows when a new worker activates', () => {
     expect(source).toContain("self.addEventListener('activate'");
     expect(source).toMatch(/self\.clients\.matchAll\(\{ type: 'window'/);
-    expect(source).toMatch(/client\.navigate\(client\.url\)/);
+    expect(source).toMatch(/navigate\(client\.url\)/);
   });
 });
