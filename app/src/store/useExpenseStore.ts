@@ -1,58 +1,26 @@
-import { create } from 'zustand';
 import { useBabyStore } from './useBabyStore';
-import { useTimelineStore } from './useTimelineStore';
-import { formatVND } from '@/utils/format';
+import type { ExpenseRecord } from '@/types/expense';
 
 interface ExpenseStoreState {
+  expenses: ExpenseRecord[];
+  addExpense: (input: Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>) => ExpenseRecord;
+  updateExpense: (id: string, patch: Partial<Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>>) => void;
+  deleteExpense: (id: string) => void;
   addExpenseItem: (categoryName: string, amount: number) => void;
 }
 
-export const useExpenseStore = create<ExpenseStoreState>(() => ({
-  addExpenseItem: (categoryName, amount) => {
-    const babyStore = useBabyStore.getState();
-    const timelineStore = useTimelineStore.getState();
-
-    const currentStage = babyStore.currentStage;
-    const stages = babyStore.stages;
-    const stage = stages[currentStage];
-    
-    if (!stage || !stage.expenses) return;
-
-    const exp = { ...stage.expenses };
-    const cats = [...exp.categories];
-    const found = cats.find((c) => c.name.toLowerCase().includes(categoryName.toLowerCase()));
-
-    const formattedAmount = formatVND(amount);
-
-    if (found) {
-      found.amount = formattedAmount;
-    } else {
-      cats.push({
-        name: categoryName,
-        amount: formattedAmount,
-        percent: 10,
-        color: '#8DA06F',
-      });
-    }
-
-    exp.categories = cats;
-    
-    useBabyStore.setState((prev) => ({
-      stages: {
-        ...prev.stages,
-        [currentStage]: {
-          ...prev.stages[currentStage],
-          expenses: exp
-        }
-      }
-    }));
-
-    timelineStore.addTimelineItem({
-      title: `Chi tiêu mới: ${categoryName} 💳`,
-      content: `Ghi nhận chi tiêu ${amount.toLocaleString('vi-VN')} đ cho mục "${categoryName}".`,
-      stats: [categoryName, formattedAmount],
-      tag: 'Chi tiêu',
-      tagType: 'general',
-    });
-  }
-}));
+/** Expense records live in the existing baby store so Google Drive schema-1
+ * snapshots keep backing them up through `babygrowth_v2_baby`. */
+export function useExpenseStore<T>(selector: (state: ExpenseStoreState) => T): T {
+  return useBabyStore((state) => selector({
+    expenses: state.expenseRecords ?? [],
+    addExpense: state.addExpenseRecord,
+    updateExpense: state.updateExpenseRecord,
+    deleteExpense: state.deleteExpenseRecord,
+    addExpenseItem: (categoryName, amount) => state.addExpenseRecord({
+      amount,
+      category: categoryName,
+      occurredAt: new Date().toISOString(),
+    }),
+  }));
+}

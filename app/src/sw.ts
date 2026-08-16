@@ -9,19 +9,39 @@ self.addEventListener('message', (event) => {
     self.skipWaiting()
 })
 
-// self.__WB_MANIFEST is the default injection point
-precacheAndRoute(self.__WB_MANIFEST)
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close()
 
-// clean old assets
+  const data = (event.notification.data ?? {}) as {
+    reminderId?: string
+    occurrenceId?: string
+  }
+  const action = event.action || 'open'
+  const target = new URL('/', self.location.origin)
+  target.searchParams.set('reminderAction', action)
+  if (data.reminderId) target.searchParams.set('reminderId', data.reminderId)
+  if (data.occurrenceId) target.searchParams.set('occurrenceId', data.occurrenceId)
+
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    const existing = clients.find((client) => new URL(client.url).origin === self.location.origin) as WindowClient | undefined
+    if (existing) {
+      const navigated = await existing.navigate(target.toString())
+      await (navigated ?? existing).focus()
+      return
+    }
+    await self.clients.openWindow(target.toString())
+  })())
+})
+
+precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
 
 /** @type {RegExp[] | undefined} */
 let allowlist
-// in dev mode, we disable precaching to avoid caching issues
 if (import.meta.env.DEV)
   allowlist = [/^\/$/]
 
-// to allow work offline
 registerRoute(new NavigationRoute(
   createHandlerBoundToURL('index.html'),
   { allowlist },

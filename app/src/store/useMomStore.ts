@@ -2,9 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/services/localDb';
 import type { MomData } from '@/types';
-import { INITIAL_MOM_DATA, FAMILY_DATA } from '@/data/seedData';
+import { INITIAL_MOM_DATA } from '@/data/seedData';
 import { currentTimeStr } from '@/utils/date';
-import { useTimelineStore } from './useTimelineStore';
 
 interface MomStoreState {
   momData: MomData;
@@ -39,17 +38,6 @@ export const useMomStore = create<MomStoreState>()(
             },
           },
         }));
-
-        useTimelineStore.getState().addTimelineItem({
-          type: 'mom',
-          author: FAMILY_DATA.momName,
-          authorAvatar: FAMILY_DATA.momAvatar,
-          title: `Cữ hút sữa mới: +${amountMl} ml (${side}) 🥛`,
-          content: `Vừa hoàn thành cữ hút sữa lúc ${nowTime}. Tổng lượng sữa mẹ hôm nay đạt ${newTotalStr}!`,
-          tag: 'Sữa Mẹ',
-          tagType: 'mom',
-          stats: [`+${amountMl} ml`, `Tổng ${newTotalStr}`],
-        });
       },
 
       updateMomData: (partial) => set((state) => ({
