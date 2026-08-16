@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Check, Clock3, Edit3 } from 'lucide-react';
 import { getReminderOccurrences } from '@/domain/reminderScheduler';
 import { useActivityStore } from '@/store/useActivityStore';
@@ -22,7 +21,7 @@ export function ReminderList({ onQuickLog }: ReminderListProps) {
   const babyActivities = useActivityStore((state) => state.babyActivities);
   const momActivities = useActivityStore((state) => state.momActivities);
   const now = new Date();
-  const occurrences = useMemo(() => getReminderOccurrences({ reminders, babyActivities, momActivities, occurrenceStates, now }), [babyActivities, momActivities, occurrenceStates, reminders]);
+  const occurrences = getReminderOccurrences({ reminders, babyActivities, momActivities, occurrenceStates, now });
 
   if (occurrences.length === 0) return <div className="empty-state" style={{ padding: '20px 4px' }}><p>Chưa có reminder đang hoạt động.</p></div>;
 
