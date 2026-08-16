@@ -21,13 +21,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense }) 
   const deleteExpense = useExpenseStore((state) => state.deleteExpense);
 
   const now = new Date();
-  const monthExpenses = useMemo(() => expenses.filter((record) => isSameMonth(record.occurredAt, now)), [expenses]);
-  const totalMonth = useMemo(() => monthExpenses.reduce((sum, record) => sum + record.amount, 0), [monthExpenses]);
-  const categoryTotals = useMemo(() => {
+  const monthExpenses = expenses.filter((record) => isSameMonth(record.occurredAt, now));
+  const totalMonth = monthExpenses.reduce((sum, record) => sum + record.amount, 0);
+  const categoryTotals = (() => {
     const totals = new Map<string, number>();
     monthExpenses.forEach((record) => totals.set(record.category, (totals.get(record.category) ?? 0) + record.amount));
     return [...totals.entries()].sort((a, b) => b[1] - a[1]);
-  }, [monthExpenses]);
+  })();
   const recent = useMemo(() => [...expenses].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()).slice(0, 20), [expenses]);
 
   const handleEdit = (id: string, currentAmount: number, currentNote?: string) => {
