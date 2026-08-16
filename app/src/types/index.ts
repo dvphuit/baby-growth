@@ -206,3 +206,75 @@ export interface DailyHabit {
   category: string;
   completed: boolean;
 }
+
+export type BabyActivityType = 'feeding' | 'sleep' | 'diaper' | 'medicine' | 'temperature' | 'health_note';
+export type MomActivityType = 'pumping' | 'sleep' | 'mood' | 'recovery_note';
+export type ActivityLogType = BabyActivityType | MomActivityType;
+
+export interface ActivityBase {
+  id: string;
+  occurredAt: string;
+  createdAt: string;
+  note?: string;
+}
+
+export type BabyActivity =
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'feeding';
+      amountMl?: number;
+      durationMinutes?: number;
+      method?: 'bottle' | 'breast' | 'other';
+      side?: 'left' | 'right' | 'both';
+    })
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'sleep';
+      startedAt?: string;
+      endedAt?: string;
+      durationMinutes: number;
+    })
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'diaper';
+      diaperKind: 'wet' | 'dirty' | 'both';
+    })
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'medicine';
+      name: string;
+      dose?: string;
+    })
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'temperature';
+      temperatureC: number;
+    })
+  | (ActivityBase & {
+      owner: 'baby';
+      type: 'health_note';
+    });
+
+export type MomActivity =
+  | (ActivityBase & {
+      owner: 'mom';
+      type: 'pumping';
+      amountMl: number;
+      side: 'left' | 'right' | 'both';
+    })
+  | (ActivityBase & {
+      owner: 'mom';
+      type: 'sleep';
+      durationMinutes: number;
+    })
+  | (ActivityBase & {
+      owner: 'mom';
+      type: 'mood';
+      mood: 'great' | 'good' | 'neutral' | 'low' | 'very_low';
+    })
+  | (ActivityBase & {
+      owner: 'mom';
+      type: 'recovery_note';
+    });
+
+export type ActivityRecord = BabyActivity | MomActivity;
