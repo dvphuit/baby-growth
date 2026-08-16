@@ -1,8 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-const source = readFileSync(resolve(process.cwd(), 'src/sw.ts'), 'utf8');
+import source from './sw.ts?raw';
 
 describe('service worker auto-update activation', () => {
   it('activates immediately and claims existing clients', () => {
