@@ -6,9 +6,7 @@ const ActivityLogModal = lazy(async () => ({ default: (await import('@/component
 const AddGrowthModal = lazy(async () => ({ default: (await import('@/components/modals/AddGrowthModal')).AddGrowthModal }));
 const AddPumpingModal = lazy(async () => ({ default: (await import('@/components/modals/AddPumpingModal')).AddPumpingModal }));
 const AddExpenseModal = lazy(async () => ({ default: (await import('@/components/modals/AddExpenseModal')).AddExpenseModal }));
-const AddPostModal = lazy(async () => ({ default: (await import('@/components/modals/AddPostModal')).AddPostModal }));
 const EditProfileModal = lazy(async () => ({ default: (await import('@/components/modals/EditProfileModal')).EditProfileModal }));
-const AIDoctorChatModal = lazy(async () => ({ default: (await import('@/components/modals/AIDoctorChatModal')).AIDoctorChatModal }));
 const NotificationModal = lazy(async () => ({ default: (await import('@/components/modals/NotificationModal')).NotificationModal }));
 
 const LazyModalFallback = () => (
@@ -48,16 +46,8 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
         <AddExpenseModal isOpen={modals.isAddExpenseOpen} onClose={modals.closeAddExpense} onSuccessToast={onSuccessToast} />
       )}
 
-      {modals.isAddPostOpen && (
-        <AddPostModal isOpen={modals.isAddPostOpen} onClose={modals.closeAddPost} onSuccessToast={onSuccessToast} presetTagType={modals.presetPostTagType} />
-      )}
-
       {modals.isEditProfileOpen && (
         <EditProfileModal isOpen={modals.isEditProfileOpen} onClose={modals.closeEditProfile} onSuccessToast={onSuccessToast} />
-      )}
-
-      {modals.isAiChatOpen && (
-        <AIDoctorChatModal isOpen={modals.isAiChatOpen} onClose={modals.closeAiChat} initialQuestion={modals.aiChatInitialQuestion} />
       )}
 
       {modals.isNotificationOpen && (
