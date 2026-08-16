@@ -13,6 +13,7 @@ import { useToast } from './hooks/useToast';
 import { useAutoSyncLifecycle } from './hooks/useAutoSyncLifecycle';
 import { useAppModals } from './hooks/useAppModals';
 import { useReminderLifecycle } from './hooks/useReminderLifecycle';
+import { runDataMigration } from './services/dataMigration';
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
@@ -21,6 +22,10 @@ export const AppContent: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    void runDataMigration();
+  }, []);
 
   useAutoSyncLifecycle();
 
