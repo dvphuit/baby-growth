@@ -31,7 +31,10 @@ export interface AppModalController {
   handleQuickAction: (actionType: string) => void;
 }
 
-export function useAppModals(_addToast: AddToast): AppModalController {
+export function useAppModals(addToast: AddToast): AppModalController {
+  // Keep the dependency in the public hook signature for compatibility with the app shell.
+  // Quick actions no longer emit optimistic success toasts; forms emit after persistence.
+  void addToast;
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [isAddGrowthOpen, setIsAddGrowthOpen] = useState(false);
