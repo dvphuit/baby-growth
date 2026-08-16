@@ -7,4 +7,10 @@ describe('service worker auto-update activation', () => {
     expect(source).toMatch(/self\.skipWaiting\(\)/);
     expect(source).toMatch(/clientsClaim\(\)/);
   });
+
+  it('refreshes existing app windows when a new worker activates', () => {
+    expect(source).toContain("self.addEventListener('activate'");
+    expect(source).toMatch(/self\.clients\.matchAll\(\{ type: 'window'/);
+    expect(source).toMatch(/client\.navigate\(client\.url\)/);
+  });
 });
