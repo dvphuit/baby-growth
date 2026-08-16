@@ -31,7 +31,10 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals(addToast);
-  useReminderLifecycle({ onQuickLog: modals.handleQuickAction });
+  useReminderLifecycle({
+    onQuickLog: modals.handleQuickAction,
+    onOpenNotifications: modals.openNotifications,
+  });
 
   return (
     <div className="app-container" id="appContainer">
