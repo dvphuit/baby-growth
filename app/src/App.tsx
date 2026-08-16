@@ -19,32 +19,20 @@ export const AppContent: React.FC = () => {
   const location = useLocation();
   const isProfilePage = location.pathname === '/profile';
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    void runDataMigration();
-  }, []);
-
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  useEffect(() => { void runDataMigration(); }, []);
   useAutoSyncLifecycle();
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals(addToast);
-  useReminderLifecycle({
-    onQuickLog: modals.handleQuickAction,
-    onOpenNotifications: modals.openNotifications,
-  });
+  useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   return (
     <div className="app-container" id="appContainer">
       <ToastContainer toasts={toasts} />
-
       {!isProfilePage && <Header onOpenNotifications={modals.openNotifications} />}
-
       <main id="appMainContent" className="view-content-wrapper">
         <PWAInstallPrompt />
-
         <AppRoutes
           onOpenQuickLog={modals.openQuickLog}
           onOpenPumping={modals.openAddPumping}
@@ -54,11 +42,10 @@ export const AppContent: React.FC = () => {
           onOpenAddGrowth={modals.openAddGrowth}
           onOpenAddExpense={modals.openAddExpense}
           onOpenEditProfile={modals.openEditProfile}
+          onOpenNotifications={modals.openNotifications}
         />
-
         <div className="bottom-safe-spacer"></div>
       </main>
-
       <AppVersionBadge />
       <BottomNav onOpenQuickLog={modals.openQuickLog} />
       <Lightbox mediaSrc={modals.lightboxSrc} isVideo={modals.lightboxIsVideo} onClose={modals.closeLightbox} />
