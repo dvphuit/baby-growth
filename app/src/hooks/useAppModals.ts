@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
 
 export type AddToast = (message: string, icon?: string) => void;
 export type PostTagType = 'milestone' | 'feeding' | 'mom' | 'health' | 'general';
@@ -13,6 +14,7 @@ export interface AppModalController {
   isAddExpenseOpen: boolean;
   isAddPostOpen: boolean;
   isEditProfileOpen: boolean;
+  activityLogMode: ActivityLogMode | null;
   presetPostTagType: PostTagType | undefined;
   lightboxSrc: string | null;
   lightboxIsVideo: boolean;
@@ -32,12 +34,13 @@ export interface AppModalController {
   closeAddPost: () => void;
   openEditProfile: () => void;
   closeEditProfile: () => void;
+  closeActivityLog: () => void;
   openLightbox: (src: string, isVideo?: boolean) => void;
   closeLightbox: () => void;
   handleQuickAction: (actionType: string) => void;
 }
 
-export function useAppModals(addToast: AddToast): AppModalController {
+export function useAppModals(_addToast: AddToast): AppModalController {
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [aiChatInitialQuestion, setAiChatInitialQuestion] = useState<string>();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -47,6 +50,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [activityLogMode, setActivityLogMode] = useState<ActivityLogMode | null>(null);
   const [presetPostTagType, setPresetPostTagType] = useState<PostTagType>();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [lightboxIsVideo, setLightboxIsVideo] = useState(false);
@@ -77,8 +81,12 @@ export function useAppModals(addToast: AddToast): AppModalController {
         setIsAddGrowthOpen(true);
         break;
       case 'feeding':
-        setPresetPostTagType('feeding');
-        setIsAddPostOpen(true);
+      case 'baby-sleep':
+      case 'diaper':
+      case 'mom-sleep':
+      case 'mom-mood':
+      case 'medicine':
+        setActivityLogMode(actionType);
         break;
       case 'pumping':
         setIsAddPumpingOpen(true);
@@ -87,20 +95,8 @@ export function useAppModals(addToast: AddToast): AppModalController {
       case 'expense':
         setIsAddExpenseOpen(true);
         break;
-      case 'sleep':
-        addToast('Đã lưu cữ ngủ 1.5 giờ của bé 😴', '🌙');
-        break;
-      case 'diaper':
-        addToast('Đã ghi nhận 1 lần thay tã sạch sẽ 🧷', '🧷');
-        break;
       case 'vaccine':
-        addToast('Đã lưu lịch tiêm phòng vắc-xin 💉', '💉');
-        break;
-      case 'medicine':
-        addToast('Đã đánh dấu uống 1 giọt Vitamin D3 K2 💊', '💊');
-        break;
-      case 'mood':
-        addToast('Đã cập nhật tâm lý tích cực ✨', '😊');
+        setIsNotificationOpen(true);
         break;
       case 'moment':
       case 'diary':
@@ -121,6 +117,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
     isAddExpenseOpen,
     isAddPostOpen,
     isEditProfileOpen,
+    activityLogMode,
     presetPostTagType,
     lightboxSrc,
     lightboxIsVideo,
@@ -140,6 +137,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
     closeAddPost: () => setIsAddPostOpen(false),
     openEditProfile: () => setIsEditProfileOpen(true),
     closeEditProfile: () => setIsEditProfileOpen(false),
+    closeActivityLog: () => setActivityLogMode(null),
     openLightbox,
     closeLightbox: () => setLightboxSrc(null),
     handleQuickAction,
