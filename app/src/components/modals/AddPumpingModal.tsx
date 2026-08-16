@@ -1,4 +1,5 @@
 import { useMomStore } from '@/store/useMomStore';
+import { useActivityStore } from '@/store/useActivityStore';
 import { useState } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
 import { Milk, ArrowRight } from 'lucide-react';
@@ -9,26 +10,37 @@ interface AddPumpingModalProps {
   onSuccessToast: (msg: string) => void;
 }
 
-export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({
-  isOpen,
-  onClose,
-  onSuccessToast,
-}) => {
-  const addPumpingSession = useMomStore(s => s.addPumpingSession);
+const SIDE_MAP: Record<string, 'left' | 'right' | 'both'> = {
+  '2 bên': 'both',
+  'Ngực trái': 'left',
+  'Ngực phải': 'right',
+};
 
+export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({ isOpen, onClose, onSuccessToast }) => {
+  const addPumpingSession = useMomStore((state) => state.addPumpingSession);
+  const addMomActivity = useActivityStore((state) => state.addMomActivity);
   const [amount, setAmount] = useState<string>('180');
   const [side, setSide] = useState<string>('2 bên');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const amt = parseInt(amount, 10) || 0;
-    if (amt <= 0) {
-      alert('Vui lòng nhập lượng sữa hút được!');
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const amountMl = Number.parseInt(amount, 10) || 0;
+    if (amountMl <= 0) {
+      window.alert('Vui lòng nhập lượng sữa hút được!');
       return;
     }
 
-    addPumpingSession(amt, side);
-    onSuccessToast(`Đã lưu cữ hút sữa: +${amt}ml (${side}) 🥛`);
+    addMomActivity({
+      owner: 'mom',
+      type: 'pumping',
+      occurredAt: new Date().toISOString(),
+      amountMl,
+      side: SIDE_MAP[side] ?? 'both',
+    });
+
+    // Preserve the legacy summary until Mom Home fully migrates to activity selectors.
+    addPumpingSession(amountMl, side);
+    onSuccessToast(`Đã lưu cữ hút sữa: +${amountMl}ml (${side}) 🥛`);
     onClose();
   };
 
@@ -42,13 +54,9 @@ export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({
           <input
             type="number"
             required
+            min="1"
             className="log-input-control"
-            style={{
-              textAlign: 'center',
-              fontFamily: 'var(--font-family-display)',
-              fontSize: '18px',
-              fontWeight: 800,
-            }}
+            style={{ textAlign: 'center', fontFamily: 'var(--font-family-display)', fontSize: '18px', fontWeight: 800 }}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="180"
@@ -58,14 +66,9 @@ export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({
         <div className="log-form-group">
           <label className="log-form-label">Bên ngực hút</label>
           <div className="chart-metric-selector-pills" style={{ marginBottom: 0 }}>
-            {['2 bên', 'Ngực trái', 'Ngực phải'].map((s) => (
-              <button
-                type="button"
-                key={s}
-                className={`metric-pill-choice ${side === s ? 'active' : ''}`}
-                onClick={() => setSide(s)}
-              >
-                {s}
+            {['2 bên', 'Ngực trái', 'Ngực phải'].map((option) => (
+              <button type="button" key={option} className={`metric-pill-choice ${side === option ? 'active' : ''}`} onClick={() => setSide(option)}>
+                {option}
               </button>
             ))}
           </div>
