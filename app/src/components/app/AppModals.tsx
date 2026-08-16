@@ -61,7 +61,7 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
       )}
 
       {modals.isNotificationOpen && (
-        <NotificationModal isOpen={modals.isNotificationOpen} onClose={modals.closeNotifications} />
+        <NotificationModal isOpen={modals.isNotificationOpen} onClose={modals.closeNotifications} onQuickLog={modals.handleQuickAction} />
       )}
     </Suspense>
   );
