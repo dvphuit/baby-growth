@@ -4,36 +4,16 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AppRoutes, type AppRoutesProps } from './AppRoutes';
 
-vi.mock('@/components/home/HomeView', () => ({
-  HomeView: ({ onOpenQuickLog }: { onOpenQuickLog: () => void }) => (
-    <div><span>Home marker</span><button onClick={onOpenQuickLog}>open quick log</button></div>
-  ),
-}));
-vi.mock('@/components/timeline/TimelineView', () => ({
-  TimelineView: ({ onOpenLightbox, onOpenAddEntry }: { onOpenLightbox: (src: string, isVideo?: boolean) => void; onOpenAddEntry: () => void }) => (
-    <div><span>Timeline marker</span><button onClick={() => onOpenLightbox('/media.jpg', true)}>open lightbox</button><button onClick={onOpenAddEntry}>add timeline</button></div>
-  ),
-}));
-vi.mock('@/components/growth/GrowthView', () => ({
-  GrowthView: ({ onOpenAddMeasurement }: { onOpenAddMeasurement: () => void }) => <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div>,
-}));
-vi.mock('@/components/expenses/ExpensesView', () => ({
-  ExpensesView: ({ onOpenAddExpense }: { onOpenAddExpense: () => void }) => <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div>,
-}));
-vi.mock('@/components/profile/ProfileView', () => ({
-  ProfileView: ({ onOpenEditProfile }: { onOpenEditProfile: () => void }) => <div><span>Profile marker</span><button onClick={onOpenEditProfile}>edit profile</button></div>,
-}));
+vi.mock('@/components/home/HomeView', () => ({ HomeView: ({ onOpenQuickLog }: { onOpenQuickLog: () => void }) => <div><span>Home marker</span><button onClick={onOpenQuickLog}>open quick log</button></div> }));
+vi.mock('@/components/timeline/TimelineView', () => ({ TimelineView: ({ onOpenLightbox, onOpenAddEntry }: { onOpenLightbox: (src: string, isVideo?: boolean) => void; onOpenAddEntry: () => void }) => <div><span>Timeline marker</span><button onClick={() => onOpenLightbox('/media.jpg', true)}>open lightbox</button><button onClick={onOpenAddEntry}>add timeline</button></div> }));
+vi.mock('@/components/growth/GrowthView', () => ({ GrowthView: ({ onOpenAddMeasurement }: { onOpenAddMeasurement: () => void }) => <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div> }));
+vi.mock('@/components/expenses/ExpensesView', () => ({ ExpensesView: ({ onOpenAddExpense }: { onOpenAddExpense: () => void }) => <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div> }));
+vi.mock('@/components/profile/ProfileView', () => ({ ProfileView: ({ onOpenEditProfile, onOpenNotifications }: { onOpenEditProfile: () => void; onOpenNotifications: () => void }) => <div><span>Profile marker</span><button onClick={onOpenEditProfile}>edit profile</button><button onClick={onOpenNotifications}>profile reminders</button></div> }));
 
 function createProps(overrides: Partial<AppRoutesProps> = {}): AppRoutesProps {
   return {
-    onOpenQuickLog: vi.fn(),
-    onOpenPumping: vi.fn(),
-    onShowToast: vi.fn(),
-    onOpenLightbox: vi.fn(),
-    onOpenAddTimelineEntry: vi.fn(),
-    onOpenAddGrowth: vi.fn(),
-    onOpenAddExpense: vi.fn(),
-    onOpenEditProfile: vi.fn(),
+    onOpenQuickLog: vi.fn(), onOpenPumping: vi.fn(), onShowToast: vi.fn(), onOpenLightbox: vi.fn(),
+    onOpenAddTimelineEntry: vi.fn(), onOpenAddGrowth: vi.fn(), onOpenAddExpense: vi.fn(), onOpenEditProfile: vi.fn(), onOpenNotifications: vi.fn(),
     ...overrides,
   };
 }
@@ -45,8 +25,7 @@ function renderRoute(path: string, props = createProps()) {
 
 describe('AppRoutes', () => {
   it.each([
-    ['/', 'Home marker'], ['/timeline', 'Timeline marker'], ['/growth', 'Growth marker'],
-    ['/expenses', 'Expenses marker'], ['/profile', 'Profile marker'], ['/unknown', 'Home marker'],
+    ['/', 'Home marker'], ['/timeline', 'Timeline marker'], ['/growth', 'Growth marker'], ['/expenses', 'Expenses marker'], ['/profile', 'Profile marker'], ['/unknown', 'Home marker'],
   ])('renders %s at the expected surface', async (path, marker) => {
     renderRoute(path);
     expect(await screen.findByText(marker)).toBeInTheDocument();
@@ -60,7 +39,7 @@ describe('AppRoutes', () => {
     expect(screen.queryByText(/Score marker|AI Chat marker/)).not.toBeInTheDocument();
   });
 
-  it('wires growth and timeline actions', async () => {
+  it('wires growth and profile reminder actions', async () => {
     const user = userEvent.setup();
     const growthProps = createProps();
     renderRoute('/growth', growthProps);
