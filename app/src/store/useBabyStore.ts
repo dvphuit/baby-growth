@@ -4,7 +4,6 @@ import { indexedDbStorage } from '@/services/localDb';
 import type { StageKey, StageData, DailyHabit, GrowthHistoryRecord, FamilyData } from '@/types';
 import { INITIAL_STAGES, INITIAL_DAILY_HABITS, FAMILY_DATA } from '@/data/seedData';
 import { generateId } from '@/utils/format';
-import { useTimelineStore } from './useTimelineStore';
 
 interface BabyStoreState {
   currentStage: StageKey;
@@ -58,7 +57,6 @@ export const useBabyStore = create<BabyStoreState>()(
         const state = get();
         const stageData = state.currentStageData();
         const ageText = stageData.currentAgeText || 'Hiện tại';
-        const noteText = note || 'Bé phát triển khỏe mạnh theo chuẩn WHO.';
 
         set((prevState) => {
           const currentStage = prevState.currentStage;
@@ -98,25 +96,14 @@ export const useBabyStore = create<BabyStoreState>()(
             weight,
             height,
             headCirc,
-            percentileLabel: 'P50 - P65 (Chuẩn WHO Tối ưu)',
+            percentileLabel: '',
             status: 'optimal',
-            note: noteText,
+            note: note?.trim() ?? '',
           };
 
           stage.growthHistory = [newRecord, ...(stage.growthHistory || [])];
 
           return { ...prevState, stages: { ...prevState.stages, [currentStage]: stage } };
-        });
-
-        // Add to Timeline
-        useTimelineStore.getState().addTimelineItem({
-          type: 'growth',
-          date: dateStr,
-          title: `Cập nhật số đo mới: ${weight}kg • ${height}cm 📏`,
-          content: `Bé Bơ vừa được ba mẹ đo chỉ số phát triển: Cân nặng ${weight}kg, Chiều cao ${height}cm, Vòng đầu ${headCirc}cm. ${noteText}`,
-          stats: [`${weight} kg`, `${height} cm`, `Vòng đầu: ${headCirc} cm`],
-          tag: 'Cân đo WHO',
-          tagType: 'milestone',
         });
       },
 
