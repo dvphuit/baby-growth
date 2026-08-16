@@ -3,6 +3,10 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/services/localDb';
 import type { ActivityRecord, BabyActivity, MomActivity } from '@/types';
 
+type WithoutGeneratedFields<T> = T extends unknown ? Omit<T, 'id' | 'createdAt'> : never;
+export type NewBabyActivity = WithoutGeneratedFields<BabyActivity>;
+export type NewMomActivity = WithoutGeneratedFields<MomActivity>;
+
 function createId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `activity-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -14,8 +18,8 @@ function nowIso(): string {
 export interface ActivityStoreState {
   babyActivities: BabyActivity[];
   momActivities: MomActivity[];
-  addBabyActivity: (input: Omit<BabyActivity, 'id' | 'createdAt'>) => BabyActivity;
-  addMomActivity: (input: Omit<MomActivity, 'id' | 'createdAt'>) => MomActivity;
+  addBabyActivity: (input: NewBabyActivity) => BabyActivity;
+  addMomActivity: (input: NewMomActivity) => MomActivity;
   updateActivity: (id: string, patch: Partial<ActivityRecord>) => void;
   deleteActivity: (id: string) => void;
 }
