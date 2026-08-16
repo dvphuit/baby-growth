@@ -34,3 +34,5 @@ jobs:
           VITE_BUILD_SHA: ${{ github.sha }}
           VITE_BUILD_REF: ${{ github.ref_name }}
           VITE_BUILD_TIME: ${{ github.run_started_at }}
+
+# Verification is intentionally required for tracker-v3 feature pushes and PRs.
