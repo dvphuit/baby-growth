@@ -15,9 +15,8 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
   const data = (event.notification.data ?? {}) as {
     reminderId?: string
     occurrenceId?: string
-    quickLogAction?: string
   }
-  const action = event.action || 'quick-log'
+  const action = event.action || 'open'
   const target = new URL('/', self.location.origin)
   target.searchParams.set('reminderAction', action)
   if (data.reminderId) target.searchParams.set('reminderId', data.reminderId)
@@ -35,9 +34,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
   })())
 })
 
-// self.__WB_MANIFEST is the default injection point
 precacheAndRoute(self.__WB_MANIFEST)
-
 cleanupOutdatedCaches()
 
 /** @type {RegExp[] | undefined} */
