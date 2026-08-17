@@ -18,6 +18,7 @@ import { useThemeColor } from './hooks/useThemeColor';
 import { runDataMigration } from './services/dataMigration';
 import { useBabyStore } from './store/useBabyStore';
 import { OnboardingView } from './components/onboarding/OnboardingView';
+import { PullToRefresh } from './components/common/PullToRefresh';
 
 
 export const AppContent: React.FC = () => {
@@ -62,19 +63,21 @@ export const AppContent: React.FC = () => {
 
       {!isProfilePage && <Header onOpenNotifications={modals.openNotifications} />}
       <main id="appMainContent" className="view-content-wrapper">
-        <AppRoutes
-          onOpenQuickLog={modals.openQuickLog}
-          onOpenPumping={modals.openAddPumping}
-          onShowToast={addToast}
-          onOpenLightbox={modals.openLightbox}
-          onOpenAddTimelineEntry={() => modals.handleQuickAction('diary')}
-          onOpenAddGrowth={modals.openAddGrowth}
-          onOpenAddExpense={modals.openAddExpense}
-          onOpenEditProfile={modals.openEditProfile}
-          onOpenNotifications={modals.openNotifications}
-        />
-        <PWAInstallPrompt />
-        <div className="bottom-safe-spacer"></div>
+        <PullToRefresh onRefresh={() => window.location.reload()}>
+          <AppRoutes
+            onOpenQuickLog={modals.openQuickLog}
+            onOpenPumping={modals.openAddPumping}
+            onShowToast={addToast}
+            onOpenLightbox={modals.openLightbox}
+            onOpenAddTimelineEntry={() => modals.handleQuickAction('diary')}
+            onOpenAddGrowth={modals.openAddGrowth}
+            onOpenAddExpense={modals.openAddExpense}
+            onOpenEditProfile={modals.openEditProfile}
+            onOpenNotifications={modals.openNotifications}
+          />
+          <PWAInstallPrompt />
+          <div className="bottom-safe-spacer"></div>
+        </PullToRefresh>
       </main>
       <AppVersionBadge />
       <BottomNav onOpenQuickLog={modals.openQuickLog} />

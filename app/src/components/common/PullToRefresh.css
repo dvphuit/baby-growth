@@ -1,0 +1,42 @@
+.ptr-root {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+
+.ptr-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--color-text-secondary, #846E62);
+  transition: opacity 0.2s ease;
+  overflow: hidden;
+}
+
+.ptr-spinner {
+  color: var(--color-primary-brown, #5C3A27);
+}
+
+.ptr-spinner--active {
+  animation: ptr-rotate 0.8s linear infinite;
+}
+
+@keyframes ptr-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ptr-content {
+  width: 100%;
+  will-change: transform;
+  min-height: 100%;
+}
