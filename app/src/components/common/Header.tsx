@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+/** Haven mobile chrome: compact espresso context bar with matched browser and PWA status color. */
+import { useEffect } from 'react';
 import { useUIStore } from '@/store/useUIStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useFamily } from '@/hooks/useFamily';
@@ -32,6 +34,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
   const avatar = isMom ? family.momAvatar : family.childAvatar;
   const todayFormatted = formatVietnameseDate(new Date());
   const ageText = !isMom ? formatAge(family.birthDate) : '';
+
+  useEffect(() => {
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    themeColor?.setAttribute('content', '#39261D');
+    return () => themeColor?.setAttribute('content', '#FBF7F2');
+  }, []);
 
   return (
     <header className="app-header" id="mainHeader">

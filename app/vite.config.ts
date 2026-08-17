@@ -38,7 +38,7 @@ export default defineConfig({
         display_override: ['standalone', 'minimal-ui', 'browser'],
         orientation: 'portrait',
         prefer_related_applications: false,
-        theme_color: '#FAF8F5',
+        theme_color: '#39261D',
         background_color: '#FAF8F5',
         icons: [
           {
