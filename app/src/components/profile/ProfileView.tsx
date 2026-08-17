@@ -4,6 +4,7 @@ import { ArrowLeft, Bell, Calendar, Droplet, Edit3, Ruler, Scale } from 'lucide-
 import { useBabyStore } from '@/store/useBabyStore';
 import { useFamily } from '@/hooks/useFamily';
 import { GoogleSyncCard } from './GoogleSyncCard';
+import { ResetTrackingDataSection } from './ResetTrackingDataSection';
 import { formatDateDisplay } from '@/utils/date';
 import { getZodiacSign } from '@/utils/zodiac';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
@@ -21,7 +22,7 @@ function daysSince(dateStr: string): number | null {
   return Math.max(0, Math.floor((today.getTime() - birth.getTime()) / 86_400_000));
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onOpenNotifications }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onOpenNotifications, onShowToast }) => {
   const navigate = useNavigate();
   const family = useFamily();
   const currentStageData = useBabyStore((state) => state.currentStageData());
@@ -88,8 +89,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
       </section>
 
       <GoogleSyncCard />
+      <ResetTrackingDataSection onShowToast={onShowToast} />
       <p style={{ padding: '0 4px 20px', fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>Cung hoàng đạo chỉ là thông tin hồ sơ mang tính giải trí và không được dùng cho đánh giá sức khỏe hay nhắc chăm sóc.</p>
     </div>
   );
 };
-
