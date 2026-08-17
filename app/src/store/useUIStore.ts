@@ -12,6 +12,7 @@ interface UIStoreState {
   setCurrentSubView: (view: string | null) => void;
   setSearchQuery: (q: string) => void;
   setProfileMode: (mode: ProfileMode) => void;
+  resetTrackingData: () => void;
 }
 
 export const useUIStore = create<UIStoreState>()(
@@ -25,6 +26,7 @@ export const useUIStore = create<UIStoreState>()(
       setCurrentSubView: (view) => set({ currentSubView: view }),
       setSearchQuery: (q) => set({ searchQuery: q }),
       setProfileMode: (mode) => set({ profileMode: mode }),
+      resetTrackingData: () => set({ currentTab: 'home', currentSubView: null, searchQuery: '', profileMode: 'baby' }),
     }),
     {
       name: 'babygrowth_v2_ui',

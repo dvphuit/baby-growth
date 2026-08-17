@@ -22,6 +22,7 @@ export interface ActivityStoreState {
   addMomActivity: (input: NewMomActivity) => MomActivity;
   updateActivity: (id: string, patch: Partial<ActivityRecord>) => void;
   deleteActivity: (id: string) => void;
+  resetTrackingData: () => void;
 }
 
 export const useActivityStore = create<ActivityStoreState>()(
@@ -59,6 +60,8 @@ export const useActivityStore = create<ActivityStoreState>()(
           momActivities: state.momActivities.filter((record) => record.id !== id),
         }));
       },
+
+      resetTrackingData: () => set({ babyActivities: [], momActivities: [] }),
     }),
     {
       name: 'babygrowth_v3_activities',

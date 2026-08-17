@@ -25,6 +25,7 @@ interface TimelineStoreState {
   toggleCalendarViewMode: () => void;
   setTimelineFilter: (filter: string) => void;
   setCurrentTimelineSubTab: (subTab: 'feed' | 'mood-history') => void;
+  resetTrackingData: () => void;
 }
 
 export const useTimelineStore = create<TimelineStoreState>()(
@@ -96,6 +97,15 @@ export const useTimelineStore = create<TimelineStoreState>()(
       })),
       setTimelineFilter: (filter) => set({ timelineFilter: filter }),
       setCurrentTimelineSubTab: (subTab) => set({ currentTimelineSubTab: subTab }),
+      resetTrackingData: () => set({
+        timelineItems: [],
+        selectedCalendarDate: todayStr(),
+        calendarYear: new Date().getFullYear(),
+        calendarMonth: new Date().getMonth(),
+        calendarViewMode: 'collapsed',
+        timelineFilter: 'all',
+        currentTimelineSubTab: 'feed',
+      }),
     }),
     {
       name: 'babygrowth_v2_timeline',
