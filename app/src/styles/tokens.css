@@ -71,7 +71,7 @@
 
   /* Standard Page Layout Geometry */
   --page-padding-x: 16px;
-  --page-padding-top: 8px;
+  --page-padding-top: 4px;
   --page-padding-bottom: 96px;
   --section-gap: 16px;
   --card-padding: 16px;

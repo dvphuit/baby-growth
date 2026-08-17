@@ -10,7 +10,7 @@
    ========================================================================== */
 
 .app-header {
-  padding: calc(10px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 8px var(--page-padding-x);
+  padding: calc(10px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 4px var(--page-padding-x);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -98,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .header-profile-main {

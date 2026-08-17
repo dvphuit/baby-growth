@@ -1,7 +1,7 @@
 /* Haven mobile implementation: espresso context header, restorative metric focus, soft anchored surfaces. */
 
 .app-header {
-  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 28px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 12px;
   color: #fff;
   color-scheme: dark;
   background: linear-gradient(180deg, #39261D 0%, #39261D calc(env(safe-area-inset-top, 0px) + 8px), #492E1F 65%, #553520 100%);
@@ -22,7 +22,7 @@
 .dual-mode-btn { color: rgba(255,255,255,.7); }
 .dual-mode-btn.active { color: var(--color-primary-dark); background: #fff; box-shadow: none; }
 
-.haven-home { position: relative; z-index: 2; display: grid; gap: 14px; margin-top: -18px; padding-bottom: 6px; }
+.haven-home { position: relative; z-index: 2; display: grid; gap: 14px; margin-top: -6px; padding-bottom: 6px; }
 .haven-summary-card { position: relative; overflow: hidden; min-height: 204px; padding: 22px 18px 17px; color: #fff; border-radius: 26px; background: linear-gradient(140deg, #96b96d 0%, #7f9f5c 100%); box-shadow: 0 14px 28px rgba(111, 139, 74, .22); }
 .haven-summary-card::after { content: ''; position: absolute; width: 170px; height: 170px; right: -64px; top: -44px; border: 22px solid rgba(255,255,255,.13); border-radius: 50%; }
 .haven-summary-card::before { content: ''; position: absolute; width: 72px; height: 72px; right: 120px; bottom: -45px; border: 14px solid rgba(255,255,255,.12); border-radius: 50%; }
