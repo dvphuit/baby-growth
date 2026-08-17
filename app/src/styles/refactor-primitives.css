@@ -1,13 +1,14 @@
 /* Shared primitives used by the local-first tracker views introduced in the v3 refactor. */
 
+/* Haven visual language: warm ivory canvas, espresso hierarchy, restorative sage, tactile care. */
 .app-card {
   width: 100%;
   box-sizing: border-box;
-  padding: var(--card-padding, 14px);
+  padding: var(--card-padding, 16px);
   background: var(--color-card-bg, #FFFFFF);
-  border: 1px solid var(--color-border-subtle, #E8E0D5);
-  border-radius: var(--radius-xl, 20px);
-  box-shadow: var(--shadow-card, 0 4px 16px rgba(51, 37, 31, 0.08));
+  border: 1px solid var(--color-border-subtle, #E8DDD5);
+  border-radius: var(--radius-lg, 24px);
+  box-shadow: var(--shadow-card, 0 4px 16px rgba(57, 38, 29, 0.06));
 }
 
 .section-header-row {
@@ -19,7 +20,7 @@
 
 .section-eyebrow {
   margin-bottom: 3px;
-  color: var(--color-text-muted, #8B817B);
+  color: var(--color-text-muted, #A89A90);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -27,7 +28,7 @@
 
 .section-title {
   margin: 0;
-  color: var(--color-text-primary, #33251F);
+  color: var(--color-text-primary, #39261D);
   font-family: var(--font-family-display, inherit);
   font-size: 15px;
   font-weight: 800;
@@ -44,18 +45,19 @@
   padding: 6px 11px;
   border: 0;
   border-radius: var(--radius-pill, 999px);
-  background: var(--color-primary-dark, #33251F);
+  background: var(--color-primary-dark, #39261D);
   color: #FFFFFF;
   font: inherit;
   font-size: 10.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform var(--transition-fast, 120ms ease), background var(--transition-fast, 120ms ease);
+  transition: transform var(--transition-fast, 160ms ease), background var(--transition-fast, 160ms ease), box-shadow var(--transition-fast, 160ms ease);
 }
 
 .btn-primary-small:hover,
 .btn-primary-small:focus-visible {
-  background: var(--color-primary-dark-hover, #4A3830);
+  background: var(--color-primary-dark-hover, #5C3A27);
+  box-shadow: var(--shadow-floating);
 }
 
 .btn-primary-small:active {
@@ -74,13 +76,13 @@
   flex-direction: column;
   gap: 3px;
   padding: 10px;
-  border: 1px solid var(--color-border-subtle, #E8E0D5);
-  border-radius: var(--radius-md, 12px);
-  background: var(--color-card-warm, #FAF7F2);
+  border: 1px solid var(--color-border-subtle, #E8DDD5);
+  border-radius: var(--radius-md, 18px);
+  background: var(--color-card-warm, #F4ECE6);
 }
 
 .vital-label {
-  color: var(--color-text-muted, #8B817B);
+  color: var(--color-text-muted, #A89A90);
   font-size: 10px;
   font-weight: 600;
 }
@@ -91,7 +93,7 @@
   display: grid;
   place-items: center;
   gap: 8px;
-  color: var(--color-text-muted, #8B817B);
+  color: var(--color-text-muted, #A89A90);
   text-align: center;
 }
 
@@ -108,9 +110,9 @@
 .timeline-item-card {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--color-border-subtle, #E8E0D5);
-  border-radius: var(--radius-lg, 16px);
-  background: var(--color-canvas, #FFFFFF);
+  border: 1px solid var(--color-border-subtle, #E8DDD5);
+  border-radius: var(--radius-md, 18px);
+  background: var(--color-canvas, #FBF7F2);
 }
 
 .timeline-tag,
@@ -124,16 +126,16 @@
 
 .timeline-tag {
   padding: 2px 7px;
-  background: var(--color-sage-light, #EBF2E3);
-  color: var(--color-sage-dark, #5E7736);
+  background: var(--color-sage-light, #EDF4E3);
+  color: var(--color-sage-dark, #6F8B4A);
   font-size: 9px;
   font-weight: 800;
 }
 
 .timeline-stat-pill {
   padding: 3px 7px;
-  border: 1px solid var(--color-border-subtle, #E8E0D5);
-  background: var(--color-card-warm, #FAF7F2);
+  border: 1px solid var(--color-border-subtle, #E8DDD5);
+  background: var(--color-card-warm, #F4ECE6);
   color: var(--color-text-secondary, #665B55);
   font-size: 10px;
   font-weight: 700;
