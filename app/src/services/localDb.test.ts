@@ -5,6 +5,12 @@ interface ControlledIndexedDb {
     result: IDBDatabase;
     onsuccess: ((event: Event) => void) | null;
   };
+  transaction: {
+    error: DOMException | null;
+    onabort: ((event: Event) => void) | null;
+    oncomplete: ((event: Event) => void) | null;
+    onerror: ((event: Event) => void) | null;
+  };
   writeRequest: {
     onsuccess: ((event: Event) => void) | null;
     onerror: ((event: Event) => void) | null;
@@ -20,9 +26,16 @@ function installControlledIndexedDb(): ControlledIndexedDb {
     put: vi.fn(() => writeRequest),
     delete: vi.fn(() => writeRequest),
   };
+  const transaction = {
+    error: null,
+    onabort: null,
+    oncomplete: null,
+    onerror: null,
+    objectStore: vi.fn(() => objectStore),
+  } satisfies ControlledIndexedDb['transaction'] & { objectStore: () => typeof objectStore };
   const database = {
     objectStoreNames: { contains: vi.fn(() => true) },
-    transaction: vi.fn(() => ({ objectStore: vi.fn(() => objectStore) })),
+    transaction: vi.fn(() => transaction),
   } as unknown as IDBDatabase;
   const openRequest = {
     result: database,
@@ -33,7 +46,13 @@ function installControlledIndexedDb(): ControlledIndexedDb {
     open: vi.fn(() => openRequest),
   });
 
-  return { openRequest, writeRequest };
+  return { openRequest, transaction, writeRequest };
+}
+
+async function flushMicrotasks(): Promise<void> {
+  for (let index = 0; index < 10; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 describe('localDb pending writes', () => {
@@ -42,25 +61,24 @@ describe('localDb pending writes', () => {
     vi.unstubAllGlobals();
   });
 
-  it('waits for a pending IndexedDB record write to finish', async () => {
+  it('keeps the write barrier pending until the IndexedDB transaction completes', async () => {
     const indexedDb = installControlledIndexedDb();
     const { indexedDbStorage, waitForLocalRecordWrites } = await import('./localDb');
 
-    const write = indexedDbStorage.setItem('key', 'value');
+    const write = Promise.resolve(indexedDbStorage.setItem('key', 'value'));
     indexedDb.openRequest.onsuccess?.(new Event('success'));
     await Promise.resolve();
+    indexedDb.writeRequest.onsuccess?.(new Event('success'));
 
     let barrierResolved = false;
     const barrier = waitForLocalRecordWrites(['key']).then(() => {
       barrierResolved = true;
     });
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushMicrotasks();
 
     expect(barrierResolved).toBe(false);
 
-    indexedDb.writeRequest.onsuccess?.(new Event('success'));
+    indexedDb.transaction.oncomplete?.(new Event('complete'));
     await write;
     await barrier;
     expect(barrierResolved).toBe(true);
@@ -72,26 +90,82 @@ describe('localDb pending writes', () => {
     await expect(waitForLocalRecordWrites(['idle-key'])).resolves.toBeUndefined();
   });
 
-  it('waits for a pending record removal to finish', async () => {
+  it('keeps the removal barrier pending until the IndexedDB transaction completes', async () => {
     const indexedDb = installControlledIndexedDb();
     const { removeLocalRecord, waitForLocalRecordWrites } = await import('./localDb');
 
     const removal = removeLocalRecord('key');
     indexedDb.openRequest.onsuccess?.(new Event('success'));
     await Promise.resolve();
+    indexedDb.writeRequest.onsuccess?.(new Event('success'));
 
     let barrierResolved = false;
     const barrier = waitForLocalRecordWrites(['key']).then(() => {
       barrierResolved = true;
     });
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushMicrotasks();
 
     expect(barrierResolved).toBe(false);
 
-    indexedDb.writeRequest.onsuccess?.(new Event('success'));
+    indexedDb.transaction.oncomplete?.(new Event('complete'));
     await removal;
     await barrier;
+    expect(barrierResolved).toBe(true);
+  });
+
+  it('does not resurrect a removed record from legacy localStorage', async () => {
+    window.localStorage.setItem('key', 'stale-value');
+    const indexedDb = installControlledIndexedDb();
+    const { indexedDbStorage } = await import('./localDb');
+
+    const removal = indexedDbStorage.removeItem('key');
+    indexedDb.openRequest.onsuccess?.(new Event('success'));
+    await Promise.resolve();
+    indexedDb.writeRequest.onsuccess?.(new Event('success'));
+    indexedDb.transaction.oncomplete?.(new Event('complete'));
+    await removal;
+
+    vi.stubGlobal('indexedDB', undefined);
+    await expect(indexedDbStorage.getItem('key')).resolves.toBeNull();
+  });
+
+  it('rejects a tracked write when its IndexedDB transaction aborts', async () => {
+    const indexedDb = installControlledIndexedDb();
+    const { indexedDbStorage, waitForLocalRecordWrites } = await import('./localDb');
+    const write = Promise.resolve(indexedDbStorage.setItem('key', 'value'));
+    indexedDb.openRequest.onsuccess?.(new Event('success'));
+    await Promise.resolve();
+    const barrier = waitForLocalRecordWrites(['key']);
+    let writeRejected = false;
+    let barrierRejected = false;
+    void write.catch(() => { writeRejected = true; });
+    void barrier.catch(() => { barrierRejected = true; });
+
+    indexedDb.transaction.error = new DOMException('aborted', 'AbortError');
+    indexedDb.transaction.onabort?.(new Event('abort'));
+    await flushMicrotasks();
+
+    expect(writeRejected).toBe(true);
+    expect(barrierRejected).toBe(true);
+  });
+
+  it('rejects a tracked removal when its IndexedDB transaction errors', async () => {
+    const indexedDb = installControlledIndexedDb();
+    const { removeLocalRecord, waitForLocalRecordWrites } = await import('./localDb');
+    const removal = removeLocalRecord('key');
+    indexedDb.openRequest.onsuccess?.(new Event('success'));
+    await Promise.resolve();
+    const barrier = waitForLocalRecordWrites(['key']);
+    let removalRejected = false;
+    let barrierRejected = false;
+    void removal.catch(() => { removalRejected = true; });
+    void barrier.catch(() => { barrierRejected = true; });
+
+    indexedDb.transaction.error = new DOMException('failed', 'UnknownError');
+    indexedDb.transaction.onerror?.(new Event('error'));
+    await flushMicrotasks();
+
+    expect(removalRejected).toBe(true);
+    expect(barrierRejected).toBe(true);
   });
 });

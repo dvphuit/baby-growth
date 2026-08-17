@@ -10,6 +10,14 @@ const localDb = vi.hoisted(() => ({
 
 vi.mock('./localDb', () => localDb);
 
+function deferred<T = void>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 function jsonResponse(value: unknown): Response {
   return {
     ok: true,
@@ -119,6 +127,36 @@ describe('explicit Google Drive reset operations', () => {
     await vi.advanceTimersByTimeAsync(1200);
     expect(fetchMock).not.toHaveBeenCalled();
 
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(fetchMock).toHaveBeenCalled();
+    stopAutoSync();
+  });
+
+  it('keeps auto-sync suppressed until all overlapping pause operations finish', async () => {
+    vi.useFakeTimers();
+    localDb.getLocalRecord.mockResolvedValue(JSON.stringify({ autoSyncEnabled: true }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockResolvedValueOnce(jsonResponse({ id: 'remote-new', name: 'babygrowth-sync.json' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+    const stopAutoSync = await sync.startAutoSync();
+    const first = deferred();
+    const second = deferred();
+
+    const firstPause = sync.runWithAutoSyncPaused(() => first.promise);
+    const secondPause = sync.runWithAutoSyncPaused(() => second.promise);
+    first.resolve();
+    await firstPause;
+
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    second.resolve();
+    await secondPause;
     localRecordListener?.('babygrowth_v2_baby');
     await vi.advanceTimersByTimeAsync(1200);
     expect(fetchMock).toHaveBeenCalled();

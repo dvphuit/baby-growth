@@ -62,6 +62,21 @@ async function trackRecordWrite(key: string, operation: () => Promise<void>): Pr
   }
 }
 
+async function commitRecordMutation(
+  db: IDBDatabase,
+  mutate: (store: IDBObjectStore) => void,
+  failureMessage: string,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const rejectTransaction = () => reject(transaction.error ?? new Error(failureMessage));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = rejectTransaction;
+    transaction.onabort = rejectTransaction;
+    mutate(transaction.objectStore(STORE_NAME));
+  });
+}
+
 async function writeValue(key: string, value: string): Promise<void> {
   await trackRecordWrite(key, async () => {
     if (!hasIndexedDb()) {
@@ -72,11 +87,10 @@ async function writeValue(key: string, value: string): Promise<void> {
       return;
     }
     const db = await openDb();
-    await new Promise<void>((resolve, reject) => {
-      const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(value, key);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error ?? new Error('Không thể ghi IndexedDB'));
-    });
+    await commitRecordMutation(db, (store) => { store.put(value, key); }, 'Không thể ghi IndexedDB');
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
   });
 }
 
@@ -90,11 +104,10 @@ async function removeValue(key: string): Promise<void> {
       return;
     }
     const db = await openDb();
-    await new Promise<void>((resolve, reject) => {
-      const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(key);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error ?? new Error('Không thể xóa IndexedDB'));
-    });
+    await commitRecordMutation(db, (store) => { store.delete(key); }, 'Không thể xóa IndexedDB');
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
   });
 }
 

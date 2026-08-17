@@ -116,6 +116,8 @@ let autoSyncTimer: number | null = null;
 let autoSyncDebounceTimer: number | null = null;
 let autoSyncInFlight = false;
 let suppressAutoSync = false;
+let autoSyncPauseDepth = 0;
+let autoSyncPauseBaseline = false;
 
 let syncState: SyncState = {
   status: 'idle',
@@ -371,12 +373,18 @@ export async function runWithAutoSyncPaused<T>(operation: () => Promise<T>): Pro
     window.clearTimeout(autoSyncDebounceTimer);
     autoSyncDebounceTimer = null;
   }
-  const previousSuppression = suppressAutoSync;
-  suppressAutoSync = true;
+  if (autoSyncPauseDepth === 0) {
+    autoSyncPauseBaseline = suppressAutoSync;
+    suppressAutoSync = true;
+  }
+  autoSyncPauseDepth += 1;
   try {
     return await operation();
   } finally {
-    suppressAutoSync = previousSuppression;
+    autoSyncPauseDepth -= 1;
+    if (autoSyncPauseDepth === 0) {
+      suppressAutoSync = autoSyncPauseBaseline;
+    }
   }
 }
 
