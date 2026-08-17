@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import sharedCss from './shared.css?raw';
-import homeCss from './home.css?raw';
-import timelineCss from './timeline.css?raw';
-import modalsCss from './modals.css?raw';
+import sharedCss from './shared.css?inline';
+import homeCss from './home.css?inline';
+import timelineCss from './timeline.css?inline';
+import modalsCss from './modals.css?inline';
 
 const css = [sharedCss, homeCss, timelineCss, modalsCss].join('\n');
 
