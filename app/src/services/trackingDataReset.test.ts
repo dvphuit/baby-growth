@@ -24,13 +24,19 @@ const persistence = vi.hoisted(() => ({
 
 const drive = vi.hoisted(() => ({
   overwriteDriveBackupWithLocalData: vi.fn(),
+  runWithAutoSyncPaused: vi.fn(),
 }));
 
 vi.mock('./localDb', () => persistence);
 vi.mock('./googleDriveSync', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./googleDriveSync')>()),
   overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
+  runWithAutoSyncPaused: drive.runWithAutoSyncPaused,
 }));
+
+async function flushMicrotasks(): Promise<void> {
+  for (let index = 0; index < 10; index += 1) await Promise.resolve();
+}
 
 function seedTrackingData(): void {
   useBabyStore.getState().initializeChildProfile({
@@ -73,6 +79,9 @@ describe('resetTrackingData', () => {
     vi.clearAllMocks();
     persistence.waitForLocalRecordWrites.mockResolvedValue(undefined);
     drive.overwriteDriveBackupWithLocalData.mockResolvedValue(undefined);
+    drive.runWithAutoSyncPaused.mockImplementation(async (operation) => operation({
+      overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
+    }));
     useBabyStore.getState().resetToDefaults();
     useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
@@ -116,5 +125,28 @@ describe('resetTrackingData', () => {
 
     expectTrackingDataReset();
     expect(drive.overwriteDriveBackupWithLocalData).toHaveBeenCalledTimes(2);
+  });
+
+  it('waits for delayed store hydration before clearing the hydrated tracking data', async () => {
+    seedTrackingData();
+    let finishHydration: ((state: ReturnType<typeof useActivityStore.getState>) => void) | undefined;
+    const unsubscribe = vi.fn();
+    vi.spyOn(useActivityStore.persist, 'hasHydrated').mockReturnValue(false);
+    vi.spyOn(useActivityStore.persist, 'onFinishHydration').mockImplementation((listener) => {
+      finishHydration = listener;
+      return unsubscribe;
+    });
+    const { resetTrackingData } = await import('./trackingDataReset');
+
+    const reset = resetTrackingData();
+    await flushMicrotasks();
+
+    expect(drive.overwriteDriveBackupWithLocalData).not.toHaveBeenCalled();
+    expect(useActivityStore.getState().babyActivities).not.toEqual([]);
+
+    finishHydration?.(useActivityStore.getState());
+    await expect(reset).resolves.toEqual({ status: 'synced' });
+    expect(useActivityStore.getState().babyActivities).toEqual([]);
+    expect(unsubscribe).toHaveBeenCalledOnce();
   });
 });

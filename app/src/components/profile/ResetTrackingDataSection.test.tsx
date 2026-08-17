@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -44,8 +44,8 @@ describe('ResetTrackingDataSection', () => {
 
     await openConfirmation(user);
 
-    expect(screen.getByText(/cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký và nhắc nhở/i)).toBeInTheDocument();
-    expect(screen.getByText(/Hồ sơ của Bé và thông tin lúc sinh vẫn được giữ lại/i)).toBeInTheDocument();
+    expect(screen.getByText(/cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký, chi phí, nhắc nhở và trò chuyện với AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/Hồ sơ của Bé và Mẹ cùng thông tin lúc sinh vẫn được giữ lại/i)).toBeInTheDocument();
     expect(screen.getByText(/bản sao lưu hiện có trên Google Drive sẽ được thay thế/i)).toBeInTheDocument();
   });
 
@@ -121,5 +121,24 @@ describe('ResetTrackingDataSection', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xóa dữ liệu trên thiết bị');
     expect(screen.getByRole('button', { name: 'Xác nhận đặt lại' })).toBeInTheDocument();
+  });
+
+  it('cannot be dismissed with Escape while pending and remains usable after rejection', async () => {
+    const user = userEvent.setup();
+    let rejectReset: (error: Error) => void;
+    mockedResetTrackingData.mockReturnValueOnce(new Promise((_, reject) => {
+      rejectReset = reject;
+    }));
+    renderSection();
+
+    await openConfirmation(user);
+    await user.click(screen.getByRole('button', { name: 'Xác nhận đặt lại' }));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    rejectReset!(new Error('Không thể xóa dữ liệu trên thiết bị'));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể xóa dữ liệu trên thiết bị');
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
+    expect(screen.getByRole('dialog', { name: 'Xác nhận đặt lại dữ liệu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xác nhận đặt lại' })).toBeEnabled();
   });
 });

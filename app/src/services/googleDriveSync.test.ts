@@ -151,11 +151,19 @@ describe('explicit Google Drive reset operations', () => {
     const stopAutoSync = await sync.startAutoSync();
     const first = deferred();
     const second = deferred();
+    let secondStarted = false;
 
     const firstPause = sync.runWithAutoSyncPaused(() => first.promise);
-    const secondPause = sync.runWithAutoSyncPaused(() => second.promise);
+    const secondPause = sync.runWithAutoSyncPaused(() => {
+      secondStarted = true;
+      return second.promise;
+    });
+    await flushMicrotasks();
+    expect(secondStarted).toBe(false);
     first.resolve();
     await firstPause;
+    await flushMicrotasks();
+    expect(secondStarted).toBe(true);
 
     localRecordListener?.('babygrowth_v2_baby');
     await vi.advanceTimersByTimeAsync(1200);
@@ -203,6 +211,62 @@ describe('explicit Google Drive reset operations', () => {
     await vi.advanceTimersByTimeAsync(1200);
     expect(fetchMock).toHaveBeenCalledTimes(4);
     stopAutoSync();
+  });
+
+  it('waits for an active manual upload before starting a paused reset operation', async () => {
+    const activeUpload = deferred<Response>();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockImplementationOnce(() => activeUpload.promise);
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+
+    const manualSync = sync.syncWithGoogleDrive();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    let resetStarted = false;
+    const reset = sync.runWithAutoSyncPaused(async () => {
+      resetStarted = true;
+    });
+    await flushMicrotasks();
+    expect(resetStarted).toBe(false);
+
+    activeUpload.resolve(jsonResponse({ id: 'remote-manual', name: 'babygrowth-sync.json' }));
+    await manualSync;
+    await reset;
+    expect(resetStarted).toBe(true);
+  });
+
+  it('waits for an active manual download before starting a paused reset operation', async () => {
+    const sync = await import('./googleDriveSync');
+    const localRecords = { babygrowth_v2_baby: '{"state":"local"}' };
+    const localSnapshot = sync.createSyncSnapshot(localRecords);
+    const remoteSnapshot = sync.createSyncSnapshot({ babygrowth_v2_baby: '{"state":"remote"}' });
+    const activeDownload = deferred<Response>();
+    localDb.getAllLocalRecords.mockResolvedValue(localRecords);
+    localDb.getLocalRecord.mockResolvedValue(JSON.stringify({
+      lastSyncedFingerprint: localSnapshot.fingerprint,
+    }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'remote-1', name: 'babygrowth-sync.json' }] }))
+      .mockImplementationOnce(() => activeDownload.promise);
+    vi.stubGlobal('fetch', fetchMock);
+
+    const manualSync = sync.syncWithGoogleDrive();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    let resetStarted = false;
+    const reset = sync.runWithAutoSyncPaused(async () => {
+      resetStarted = true;
+    });
+    await flushMicrotasks();
+    expect(resetStarted).toBe(false);
+
+    activeDownload.resolve(jsonResponse(remoteSnapshot));
+    await manualSync;
+    await reset;
+    expect(localDb.setLocalRecord).toHaveBeenCalledWith('babygrowth_v2_baby', '{"state":"remote"}');
+    expect(resetStarted).toBe(true);
   });
 
   it('applies a downloaded snapshot during auto-sync without waiting on itself', async () => {

@@ -118,8 +118,7 @@ let autoSyncInFlight: Promise<void> | null = null;
 let suppressAutoSync = false;
 let autoSyncSuppressionDepth = 0;
 let autoSyncSuppressionBaseline = false;
-let autoSyncPauseDepth = 0;
-let autoSyncPauseReady: Promise<void> | null = null;
+let driveMutationTail: Promise<void> = Promise.resolve();
 
 let syncState: SyncState = {
   status: 'idle',
@@ -402,21 +401,26 @@ async function runWithAutoSyncSuppressed<T>(operation: () => Promise<T>): Promis
   }
 }
 
-export async function runWithAutoSyncPaused<T>(operation: () => Promise<T>): Promise<T> {
+function runDriveMutationExclusive<T>(operation: () => Promise<T>): Promise<T> {
+  const result = driveMutationTail.then(operation, operation);
+  driveMutationTail = result.then(() => undefined, () => undefined);
+  return result;
+}
+
+export interface PausedDriveOperations {
+  overwriteDriveBackupWithLocalData: (options?: { interactive?: boolean }) => Promise<SyncSnapshot>;
+}
+
+export async function runWithAutoSyncPaused<T>(
+  operation: (drive: PausedDriveOperations) => Promise<T>,
+): Promise<T> {
   clearPendingAutoSync();
   beginAutoSyncSuppression();
-  if (autoSyncPauseDepth === 0) {
-    autoSyncPauseReady = autoSyncInFlight ?? Promise.resolve();
-  }
-  autoSyncPauseDepth += 1;
   try {
-    await autoSyncPauseReady;
-    return await operation();
+    return await runDriveMutationExclusive(() => operation({
+      overwriteDriveBackupWithLocalData: overwriteDriveBackupWithLocalDataUnlocked,
+    }));
   } finally {
-    autoSyncPauseDepth -= 1;
-    if (autoSyncPauseDepth === 0) {
-      autoSyncPauseReady = null;
-    }
     endAutoSyncSuppression();
   }
 }
@@ -433,7 +437,7 @@ export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void>
   });
 }
 
-export async function overwriteDriveBackupWithLocalData(
+async function overwriteDriveBackupWithLocalDataUnlocked(
   options: { interactive?: boolean } = {},
 ): Promise<SyncSnapshot> {
   const interactive = options.interactive !== false;
@@ -445,7 +449,13 @@ export async function overwriteDriveBackupWithLocalData(
   return local;
 }
 
-export async function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
+export function overwriteDriveBackupWithLocalData(
+  options: { interactive?: boolean } = {},
+): Promise<SyncSnapshot> {
+  return runDriveMutationExclusive(() => overwriteDriveBackupWithLocalDataUnlocked(options));
+}
+
+async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = {}): Promise<SyncResult> {
   const interactive = options.interactive !== false;
   if (!navigator.onLine) {
     publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
@@ -507,7 +517,11 @@ export async function syncWithGoogleDrive(options: { interactive?: boolean } = {
   }
 }
 
-export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
+export function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
+  return runDriveMutationExclusive(() => syncWithGoogleDriveUnlocked(options));
+}
+
+async function resolveSyncConflictUnlocked(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
   if (!navigator.onLine) throw new Error('Đang offline; hãy kết nối mạng trước khi xử lý xung đột.');
   const remoteFile = await findSyncFile(true);
   if (!remoteFile) throw new Error('Không tìm thấy tệp đồng bộ trên Google Drive.');
@@ -525,6 +539,13 @@ export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnap
   await saveSyncedState(local, updated.id);
   publishSyncState({ status: 'synced', conflict: null, error: null });
   return 'uploaded';
+}
+
+export function resolveSyncConflict(
+  choice: 'local' | 'remote',
+  remoteSnapshot: SyncSnapshot,
+): Promise<'uploaded' | 'downloaded'> {
+  return runDriveMutationExclusive(() => resolveSyncConflictUnlocked(choice, remoteSnapshot));
 }
 
 export interface DriveBackupSummary {

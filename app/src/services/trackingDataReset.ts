@@ -1,6 +1,5 @@
 import { waitForLocalRecordWrites } from './localDb';
 import {
-  overwriteDriveBackupWithLocalData,
   runWithAutoSyncPaused,
   SYNC_KEYS,
 } from './googleDriveSync';
@@ -16,8 +15,43 @@ export type TrackingDataResetResult =
   | { status: 'synced' }
   | { status: 'local-only'; error: string };
 
+function waitForStoreHydration<T>(store: {
+  persist: {
+    hasHydrated: () => boolean;
+    onFinishHydration: (listener: (state: T) => void) => () => void;
+  };
+}): Promise<void> {
+  if (store.persist.hasHydrated()) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let unsubscribe = () => {};
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      unsubscribe();
+      resolve();
+    };
+    unsubscribe = store.persist.onFinishHydration(finish);
+    if (store.persist.hasHydrated()) finish();
+  });
+}
+
+async function waitForTrackingStoresHydrated(): Promise<void> {
+  await Promise.all([
+    waitForStoreHydration(useBabyStore),
+    waitForStoreHydration(useMomStore),
+    waitForStoreHydration(useActivityStore),
+    waitForStoreHydration(useTimelineStore),
+    waitForStoreHydration(useChatStore),
+    waitForStoreHydration(useReminderStore),
+    waitForStoreHydration(useUIStore),
+  ]);
+}
+
 export async function resetTrackingData(): Promise<TrackingDataResetResult> {
-  return runWithAutoSyncPaused(async () => {
+  return runWithAutoSyncPaused(async ({ overwriteDriveBackupWithLocalData }) => {
+    await waitForTrackingStoresHydrated();
     useBabyStore.getState().resetTrackingData();
     useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();

@@ -1,12 +1,22 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useId } from 'react';
 import { X } from 'lucide-react';
 
 interface BottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  dismissible?: boolean;
   children: React.ReactNode;
 }
+
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 /**
  * Material Motion 3 (M3) Bottom Sheet Component
@@ -19,6 +29,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   isOpen,
   onClose,
   title,
+  dismissible = true,
   children,
 }) => {
   const [isRendered, setIsRendered] = useState(isOpen);
@@ -34,6 +45,20 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const isDraggingRef = useRef(false);
   const isClosingRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    return () => {
+      const previouslyFocused = previouslyFocusedRef.current;
+      previouslyFocusedRef.current = null;
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, [isOpen]);
 
   // Entrance transition lifecycle
   useEffect(() => {
@@ -59,7 +84,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   }, [isOpen]);
 
   const handleTriggerClose = useCallback(() => {
-    if (isClosingRef.current) return;
+    if (!dismissible || isClosingRef.current) return;
     isClosingRef.current = true;
     setIsClosing(true);
     setIsEntered(false);
@@ -73,22 +98,58 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       isClosingRef.current = false;
       setDragY(0);
     }, 250);
-  }, [onClose]);
+  }, [dismissible, onClose]);
+
+  useEffect(() => {
+    if (!isOpen || !isRendered) return;
+    const frameId = requestAnimationFrame(() => {
+      const focusable = sheetRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      (focusable ?? sheetRef.current)?.focus();
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [isOpen, isRendered]);
+
+  useEffect(() => {
+    if (dismissible) return;
+    isDraggingRef.current = false;
+    setIsDragging(false);
+    setDragY(0);
+  }, [dismissible]);
 
   // Keyboard Escape listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isClosingRef.current) {
+      if (e.key === 'Escape' && isOpen && dismissible && !isClosingRef.current) {
         handleTriggerClose();
+        return;
+      }
+      if (e.key === 'Tab' && isOpen && sheetRef.current) {
+        const focusable = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+        if (focusable.length === 0) {
+          e.preventDefault();
+          sheetRef.current.focus();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        const activeIsFocusable = focusable.includes(active as HTMLElement);
+        if (e.shiftKey && (active === first || !activeIsFocusable)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (active === last || !activeIsFocusable)) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleTriggerClose]);
+  }, [dismissible, isOpen, handleTriggerClose]);
 
   // Pointer / Touch Handlers for 1:1 Fluid Tracking
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (isClosingRef.current) return;
+    if (!dismissible || isClosingRef.current) return;
     const isAtTop = !sheetRef.current || sheetRef.current.scrollTop <= 0;
     if (isAtTop) {
       startYRef.current = e.clientY;
@@ -104,7 +165,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current || isClosingRef.current) return;
+    if (!dismissible || !isDraggingRef.current || isClosingRef.current) return;
     const currentY = e.clientY;
     const diffY = currentY - startYRef.current;
 
@@ -122,6 +183,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (!dismissible) {
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      setDragY(0);
+      return;
+    }
     if (!isDraggingRef.current || isClosingRef.current) return;
     isDraggingRef.current = false;
     setIsDragging(false);
@@ -186,11 +253,16 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       className={`modal-backdrop ${isEntered ? 'open' : ''} ${isClosing ? 'closing' : ''}`}
       style={backdropStyle}
       onClick={(e) => {
-        if (e.target === e.currentTarget) handleTriggerClose();
+        if (dismissible && e.target === e.currentTarget) handleTriggerClose();
       }}
     >
       <div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : 'Hộp thoại'}
+        tabIndex={-1}
         className={`bottom-sheet ${isClosing ? 'closing' : ''} ${isDragging ? 'is-dragging' : ''}`}
         style={sheetStyle}
         onClick={(e) => e.stopPropagation()}
@@ -203,7 +275,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          style={{ touchAction: 'none', cursor: 'grab' }}
+          style={{ touchAction: 'none', cursor: dismissible ? 'grab' : 'default' }}
         >
           <div
             className="sheet-handle-bar"
@@ -213,12 +285,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
           {title && (
             <div className="sheet-header-row">
-              <h3 className="sheet-title">{title}</h3>
+              <h3 className="sheet-title" id={titleId}>{title}</h3>
               <button
                 type="button"
                 className="sheet-close-btn"
                 onClick={handleTriggerClose}
                 title="Đóng"
+                aria-label="Đóng"
+                disabled={!dismissible}
                 onPointerDown={(e) => e.stopPropagation()}
               >
                 <X size={14} />
