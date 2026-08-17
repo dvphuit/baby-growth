@@ -9,6 +9,7 @@ interface ChatStoreState {
   chatMessages: ChatMessage[];
   addChatMessage: (sender: 'ai' | 'user', text: string) => void;
   clearChat: () => void;
+  resetTrackingData: () => void;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
@@ -35,6 +36,7 @@ export const useChatStore = create<ChatStoreState>()(
         set((state) => ({ chatMessages: [...state.chatMessages, newMsg] }));
       },
       clearChat: () => set({ chatMessages: INITIAL_MESSAGES }),
+      resetTrackingData: () => set({ chatMessages: [] }),
     }),
     {
       name: 'babygrowth_v2_chat',

@@ -18,6 +18,7 @@ export interface ReminderStoreState {
   snoozeOccurrence: (occurrence: ReminderOccurrence, minutes: number) => void;
   markSurfaced: (occurrence: ReminderOccurrence) => void;
   setSystemNotificationsEnabled: (enabled: boolean) => void;
+  resetTrackingData: () => void;
 }
 
 export const useReminderStore = create<ReminderStoreState>()(
@@ -46,6 +47,7 @@ export const useReminderStore = create<ReminderStoreState>()(
         set((state) => ({ occurrenceStates: { ...state.occurrenceStates, [occurrence.occurrenceId]: { occurrenceId: occurrence.occurrenceId, reminderId: occurrence.reminderId, dueAt: occurrence.originalDueAt, snoozedUntil: occurrence.state?.snoozedUntil, completedAt: occurrence.state?.completedAt, surfacedAt: new Date().toISOString() } } }));
       },
       setSystemNotificationsEnabled: (enabled) => set({ systemNotificationsEnabled: enabled }),
+      resetTrackingData: () => set({ reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false }),
     }),
     { name: 'babygrowth_v3_reminders', storage: createJSONStorage(() => indexedDbStorage), partialize: (state) => ({ reminders: state.reminders, occurrenceStates: state.occurrenceStates, systemNotificationsEnabled: state.systemNotificationsEnabled }) },
   ),

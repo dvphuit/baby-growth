@@ -114,8 +114,11 @@ let autoSyncStop: (() => void) | null = null;
 let autoSyncStartPromise: Promise<() => void> | null = null;
 let autoSyncTimer: number | null = null;
 let autoSyncDebounceTimer: number | null = null;
-let autoSyncInFlight = false;
+let autoSyncInFlight: Promise<void> | null = null;
 let suppressAutoSync = false;
+let autoSyncSuppressionDepth = 0;
+let autoSyncSuppressionBaseline = false;
+let driveMutationTail: Promise<void> = Promise.resolve();
 
 let syncState: SyncState = {
   status: 'idle',
@@ -366,9 +369,64 @@ function publishSyncResult(result: SyncResult): void {
   publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
 }
 
-export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
-  suppressAutoSync = true;
+function clearPendingAutoSync(): void {
+  if (autoSyncDebounceTimer !== null) {
+    window.clearTimeout(autoSyncDebounceTimer);
+    autoSyncDebounceTimer = null;
+  }
+}
+
+function beginAutoSyncSuppression(): void {
+  if (autoSyncSuppressionDepth === 0) {
+    autoSyncSuppressionBaseline = suppressAutoSync;
+    suppressAutoSync = true;
+  }
+  autoSyncSuppressionDepth += 1;
+}
+
+function endAutoSyncSuppression(): void {
+  autoSyncSuppressionDepth -= 1;
+  if (autoSyncSuppressionDepth === 0) {
+    suppressAutoSync = autoSyncSuppressionBaseline;
+  }
+}
+
+async function runWithAutoSyncSuppressed<T>(operation: () => Promise<T>): Promise<T> {
+  clearPendingAutoSync();
+  beginAutoSyncSuppression();
   try {
+    return await operation();
+  } finally {
+    endAutoSyncSuppression();
+  }
+}
+
+function runDriveMutationExclusive<T>(operation: () => Promise<T>): Promise<T> {
+  const result = driveMutationTail.then(operation, operation);
+  driveMutationTail = result.then(() => undefined, () => undefined);
+  return result;
+}
+
+export interface PausedDriveOperations {
+  overwriteDriveBackupWithLocalData: (options?: { interactive?: boolean }) => Promise<SyncSnapshot>;
+}
+
+export async function runWithAutoSyncPaused<T>(
+  operation: (drive: PausedDriveOperations) => Promise<T>,
+): Promise<T> {
+  clearPendingAutoSync();
+  beginAutoSyncSuppression();
+  try {
+    return await runDriveMutationExclusive(() => operation({
+      overwriteDriveBackupWithLocalData: overwriteDriveBackupWithLocalDataUnlocked,
+    }));
+  } finally {
+    endAutoSyncSuppression();
+  }
+}
+
+export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
+  await runWithAutoSyncSuppressed(async () => {
     await Promise.all(SYNC_KEYS.map(async (key) => {
       const value = snapshot.records[key];
       // Older schema-1 backups do not know v3 keys. Missing keys must not erase newer local data.
@@ -376,12 +434,28 @@ export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void>
       if (value) await setLocalRecord(key, value);
       else await removeLocalRecord(key);
     }));
-  } finally {
-    suppressAutoSync = false;
-  }
+  });
 }
 
-export async function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
+async function overwriteDriveBackupWithLocalDataUnlocked(
+  options: { interactive?: boolean } = {},
+): Promise<SyncSnapshot> {
+  const interactive = options.interactive !== false;
+  const local = await getLocalSnapshot();
+  const remoteFile = await findSyncFile(interactive);
+  const savedFile = await writeRemoteSnapshot(local, remoteFile, interactive);
+  await saveSyncedState(local, savedFile.id);
+  publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
+  return local;
+}
+
+export function overwriteDriveBackupWithLocalData(
+  options: { interactive?: boolean } = {},
+): Promise<SyncSnapshot> {
+  return runDriveMutationExclusive(() => overwriteDriveBackupWithLocalDataUnlocked(options));
+}
+
+async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = {}): Promise<SyncResult> {
   const interactive = options.interactive !== false;
   if (!navigator.onLine) {
     publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
@@ -443,7 +517,11 @@ export async function syncWithGoogleDrive(options: { interactive?: boolean } = {
   }
 }
 
-export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
+export function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
+  return runDriveMutationExclusive(() => syncWithGoogleDriveUnlocked(options));
+}
+
+async function resolveSyncConflictUnlocked(choice: 'local' | 'remote', remoteSnapshot: SyncSnapshot): Promise<'uploaded' | 'downloaded'> {
   if (!navigator.onLine) throw new Error('Đang offline; hãy kết nối mạng trước khi xử lý xung đột.');
   const remoteFile = await findSyncFile(true);
   if (!remoteFile) throw new Error('Không tìm thấy tệp đồng bộ trên Google Drive.');
@@ -461,6 +539,13 @@ export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnap
   await saveSyncedState(local, updated.id);
   publishSyncState({ status: 'synced', conflict: null, error: null });
   return 'uploaded';
+}
+
+export function resolveSyncConflict(
+  choice: 'local' | 'remote',
+  remoteSnapshot: SyncSnapshot,
+): Promise<'uploaded' | 'downloaded'> {
+  return runDriveMutationExclusive(() => resolveSyncConflictUnlocked(choice, remoteSnapshot));
 }
 
 export interface DriveBackupSummary {
@@ -528,6 +613,7 @@ export async function setAutoSyncEnabled(enabled: boolean): Promise<void> {
 }
 
 function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
+  if (suppressAutoSync) return;
   if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
   autoSyncDebounceTimer = window.setTimeout(() => {
     autoSyncDebounceTimer = null;
@@ -535,23 +621,26 @@ function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
   }, delay);
 }
 
-async function runAutoSync(): Promise<void> {
-  if (autoSyncInFlight || suppressAutoSync || !navigator.onLine) return;
-  const meta = await readMeta();
-  if (!meta.autoSyncEnabled) return;
-  if (!isGoogleConnected()) {
-    publishSyncState({ status: 'auth-required', autoSyncEnabled: true, error: 'Bấm kết nối Google để bật lại auto-sync.' });
-    return;
-  }
-
-  autoSyncInFlight = true;
-  try {
-    await syncWithGoogleDrive({ interactive: false });
-  } catch {
-    // State contains the user-facing error; local writes continue normally.
-  } finally {
-    autoSyncInFlight = false;
-  }
+function runAutoSync(): Promise<void> {
+  if (autoSyncInFlight || suppressAutoSync || !navigator.onLine) return Promise.resolve();
+  const operation = (async () => {
+    try {
+      const meta = await readMeta();
+      if (!meta.autoSyncEnabled) return;
+      if (!isGoogleConnected()) {
+        publishSyncState({ status: 'auth-required', autoSyncEnabled: true, error: 'Bấm kết nối Google để bật lại auto-sync.' });
+        return;
+      }
+      await syncWithGoogleDrive({ interactive: false });
+    } catch {
+      // State contains the user-facing error; local writes continue normally.
+    }
+  })();
+  autoSyncInFlight = operation;
+  void operation.then(() => {
+    if (autoSyncInFlight === operation) autoSyncInFlight = null;
+  });
+  return operation;
 }
 
 export async function startAutoSync(): Promise<() => void> {

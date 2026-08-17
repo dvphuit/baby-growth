@@ -6,6 +6,7 @@ const DB_VERSION = 1;
 
 type LocalRecordChangeListener = (key: string) => void;
 const localRecordChangeListeners = new Set<LocalRecordChangeListener>();
+const pendingRecordWrites = new Map<string, Promise<void>>();
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -49,36 +50,69 @@ async function readValue(key: string): Promise<string | null> {
   });
 }
 
-async function writeValue(key: string, value: string): Promise<void> {
-  if (!hasIndexedDb()) {
-    memoryFallback.set(key, value);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, value);
+async function trackRecordWrite(key: string, operation: () => Promise<void>): Promise<void> {
+  const pendingWrite = operation();
+  pendingRecordWrites.set(key, pendingWrite);
+  try {
+    await pendingWrite;
+  } finally {
+    if (pendingRecordWrites.get(key) === pendingWrite) {
+      pendingRecordWrites.delete(key);
     }
-    return;
   }
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(value, key);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error ?? new Error('Không thể ghi IndexedDB'));
+}
+
+async function commitRecordMutation(
+  db: IDBDatabase,
+  mutate: (store: IDBObjectStore) => void,
+  failureMessage: string,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const rejectTransaction = () => reject(transaction.error ?? new Error(failureMessage));
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = rejectTransaction;
+    transaction.onabort = rejectTransaction;
+    mutate(transaction.objectStore(STORE_NAME));
+  });
+}
+
+async function writeValue(key: string, value: string): Promise<void> {
+  await trackRecordWrite(key, async () => {
+    if (!hasIndexedDb()) {
+      memoryFallback.set(key, value);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+      return;
+    }
+    const db = await openDb();
+    await commitRecordMutation(db, (store) => { store.put(value, key); }, 'Không thể ghi IndexedDB');
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
   });
 }
 
 async function removeValue(key: string): Promise<void> {
-  if (!hasIndexedDb()) {
-    memoryFallback.delete(key);
+  await trackRecordWrite(key, async () => {
+    if (!hasIndexedDb()) {
+      memoryFallback.delete(key);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+      return;
+    }
+    const db = await openDb();
+    await commitRecordMutation(db, (store) => { store.delete(key); }, 'Không thể xóa IndexedDB');
     if (typeof window !== 'undefined' && window.localStorage) {
       window.localStorage.removeItem(key);
     }
-    return;
-  }
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(key);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error ?? new Error('Không thể xóa IndexedDB'));
   });
+}
+
+export async function waitForLocalRecordWrites(keys: readonly string[]): Promise<void> {
+  await Promise.all(keys.map((key) => pendingRecordWrites.get(key) ?? Promise.resolve()));
 }
 
 

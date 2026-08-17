@@ -626,6 +626,120 @@
   color: #ffffff;
 }
 
+/* --- Reset Tracking Data --- */
+.profile-reset-section {
+  margin-top: 4px;
+}
+
+.profile-reset-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--color-sad-bg);
+  border: 1px solid var(--color-sad);
+  border-radius: var(--radius-lg);
+}
+
+.profile-reset-heading {
+  margin: 0;
+  color: var(--color-primary-dark);
+  font-family: var(--font-family-display);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.profile-reset-description,
+.profile-reset-confirmation-copy {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.profile-reset-trigger,
+.profile-reset-confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--color-sad);
+  border-radius: var(--radius-pill);
+  background: var(--color-sad);
+  color: var(--color-text-light);
+  font-family: var(--font-family-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-reset-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.modal-backdrop:has(.profile-reset-confirmation[aria-busy="true"]) {
+  pointer-events: none;
+}
+
+.profile-reset-confirmation-intro {
+  margin: 0 0 6px;
+  color: var(--color-sad);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-reset-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-sad-bg);
+  color: var(--color-sad);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-reset-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.profile-reset-cancel {
+  min-height: 42px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-card-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-reset-trigger:hover,
+.profile-reset-confirm:hover {
+  filter: brightness(0.94);
+}
+
+.profile-reset-trigger:focus-visible,
+.profile-reset-confirm:focus-visible,
+.profile-reset-cancel:focus-visible {
+  outline: 3px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.profile-reset-trigger:disabled,
+.profile-reset-confirm:disabled,
+.profile-reset-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* --- Edit Profile Modal Form Specifics --- */
 .edit-profile-modal-card {
   max-width: 480px;

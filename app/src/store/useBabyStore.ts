@@ -28,6 +28,7 @@ interface BabyStoreState {
   addExpenseRecord: (input: Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>) => ExpenseRecord;
   updateExpenseRecord: (id: string, patch: Partial<Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>>) => void;
   deleteExpenseRecord: (id: string) => void;
+  resetTrackingData: () => void;
   resetToDefaults: () => void;
 }
 
@@ -236,6 +237,118 @@ export const useBabyStore = create<BabyStoreState>()(
           : record),
       })),
       deleteExpenseRecord: (id) => set((state) => ({ expenseRecords: (state.expenseRecords ?? []).filter((record) => record.id !== id) })),
+      resetTrackingData: () => {
+        const existingBirthRecord = Object.values(get().stages)
+          .flatMap((stage) => stage.growthHistory ?? [])
+          .find((record) => record.id.startsWith('gh_birth')
+            || (record.ageText === 'Sơ sinh (Lúc chào đời)' && record.labelIndex === 0));
+        const {
+          childName,
+          childFullName,
+          birthDate,
+          birthTime,
+          gender,
+          bloodType,
+          childAvatar,
+          momName,
+          momAvatar,
+          birthWeight,
+          birthHeight,
+          headCircAtBirth,
+          hospital,
+        } = get().familyData;
+        const birth = birthDate ? new Date(birthDate) : new Date();
+        const now = new Date();
+        const diffMonths = Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth());
+
+        let currentStage: StageKey = 'stage_0_1';
+        if (diffMonths > 12 * 12) currentStage = 'stage_13_18';
+        else if (diffMonths > 5 * 12) currentStage = 'stage_6_12';
+        else if (diffMonths > 12) currentStage = 'stage_1_5';
+
+        const preservedFamily: FamilyData = {
+          isInitialized: true,
+          childName,
+          childFullName,
+          birthDate,
+          birthTime,
+          gender,
+          bloodType,
+          childAvatar,
+          momName,
+          momAvatar,
+          birthWeight,
+          birthHeight,
+          headCircAtBirth,
+          hospital,
+        };
+        const stages = structuredClone(INITIAL_STAGES);
+        const positiveValue = (value: number | string | undefined): number => {
+          const parsed = typeof value === 'number' ? value : parseFloat(value || '');
+          return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+        };
+        const existingWeight = positiveValue(existingBirthRecord?.weight);
+        const existingHeight = positiveValue(existingBirthRecord?.height);
+        const existingHeadCirc = positiveValue(existingBirthRecord?.headCirc);
+        const hasExistingBirthMeasurement = existingWeight > 0 || existingHeight > 0 || existingHeadCirc > 0;
+        const weight = hasExistingBirthMeasurement ? existingWeight : positiveValue(birthWeight);
+        const height = hasExistingBirthMeasurement ? existingHeight : positiveValue(birthHeight);
+        const headCirc = hasExistingBirthMeasurement ? existingHeadCirc : positiveValue(headCircAtBirth);
+        const hasBirthMeasurement = weight > 0 || height > 0 || headCirc > 0;
+        const stage = stages[currentStage];
+
+        stage.growthHistory = hasBirthMeasurement
+          ? [{
+              ...(hasExistingBirthMeasurement ? existingBirthRecord : undefined),
+              id: hasExistingBirthMeasurement ? existingBirthRecord!.id : 'gh_birth',
+              date: hasExistingBirthMeasurement
+                ? existingBirthRecord!.date
+                : birthDate || new Date().toISOString().split('T')[0],
+              ageText: 'Sơ sinh (Lúc chào đời)',
+              labelIndex: 0,
+              weight,
+              height,
+              headCirc,
+              percentileLabel: hasExistingBirthMeasurement
+                ? existingBirthRecord!.percentileLabel
+                : 'Chuẩn lúc sinh',
+              status: hasExistingBirthMeasurement ? existingBirthRecord!.status : 'optimal',
+              note: hasExistingBirthMeasurement
+                ? existingBirthRecord!.note
+                : 'Chỉ số thể chất lúc sinh của Bé.',
+            }]
+          : [];
+        stage.todayVitals = {
+          ...stage.todayVitals,
+          weight: weight > 0 ? `${weight} kg` : '',
+          height: height > 0 ? `${height} cm` : '',
+          headCirc: headCirc > 0 ? `${headCirc} cm` : '',
+        };
+        if (hasBirthMeasurement) {
+          if (weight > 0) stage.growthChart.weight.child[0] = weight;
+          if (height > 0) stage.growthChart.height.child[0] = height;
+          if (headCirc > 0) stage.growthChart.headCirc.child[0] = headCirc;
+        }
+        stage.motorMilestones = {
+          ...stage.motorMilestones,
+          score: 0,
+          items: stage.motorMilestones.items.map((item) => ({
+            ...item,
+            status: 'upcoming',
+            statusLabel: 'Sắp tới',
+            dateAchieved: null,
+          })),
+        };
+
+        set({
+          currentStage,
+          stages,
+          dailyHabits: structuredClone(INITIAL_DAILY_HABITS),
+          familyData: preservedFamily,
+          expenseRecords: [],
+          monthlyExpenseBudget: 5_000_000,
+        });
+      },
       resetToDefaults: () => set({
         currentStage: 'stage_0_1',
         stages: INITIAL_STAGES,
