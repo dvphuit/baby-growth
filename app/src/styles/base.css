@@ -9,20 +9,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html {
   width: 100%;
   min-height: 100%;
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
   font-family: var(--font-family-body);
   background-color: var(--color-canvas);
   color: var(--color-text-primary);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: none;
-  color-scheme: light;
 }
 
 #root {
@@ -44,6 +48,7 @@ html, body {
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
 }
 
 /* Main Content Area with unified 16px horizontal margins */
