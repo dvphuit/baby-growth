@@ -6,9 +6,9 @@ interface ThemeColorOptions {
 }
 
 export const THEME_COLORS = {
-  TRANSPARENT: 'transparent',
+  HEADER_DARK: '#39261D',
   CANVAS_LIGHT: '#FBF7F2',
-  MODAL_BACKDROP: 'transparent',
+  MODAL_BACKDROP: '#201A17',
 } as const;
 
 export function getThemeColorForState(pathname: string, isModalOpen?: boolean): string {
@@ -18,7 +18,7 @@ export function getThemeColorForState(pathname: string, isModalOpen?: boolean): 
   if (pathname === '/profile') {
     return THEME_COLORS.CANVAS_LIGHT;
   }
-  return THEME_COLORS.TRANSPARENT;
+  return THEME_COLORS.HEADER_DARK;
 }
 
 export function useThemeColor({ pathname, isModalOpen }: ThemeColorOptions): void {
