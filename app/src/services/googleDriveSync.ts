@@ -463,6 +463,53 @@ export async function resolveSyncConflict(choice: 'local' | 'remote', remoteSnap
   return 'uploaded';
 }
 
+export interface DriveBackupSummary {
+  found: boolean;
+  snapshot?: SyncSnapshot;
+  remoteFileId?: string;
+  childName?: string;
+  birthDate?: string;
+  updatedAt?: string;
+}
+
+export async function checkDriveBackup(): Promise<DriveBackupSummary> {
+  const remoteFile = await findSyncFile(false);
+  if (!remoteFile) return { found: false };
+
+  const snapshot = await readRemoteSnapshot(remoteFile.id, false);
+  let childName: string | undefined;
+  let birthDate: string | undefined;
+  try {
+    const rawBaby = snapshot.records['babygrowth_v2_baby'];
+    if (rawBaby) {
+      const parsed = JSON.parse(rawBaby);
+      const fam = parsed?.state?.familyData;
+      if (fam?.isInitialized && fam?.childName) {
+        childName = fam.childName;
+        birthDate = fam.birthDate;
+      }
+    }
+  } catch {
+    // Ignore parse error
+  }
+
+  return {
+    found: true,
+    snapshot,
+    remoteFileId: remoteFile.id,
+    childName,
+    birthDate,
+    updatedAt: remoteFile.modifiedTime || snapshot.updatedAt,
+  };
+}
+
+export async function restoreDriveBackup(snapshot: SyncSnapshot, remoteFileId: string): Promise<void> {
+  await applyRemoteSnapshot(snapshot);
+  await saveSyncedState(snapshot, remoteFileId);
+  await setAutoSyncEnabled(true);
+  window.dispatchEvent(new Event('babygrowth:remote-updated'));
+}
+
 export async function getLastSyncedAt(): Promise<string | null> {
   return (await readMeta()).lastSyncedAt;
 }

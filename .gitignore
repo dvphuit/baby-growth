@@ -6,3 +6,4 @@ mockup
 !firebase.json
 .firebase
 .DS_Store
+.superpowers

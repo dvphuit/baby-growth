@@ -17,6 +17,25 @@
   padding: 28px 22px;
   box-shadow: 0 16px 36px rgba(51, 37, 31, 0.08);
   border: 1px solid var(--color-border-subtle, #ECE6DD);
+  display: flex;
+  flex-direction: column;
+}
+
+.haven-onboarding-step-view {
+  display: flex;
+  flex-direction: column;
+  animation: havenFadeIn 0.28s ease-out;
+}
+
+@keyframes havenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .haven-onboarding-header {
@@ -29,11 +48,34 @@
   height: 64px;
   border-radius: 22px;
   background: var(--color-sage-light, #E5ECD9);
+  color: var(--color-sage-dark, #4b6637);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
   box-shadow: 0 6px 14px rgba(75, 102, 55, 0.12);
+}
+
+.haven-onboarding-icon-wrap.auth-icon {
+  background: #EEF4FD;
+  color: #2D68C4;
+  box-shadow: 0 6px 14px rgba(45, 104, 196, 0.12);
+}
+
+.haven-onboarding-icon-wrap.success-icon {
+  background: #EEF7E6;
+  color: #43842C;
+  box-shadow: 0 6px 14px rgba(67, 132, 44, 0.12);
+}
+
+.haven-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-sage-dark, #4b6637);
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
 .haven-onboarding-header h2 {
@@ -53,6 +95,248 @@
   margin: 0;
 }
 
+/* Auth Benefits Section */
+.haven-auth-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.haven-auth-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--color-card-warm, #F6F3ED);
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+  border-radius: 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.haven-auth-benefit-item:hover {
+  border-color: #DDD4C7;
+  transform: translateY(-1px);
+}
+
+.haven-benefit-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: var(--color-primary-dark, #33251F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.06);
+}
+
+.haven-benefit-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.haven-benefit-text strong {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-primary, #2D231E);
+}
+
+.haven-benefit-text span {
+  font-size: 12px;
+  color: var(--color-text-secondary, #82776E);
+  line-height: 1.45;
+}
+
+/* Google Sign-in Action Box */
+.haven-auth-action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.haven-google-signin-btn {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  color: var(--color-primary-dark, #33251F);
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 15.5px;
+  font-weight: 750;
+  border: 1.5px solid #DDD4C7;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(51, 37, 31, 0.06);
+  transition: all 0.2s ease;
+}
+
+.haven-google-signin-btn:hover:not(:disabled) {
+  background: #FAF8F5;
+  border-color: #C5B9AA;
+  box-shadow: 0 6px 18px rgba(51, 37, 31, 0.1);
+  transform: translateY(-1px);
+}
+
+.haven-google-signin-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.haven-google-signin-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.haven-auth-dev-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #FFF9F2;
+  border: 1px dashed #F2C99D;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.haven-auth-dev-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #B45309;
+}
+
+.haven-auth-dev-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 750;
+  color: #B45309;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.haven-auth-dev-btn:hover {
+  color: #78350F;
+}
+
+.haven-auth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--color-text-muted, #B2A89F);
+  text-align: center;
+  padding-top: 6px;
+}
+
+/* Backup Found Card */
+.haven-backup-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--color-sage-light, #E5ECD9);
+  border: 1.5px solid #C4D6AF;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.haven-backup-avatar-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: #FFFFFF;
+  color: var(--color-sage-dark, #4b6637);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(75, 102, 55, 0.14);
+}
+
+.haven-backup-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.haven-backup-child-name {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-primary, #2D231E);
+}
+
+.haven-backup-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-sage-dark, #4b6637);
+}
+
+.haven-backup-time {
+  font-size: 11px;
+  color: var(--color-text-secondary, #82776E);
+}
+
+.haven-backup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.haven-secondary-btn {
+  width: 100%;
+  padding: 12px 18px;
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #82776E);
+  background: var(--color-card-warm, #F6F3ED);
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.haven-secondary-btn:hover:not(:disabled) {
+  background: #EDE8DE;
+  color: var(--color-text-primary, #2D231E);
+}
+
+.haven-secondary-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Connected Sync Status Badge */
+.haven-sync-connected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #EDF7E8;
+  color: #387322;
+  border: 1px solid #CEE8BC;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 750;
+  margin-bottom: 16px;
+  align-self: center;
+}
+
+/* Form Styles */
 .haven-onboarding-form {
   display: grid;
   gap: 20px;
@@ -206,6 +490,9 @@
 }
 
 .haven-form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 14px;
   background: #FDF0E9;
   border: 1px solid #F5C7B3;
@@ -213,6 +500,7 @@
   color: #B42318;
   font-size: 12.5px;
   font-weight: 600;
+  margin-bottom: 12px;
 }
 
 .haven-onboarding-submit-btn {
@@ -235,13 +523,31 @@
   margin-top: 6px;
 }
 
-.haven-onboarding-submit-btn:hover {
+.haven-onboarding-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(52, 74, 37, 0.35);
 }
 
-.haven-onboarding-submit-btn:active {
+.haven-onboarding-submit-btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.haven-onboarding-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.spin-animate {
+  animation: havenSpin 1s linear infinite;
+}
+
+@keyframes havenSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 480px) {

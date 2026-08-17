@@ -63,7 +63,7 @@ describe('AppContent', () => {
     useBabyStore.getState().resetToDefaults();
     render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
 
-    expect(screen.getByRole('heading', { name: /Bắt đầu hành trình/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Đăng nhập Google Drive/i })).toBeInTheDocument();
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
   });
 

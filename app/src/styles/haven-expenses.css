@@ -120,7 +120,7 @@
 }
 
 .haven-month-nav-title {
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 13px;
   font-weight: 750;
   color: #FFFFFF;
@@ -190,7 +190,7 @@
 .haven-summary-hero-copy h2 {
   margin: 2px 0 2px;
   color: #FFFFFF;
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 30px;
   font-weight: 850;
   line-height: 1.05;
@@ -522,7 +522,7 @@
   font-size: 11.5px;
   font-weight: 800;
   color: #FFFFFF;
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -805,7 +805,7 @@
 }
 
 .haven-tl-amount {
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 13px;
   font-weight: 800;
   color: var(--color-primary-dark, #39261D);
@@ -1026,7 +1026,7 @@
 }
 
 .haven-amount-number {
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 28px;
   font-weight: 800;
   color: var(--color-primary-dark, #39261D);
@@ -1036,7 +1036,7 @@
 }
 
 .haven-amount-unit {
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 18px;
   font-weight: 700;
   color: var(--color-text-secondary, #846E62);
@@ -1150,7 +1150,7 @@
 .haven-key {
   height: 42px;
   border-radius: var(--radius-md, 16px);
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 16px;
   font-weight: 700;
   display: flex;

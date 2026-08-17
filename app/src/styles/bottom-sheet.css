@@ -59,7 +59,7 @@
 }
 
 .sheet-title {
-  font-family: var(--font-family-display, serif);
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
   font-size: 15px;
   font-weight: 700;
   color: var(--color-primary-dark, #39261D);
