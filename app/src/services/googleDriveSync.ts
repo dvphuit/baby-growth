@@ -366,9 +366,22 @@ function publishSyncResult(result: SyncResult): void {
   publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
 }
 
-export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
+export async function runWithAutoSyncPaused<T>(operation: () => Promise<T>): Promise<T> {
+  if (autoSyncDebounceTimer !== null) {
+    window.clearTimeout(autoSyncDebounceTimer);
+    autoSyncDebounceTimer = null;
+  }
+  const previousSuppression = suppressAutoSync;
   suppressAutoSync = true;
   try {
+    return await operation();
+  } finally {
+    suppressAutoSync = previousSuppression;
+  }
+}
+
+export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
+  await runWithAutoSyncPaused(async () => {
     await Promise.all(SYNC_KEYS.map(async (key) => {
       const value = snapshot.records[key];
       // Older schema-1 backups do not know v3 keys. Missing keys must not erase newer local data.
@@ -376,9 +389,19 @@ export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void>
       if (value) await setLocalRecord(key, value);
       else await removeLocalRecord(key);
     }));
-  } finally {
-    suppressAutoSync = false;
-  }
+  });
+}
+
+export async function overwriteDriveBackupWithLocalData(
+  options: { interactive?: boolean } = {},
+): Promise<SyncSnapshot> {
+  const interactive = options.interactive !== false;
+  const local = await getLocalSnapshot();
+  const remoteFile = await findSyncFile(interactive);
+  const savedFile = await writeRemoteSnapshot(local, remoteFile, interactive);
+  await saveSyncedState(local, savedFile.id);
+  publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
+  return local;
 }
 
 export async function syncWithGoogleDrive(options: { interactive?: boolean } = {}): Promise<SyncResult> {
