@@ -3,7 +3,6 @@ import './PWABadge.css'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
 function PWABadge() {
-  // check for updates every hour
   const period = 60 * 60 * 1000
 
   const {
@@ -11,18 +10,47 @@ function PWABadge() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl, r) {
-      if (period <= 0) return
-      if (r?.active?.state === 'activated') {
-        registerPeriodicSync(period, swUrl, r)
+    immediate: true,
+    onRegisteredSW(swUrl, registration) {
+      if (!registration) return
+
+      const checkForUpdate = async () => {
+        if ('onLine' in navigator && !navigator.onLine)
+          return
+
+        try {
+          const response = await fetch(swUrl, {
+            cache: 'no-store',
+            headers: {
+              'cache': 'no-store',
+              'cache-control': 'no-cache',
+            },
+          })
+          if (response.status === 200)
+            await registration.update()
+        }
+        catch {
+          // Update checks are best-effort. The service worker keeps the app usable offline.
+        }
       }
-      else if (r?.installing) {
-        r.installing.addEventListener('statechange', (e) => {
-          const sw = e.target as ServiceWorker
-          if (sw.state === 'activated')
-            registerPeriodicSync(period, swUrl, r)
-        })
+
+      void checkForUpdate()
+
+      const intervalId = window.setInterval(() => void checkForUpdate(), period)
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible')
+          void checkForUpdate()
       }
+      const handleOnline = () => void checkForUpdate()
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      window.addEventListener('online', handleOnline)
+
+      window.addEventListener('pagehide', () => {
+        window.clearInterval(intervalId)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        window.removeEventListener('online', handleOnline)
+      }, { once: true })
     },
   })
 
@@ -52,26 +80,3 @@ function PWABadge() {
 }
 
 export default PWABadge
-
-/**
- * This function will register a periodic sync check every hour, you can modify the interval as needed.
- */
-function registerPeriodicSync(period: number, swUrl: string, r: ServiceWorkerRegistration) {
-  if (period <= 0) return
-
-  setInterval(async () => {
-    if ('onLine' in navigator && !navigator.onLine)
-      return
-
-    const resp = await fetch(swUrl, {
-      cache: 'no-store',
-      headers: {
-        'cache': 'no-store',
-        'cache-control': 'no-cache',
-      },
-    })
-
-    if (resp?.status === 200)
-      await r.update()
-  }, period)
-}
