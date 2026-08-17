@@ -27,7 +27,7 @@ const STATUS_LABELS: Record<SyncState['status'], string> = {
   idle: 'Sẵn sàng',
   syncing: 'Đang đồng bộ...',
   synced: 'Đã đồng bộ',
-  offline: 'Offline · Lưu cục bộ',
+  offline: 'Ngoại tuyến · Lưu trên máy',
   'auth-required': 'Cần kết nối Google',
   error: 'Cần thử lại',
   conflict: 'Cần chọn dữ liệu',
@@ -139,8 +139,8 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
             <div className="medical-info-item full">
               <div className="medical-item-icon"><ShieldCheck size={15} /></div>
               <div>
-                <span className="medical-item-lbl">Google Drive chưa được cấu hình</span>
-                <span className="medical-item-val">Thêm VITE_GOOGLE_CLIENT_ID vào file .env.local để bật đồng bộ.</span>
+              <span className="medical-item-lbl">Sao lưu Google Drive</span>
+              <span className="medical-item-val">Tính năng sao lưu chưa sẵn sàng trên phiên bản ứng dụng này.</span>
               </div>
             </div>
           </div>
@@ -164,8 +164,8 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
           <div className="medical-info-item full">
             <div className="medical-item-icon"><ShieldCheck size={15} /></div>
             <div>
-              <span className="medical-item-lbl">IndexedDB trên thiết bị + Google Drive</span>
-              <span className="medical-item-val">Dữ liệu được lưu cục bộ trước; Drive giữ bản đồng bộ riêng cho ứng dụng.</span>
+              <span className="medical-item-lbl">Thiết bị này + Google Drive</span>
+              <span className="medical-item-val">Dữ liệu luôn được lưu trên thiết bị trước, sau đó sao lưu riêng lên Drive.</span>
             </div>
           </div>
         </div>
@@ -182,7 +182,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
 
         <div className="medical-allergy-box" style={{ marginTop: 16 }}>
           <div className="allergy-header"><RefreshCw size={14} color="var(--color-sage-dark)" /> Tự động đồng bộ</div>
-          <p className="summary-desc">Khi bật, thay đổi mới sẽ được đẩy lên Drive sau một khoảng ngắn, khi app online và tối đa mỗi 5 phút. Google chỉ yêu cầu cấp quyền lại khi access token hết hạn.</p>
+          <p className="summary-desc">Khi bật, thay đổi mới sẽ được sao lưu khi ứng dụng có mạng. Google có thể yêu cầu kết nối lại sau một thời gian.</p>
           <button
             type="button"
             className={`profile-action-btn ${syncState.autoSyncEnabled ? 'primary' : 'secondary'}`}

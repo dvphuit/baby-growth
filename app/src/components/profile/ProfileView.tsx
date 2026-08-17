@@ -1,6 +1,19 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Calendar, Droplet, Edit3, Ruler, Scale } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bell,
+  CalendarDays,
+  ChevronRight,
+  Droplet,
+  Edit3,
+  HeartPulse,
+  MapPin,
+  Ruler,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useFamily } from '@/hooks/useFamily';
 import { GoogleSyncCard } from './GoogleSyncCard';
@@ -15,82 +28,192 @@ interface ProfileViewProps {
   onShowToast?: (msg: string, icon?: string) => void;
 }
 
-function daysSince(dateStr: string): number | null {
-  const birth = new Date(dateStr);
-  if (!Number.isFinite(birth.getTime())) return null;
+function parseLocalDate(dateStr: string): Date | null {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  const date = new Date(year, month - 1, day);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function getAgeCopy(dateStr: string): { primary: string; secondary: string } | null {
+  const birth = parseLocalDate(dateStr);
+  if (!birth) return null;
+
   const today = new Date();
-  return Math.max(0, Math.floor((today.getTime() - birth.getTime()) / 86_400_000));
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (birth > current) return { primary: 'Sắp chào đời', secondary: 'Cả nhà đang chờ con' };
+
+  let months = (current.getFullYear() - birth.getFullYear()) * 12 + current.getMonth() - birth.getMonth();
+  let anchor = new Date(birth.getFullYear(), birth.getMonth() + months, birth.getDate());
+  if (anchor > current) {
+    months -= 1;
+    anchor = new Date(birth.getFullYear(), birth.getMonth() + months, birth.getDate());
+  }
+
+  const days = Math.max(0, Math.floor((current.getTime() - anchor.getTime()) / 86_400_000));
+  const totalDays = Math.max(0, Math.floor((current.getTime() - birth.getTime()) / 86_400_000));
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  let primary = `${totalDays} ngày tuổi`;
+  if (years > 0) primary = `${years} tuổi${remainingMonths ? ` ${remainingMonths} tháng` : ''}`;
+  else if (months > 0) primary = `${months} tháng${days ? ` ${days} ngày` : ''}`;
+
+  return { primary, secondary: `${totalDays} ngày bên gia đình` };
+}
+
+function displayValue(value?: string, fallback = 'Chưa cập nhật'): string {
+  return value?.trim() || fallback;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onOpenNotifications, onShowToast }) => {
   const navigate = useNavigate();
   const family = useFamily();
   const currentStageData = useBabyStore((state) => state.currentStageData());
-  const latestGrowth = useMemo(() => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null, [currentStageData.growthHistory]);
-  const ageDays = daysSince(family.birthDate);
+  const latestGrowth = useMemo(
+    () => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null,
+    [currentStageData.growthHistory],
+  );
+  const age = getAgeCopy(family.birthDate);
   const zodiac = getZodiacSign(family.birthDate);
+  const birthVitals = [family.birthWeight, family.birthHeight, family.headCircAtBirth].filter(Boolean).join(' · ');
+
+  const growthMetrics = [
+    { key: 'weight', label: 'Cân nặng', value: latestGrowth?.weight, unit: 'kg', Icon: Scale },
+    { key: 'height', label: 'Chiều cao', value: latestGrowth?.height, unit: 'cm', Icon: Ruler },
+    { key: 'head', label: 'Vòng đầu', value: latestGrowth?.headCirc, unit: 'cm', Icon: HeartPulse },
+  ] as const;
 
   return (
     <div className="baby-profile-view-container">
-      <div className="profile-top-bar">
-        <button className="profile-back-btn" onClick={() => navigate('/')} id="btnBackFromProfile"><ArrowLeft size={18} /><span>Trang chủ</span></button>
-        <span className="profile-top-title">Hồ sơ của Bé</span>
-        <button className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop"><Edit3 size={15} /><span>Sửa</span></button>
-      </div>
+      <header className="profile-top-bar">
+        <button className="profile-icon-btn" onClick={() => navigate('/')} aria-label="Về trang chủ" id="btnBackFromProfile">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="profile-top-heading">
+          <span className="profile-top-eyebrow">HỒ SƠ CỦA BÉ</span>
+          <h1>Thông tin của {family.childName || 'Bé'}</h1>
+        </div>
+        <button className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop">
+          <Edit3 size={15} />
+          <span>Sửa</span>
+        </button>
+      </header>
 
-      <section className="profile-hero-card">
-        <div className="profile-hero-content">
-          <div className="profile-avatar-wrapper"><img src={family.childAvatar} alt={family.childName} className="profile-avatar-img" /></div>
-          <div className="profile-hero-meta">
-            <h2 className="profile-hero-nickname">{family.childName}</h2>
-            <p className="profile-hero-fullname">{family.childFullName}</p>
-            {ageDays !== null && <div className="profile-days-badge"><span>{ageDays} ngày tuổi</span></div>}
+      <section className="profile-hero-card" aria-labelledby="profile-child-name">
+        <div className="profile-hero-decoration profile-hero-decoration-one" />
+        <div className="profile-hero-decoration profile-hero-decoration-two" />
+        <div className="profile-avatar-frame">
+          <img src={family.childAvatar} alt={`Ảnh của ${family.childName || 'bé'}`} className="profile-avatar-img" />
+          <span className="profile-avatar-sparkle" aria-hidden="true"><Sparkles size={14} /></span>
+        </div>
+        <div className="profile-hero-copy">
+          <p className="profile-hero-kicker">BÉ YÊU CỦA CẢ NHÀ</p>
+          <h2 id="profile-child-name">{family.childName || 'Bé'}</h2>
+          {family.childFullName && <p className="profile-hero-fullname">{family.childFullName}</p>}
+          <div className="profile-hero-badges">
+            <span>{family.gender === 'boy' ? 'Bé trai' : 'Bé gái'}</span>
+            <span>{zodiac}</span>
           </div>
         </div>
-        <div className="profile-identity-badges-grid">
-          <div className="profile-badge-pill"><span>{family.gender === 'boy' ? 'Bé trai' : 'Bé gái'}</span></div>
-          <div className="profile-badge-pill"><Droplet size={13} /><span>Nhóm máu {family.bloodType || 'chưa cập nhật'}</span></div>
-          <div className="profile-badge-pill"><span>{zodiac}</span></div>
-        </div>
-
+        {age && (
+          <div className="profile-age-panel">
+            <span className="profile-age-label">Tuổi hiện tại</span>
+            <strong>{age.primary}</strong>
+            <span>{age.secondary}</span>
+          </div>
+        )}
       </section>
 
-      <section className="profile-section-block">
-        <div className="section-title-row"><span className="section-main-title">Thông tin cơ bản</span></div>
-        <div className="profile-medical-card">
-          <div className="medical-info-row">
-            <div className="medical-info-item"><Calendar size={15} /><div><span className="medical-item-lbl">Ngày sinh</span><span className="medical-item-val">{formatDateDisplay(family.birthDate)}{family.birthTime ? ` · ${family.birthTime}` : ''}</span></div></div>
-            {family.hospital && <div className="medical-info-item"><div><span className="medical-item-lbl">Nơi sinh</span><span className="medical-item-val">{family.hospital}</span></div></div>}
+      <section className="profile-section-block" aria-labelledby="profile-growth-title">
+        <div className="profile-section-heading">
+          <div>
+            <span className="profile-section-kicker">CẬP NHẬT GẦN NHẤT</span>
+            <h2 id="profile-growth-title">Chỉ số tăng trưởng</h2>
           </div>
-          {(family.birthWeight || family.birthHeight || family.headCircAtBirth) && (
-            <div className="medical-info-row" style={{ marginTop: 12 }}>
-              {family.birthWeight && <div className="medical-info-item"><Scale size={15} /><div><span className="medical-item-lbl">Cân nặng lúc sinh</span><span className="medical-item-val">{family.birthWeight}</span></div></div>}
-              {family.birthHeight && <div className="medical-info-item"><Ruler size={15} /><div><span className="medical-item-lbl">Chiều cao lúc sinh</span><span className="medical-item-val">{family.birthHeight}</span></div></div>}
+          <button type="button" className="profile-text-action" onClick={() => navigate('/growth')}>
+            Xem chi tiết <ChevronRight size={15} />
+          </button>
+        </div>
+
+        <div className={`profile-growth-card ${latestGrowth ? '' : 'is-empty'}`}>
+          <div className="profile-growth-grid">
+            {growthMetrics.map(({ key, label, value, unit, Icon }) => (
+              <div className={`profile-growth-metric ${key}`} key={key}>
+                <span className="profile-growth-icon"><Icon size={17} /></span>
+                <span className="profile-growth-label">{label}</span>
+                <strong>{value ? `${value}` : '—'} <small>{value ? unit : ''}</small></strong>
+              </div>
+            ))}
+          </div>
+          <div className="profile-growth-footer">
+            <span>{latestGrowth ? `Đo ngày ${formatDateDisplay(latestGrowth.date)}` : 'Chưa có số đo nào được ghi nhận'}</span>
+            {!latestGrowth && (
+              <button type="button" onClick={() => navigate('/growth')}>Thêm số đo đầu tiên</button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="profile-section-block" aria-labelledby="profile-info-title">
+        <div className="profile-section-heading">
+          <div>
+            <span className="profile-section-kicker">THÔNG TIN CỦA CON</span>
+            <h2 id="profile-info-title">Hồ sơ cơ bản</h2>
+          </div>
+        </div>
+
+        <div className="profile-info-card">
+          <div className="profile-info-row">
+            <span className="profile-info-icon sage"><CalendarDays size={17} /></span>
+            <div><span>Ngày sinh</span><strong>{displayValue(formatDateDisplay(family.birthDate))}{family.birthTime ? ` · ${family.birthTime}` : ''}</strong></div>
+          </div>
+          <div className="profile-info-row">
+            <span className="profile-info-icon clay"><MapPin size={17} /></span>
+            <div><span>Nơi sinh</span><strong>{displayValue(family.hospital)}</strong></div>
+          </div>
+          <div className="profile-info-row">
+            <span className="profile-info-icon honey"><Scale size={17} /></span>
+            <div><span>Chỉ số lúc chào đời</span><strong>{displayValue(birthVitals)}</strong></div>
+          </div>
+          <div className="profile-info-row">
+            <span className="profile-info-icon rose"><Droplet size={17} /></span>
+            <div><span>Nhóm máu</span><strong>{displayValue(family.bloodType)}</strong></div>
+          </div>
+          <div className="profile-info-row">
+            <span className="profile-info-icon sage"><ShieldCheck size={17} /></span>
+            <div><span>Dị ứng</span><strong>{family.allergies?.length ? family.allergies.join(', ') : 'Chưa ghi nhận dị ứng'}</strong></div>
+          </div>
+          {family.notes && (
+            <div className="profile-note-box">
+              <span>Ghi chú của gia đình</span>
+              <p>{family.notes}</p>
             </div>
           )}
-          {family.allergies && family.allergies.length > 0 && <div style={{ marginTop: 12 }}><span className="medical-item-lbl">Dị ứng đã ghi nhận</span><div className="medical-item-val">{family.allergies.join(', ')}</div></div>}
         </div>
       </section>
 
-      <section className="profile-section-block">
-        <div className="section-title-row"><span className="section-main-title">Số đo gần nhất</span></div>
-        {latestGrowth ? (
-          <div className="profile-vitals-capsule-grid">
-            <div className="profile-vital-capsule-card weight"><Scale size={16} /><div><span className="vital-capsule-label">Cân nặng</span><span className="vital-capsule-value">{latestGrowth.weight} kg</span></div></div>
-            <div className="profile-vital-capsule-card height"><Ruler size={16} /><div><span className="vital-capsule-label">Chiều cao</span><span className="vital-capsule-value">{latestGrowth.height} cm</span></div></div>
-            <div className="profile-vital-capsule-card head"><div><span className="vital-capsule-label">Vòng đầu</span><span className="vital-capsule-value">{latestGrowth.headCirc} cm</span></div></div>
+      <section className="profile-section-block" aria-labelledby="profile-care-title">
+        <div className="profile-section-heading">
+          <div>
+            <span className="profile-section-kicker">CHĂM SÓC HẰNG NGÀY</span>
+            <h2 id="profile-care-title">Nhắc nhở cho gia đình</h2>
           </div>
-        ) : <div className="empty-state"><p>Chưa có số đo được ghi nhận.</p></div>}
+        </div>
+        <button type="button" className="profile-reminder-card" onClick={onOpenNotifications}>
+          <span className="profile-reminder-icon"><Bell size={20} /></span>
+          <span className="profile-reminder-copy">
+            <strong>Lịch nhắc chăm sóc bé</strong>
+            <span>Cữ bú, giấc ngủ, thay tã và lịch hẹn</span>
+          </span>
+          <ChevronRight size={18} />
+        </button>
       </section>
 
-      <section className="profile-section-block">
-        <div className="section-title-row"><span className="section-main-title">Nhắc nhở</span></div>
-        <button type="button" className="log-btn-primary" onClick={onOpenNotifications}><Bell size={15} /> Cài đặt notification & reminder</button>
-      </section>
-
-      <GoogleSyncCard />
+      <GoogleSyncCard onShowToast={onShowToast} />
       <ResetTrackingDataSection onShowToast={onShowToast} />
-      <p style={{ padding: '0 4px 20px', fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>Cung hoàng đạo chỉ là thông tin hồ sơ mang tính giải trí và không được dùng cho đánh giá sức khỏe hay nhắc chăm sóc.</p>
+
+      <p className="profile-zodiac-note">Cung hoàng đạo chỉ mang tính giải trí, không dùng để đánh giá sức khỏe hoặc đưa ra nhắc nhở chăm sóc.</p>
     </div>
   );
 };

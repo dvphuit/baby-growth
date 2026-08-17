@@ -5,10 +5,15 @@ import { NavigationRoute, registerRoute } from 'workbox-routing'
 
 declare let self: ServiceWorkerGlobalScope
 
+const isServiceWorkerUpdate = Boolean(self.registration.active)
+
 self.skipWaiting()
 clientsClaim()
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
+  if (!isServiceWorkerUpdate)
+    return
+
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
     await Promise.all(clients.map(async (client) => {

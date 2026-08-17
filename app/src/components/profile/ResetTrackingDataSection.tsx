@@ -43,7 +43,7 @@ export function ResetTrackingDataSection({ onShowToast }: ResetTrackingDataSecti
   return (
     <section className="profile-section-block profile-reset-section" aria-labelledby="profile-reset-title">
       <div className="section-title-row">
-        <span className="section-main-title" id="profile-reset-title"><AlertTriangle size={16} /> Vùng nguy hiểm</span>
+        <span className="section-main-title" id="profile-reset-title"><AlertTriangle size={16} /> Quản lý dữ liệu</span>
       </div>
       <div className="profile-reset-card">
         <div>
