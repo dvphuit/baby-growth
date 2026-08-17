@@ -114,10 +114,12 @@ let autoSyncStop: (() => void) | null = null;
 let autoSyncStartPromise: Promise<() => void> | null = null;
 let autoSyncTimer: number | null = null;
 let autoSyncDebounceTimer: number | null = null;
-let autoSyncInFlight = false;
+let autoSyncInFlight: Promise<void> | null = null;
 let suppressAutoSync = false;
+let autoSyncSuppressionDepth = 0;
+let autoSyncSuppressionBaseline = false;
 let autoSyncPauseDepth = 0;
-let autoSyncPauseBaseline = false;
+let autoSyncPauseReady: Promise<void> | null = null;
 
 let syncState: SyncState = {
   status: 'idle',
@@ -368,28 +370,59 @@ function publishSyncResult(result: SyncResult): void {
   publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
 }
 
-export async function runWithAutoSyncPaused<T>(operation: () => Promise<T>): Promise<T> {
+function clearPendingAutoSync(): void {
   if (autoSyncDebounceTimer !== null) {
     window.clearTimeout(autoSyncDebounceTimer);
     autoSyncDebounceTimer = null;
   }
-  if (autoSyncPauseDepth === 0) {
-    autoSyncPauseBaseline = suppressAutoSync;
+}
+
+function beginAutoSyncSuppression(): void {
+  if (autoSyncSuppressionDepth === 0) {
+    autoSyncSuppressionBaseline = suppressAutoSync;
     suppressAutoSync = true;
+  }
+  autoSyncSuppressionDepth += 1;
+}
+
+function endAutoSyncSuppression(): void {
+  autoSyncSuppressionDepth -= 1;
+  if (autoSyncSuppressionDepth === 0) {
+    suppressAutoSync = autoSyncSuppressionBaseline;
+  }
+}
+
+async function runWithAutoSyncSuppressed<T>(operation: () => Promise<T>): Promise<T> {
+  clearPendingAutoSync();
+  beginAutoSyncSuppression();
+  try {
+    return await operation();
+  } finally {
+    endAutoSyncSuppression();
+  }
+}
+
+export async function runWithAutoSyncPaused<T>(operation: () => Promise<T>): Promise<T> {
+  clearPendingAutoSync();
+  beginAutoSyncSuppression();
+  if (autoSyncPauseDepth === 0) {
+    autoSyncPauseReady = autoSyncInFlight ?? Promise.resolve();
   }
   autoSyncPauseDepth += 1;
   try {
+    await autoSyncPauseReady;
     return await operation();
   } finally {
     autoSyncPauseDepth -= 1;
     if (autoSyncPauseDepth === 0) {
-      suppressAutoSync = autoSyncPauseBaseline;
+      autoSyncPauseReady = null;
     }
+    endAutoSyncSuppression();
   }
 }
 
 export async function applyRemoteSnapshot(snapshot: SyncSnapshot): Promise<void> {
-  await runWithAutoSyncPaused(async () => {
+  await runWithAutoSyncSuppressed(async () => {
     await Promise.all(SYNC_KEYS.map(async (key) => {
       const value = snapshot.records[key];
       // Older schema-1 backups do not know v3 keys. Missing keys must not erase newer local data.
@@ -559,6 +592,7 @@ export async function setAutoSyncEnabled(enabled: boolean): Promise<void> {
 }
 
 function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
+  if (suppressAutoSync) return;
   if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
   autoSyncDebounceTimer = window.setTimeout(() => {
     autoSyncDebounceTimer = null;
@@ -566,23 +600,26 @@ function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
   }, delay);
 }
 
-async function runAutoSync(): Promise<void> {
-  if (autoSyncInFlight || suppressAutoSync || !navigator.onLine) return;
-  const meta = await readMeta();
-  if (!meta.autoSyncEnabled) return;
-  if (!isGoogleConnected()) {
-    publishSyncState({ status: 'auth-required', autoSyncEnabled: true, error: 'Bấm kết nối Google để bật lại auto-sync.' });
-    return;
-  }
-
-  autoSyncInFlight = true;
-  try {
-    await syncWithGoogleDrive({ interactive: false });
-  } catch {
-    // State contains the user-facing error; local writes continue normally.
-  } finally {
-    autoSyncInFlight = false;
-  }
+function runAutoSync(): Promise<void> {
+  if (autoSyncInFlight || suppressAutoSync || !navigator.onLine) return Promise.resolve();
+  const operation = (async () => {
+    try {
+      const meta = await readMeta();
+      if (!meta.autoSyncEnabled) return;
+      if (!isGoogleConnected()) {
+        publishSyncState({ status: 'auth-required', autoSyncEnabled: true, error: 'Bấm kết nối Google để bật lại auto-sync.' });
+        return;
+      }
+      await syncWithGoogleDrive({ interactive: false });
+    } catch {
+      // State contains the user-facing error; local writes continue normally.
+    }
+  })();
+  autoSyncInFlight = operation;
+  void operation.then(() => {
+    if (autoSyncInFlight === operation) autoSyncInFlight = null;
+  });
+  return operation;
 }
 
 export async function startAutoSync(): Promise<() => void> {

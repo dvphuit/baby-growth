@@ -18,6 +18,12 @@ function deferred<T = void>(): { promise: Promise<T>; resolve: (value: T) => voi
   return { promise, resolve };
 }
 
+async function flushMicrotasks(): Promise<void> {
+  for (let index = 0; index < 10; index += 1) {
+    await Promise.resolve();
+  }
+}
+
 function jsonResponse(value: unknown): Response {
   return {
     ok: true,
@@ -157,6 +163,94 @@ describe('explicit Google Drive reset operations', () => {
 
     second.resolve();
     await secondPause;
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(fetchMock).toHaveBeenCalled();
+    stopAutoSync();
+  });
+
+  it('waits for an active auto-sync before starting a paused operation, then resumes scheduling', async () => {
+    vi.useFakeTimers();
+    localDb.getLocalRecord.mockResolvedValue(JSON.stringify({ autoSyncEnabled: true }));
+    const activeUpload = deferred<Response>();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockImplementationOnce(() => activeUpload.promise)
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockResolvedValueOnce(jsonResponse({ id: 'remote-next', name: 'babygrowth-sync.json' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+    const stopAutoSync = await sync.startAutoSync();
+
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    await flushMicrotasks();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    let pausedOperationStarted = false;
+    const pausedOperation = sync.runWithAutoSyncPaused(async () => {
+      pausedOperationStarted = true;
+    });
+    await flushMicrotasks();
+    expect(pausedOperationStarted).toBe(false);
+
+    activeUpload.resolve(jsonResponse({ id: 'remote-active', name: 'babygrowth-sync.json' }));
+    await pausedOperation;
+    expect(pausedOperationStarted).toBe(true);
+
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    stopAutoSync();
+  });
+
+  it('applies a downloaded snapshot during auto-sync without waiting on itself', async () => {
+    vi.useFakeTimers();
+    const sync = await import('./googleDriveSync');
+    const localRecords = { babygrowth_v2_baby: '{"state":"local"}' };
+    const localSnapshot = sync.createSyncSnapshot(localRecords);
+    const remoteSnapshot = sync.createSyncSnapshot({ babygrowth_v2_baby: '{"state":"remote"}' });
+    localDb.getAllLocalRecords.mockResolvedValue(localRecords);
+    localDb.getLocalRecord.mockResolvedValue(JSON.stringify({
+      autoSyncEnabled: true,
+      lastSyncedFingerprint: localSnapshot.fingerprint,
+    }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'remote-1', name: 'babygrowth-sync.json' }] }))
+      .mockResolvedValueOnce(jsonResponse(remoteSnapshot));
+    vi.stubGlobal('fetch', fetchMock);
+    await sync.requestGoogleAccessToken();
+    const stopAutoSync = await sync.startAutoSync();
+
+    localRecordListener?.('babygrowth_v2_baby');
+    await vi.advanceTimersByTimeAsync(1200);
+    await flushMicrotasks();
+
+    expect(localDb.setLocalRecord).toHaveBeenCalledWith('babygrowth_v2_baby', '{"state":"remote"}');
+    stopAutoSync();
+  });
+
+  it('drops schedule requests raised during a pause, then accepts new schedules afterward', async () => {
+    vi.useFakeTimers();
+    localDb.getLocalRecord.mockResolvedValue(JSON.stringify({ autoSyncEnabled: true }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockResolvedValueOnce(jsonResponse({ id: 'remote-new', name: 'babygrowth-sync.json' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+    const stopAutoSync = await sync.startAutoSync();
+    const pausedWork = deferred();
+
+    const pausedOperation = sync.runWithAutoSyncPaused(() => pausedWork.promise);
+    window.dispatchEvent(new Event('online'));
+    await vi.advanceTimersByTimeAsync(400);
+    pausedWork.resolve();
+    await pausedOperation;
+    await vi.advanceTimersByTimeAsync(100);
+    expect(fetchMock).not.toHaveBeenCalled();
+
     localRecordListener?.('babygrowth_v2_baby');
     await vi.advanceTimersByTimeAsync(1200);
     expect(fetchMock).toHaveBeenCalled();
