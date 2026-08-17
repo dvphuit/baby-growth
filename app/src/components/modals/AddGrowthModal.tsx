@@ -52,6 +52,11 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
   const [headCirc, setHeadCirc] = useState<number>(initialHeadCirc);
   const [note, setNote] = useState<string>('');
 
+  const whoChart = currentStageData.growthChart;
+  const currentP50Weight = whoChart?.weight?.whoP50?.[milestoneIdx] ?? 8.6;
+  const currentP50Height = whoChart?.height?.whoP50?.[milestoneIdx] ?? 70.6;
+  const currentP50Head = whoChart?.headCirc?.whoP50?.[milestoneIdx] ?? 44.1;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (weight <= 0 && height <= 0) {
@@ -64,10 +69,10 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
       height,
       headCirc,
       date,
-      note: note || 'Bé phát triển khỏe mạnh theo chuẩn WHO.',
+      note: note.trim() || undefined,
     });
 
-    onSuccessToast(`Đã lưu số đo: ${weight}kg • ${height}cm 📏`);
+    onSuccessToast(`Đã lưu số đo: ${weight > 0 ? `${weight}kg` : ''} ${height > 0 ? `• ${height}cm` : ''} 📏`);
     onClose();
   };
 
@@ -126,7 +131,7 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
               <Scale size={12} /> Cân nặng (kg):
             </label>
             <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: 8.6 kg
+              WHO P50: {currentP50Weight} kg
             </span>
           </div>
           <div className="growth-stepper-control">
@@ -174,7 +179,7 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
               <Ruler size={12} /> Chiều cao (cm):
             </label>
             <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: 70.6 cm
+              WHO P50: {currentP50Height} cm
             </span>
           </div>
           <div className="growth-stepper-control">
@@ -222,7 +227,7 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
               <CircleDot size={12} /> Vòng đầu (cm):
             </label>
             <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: 44.1 cm
+              WHO P50: {currentP50Head} cm
             </span>
           </div>
           <div className="growth-stepper-control">
@@ -256,29 +261,30 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
           </div>
         </div>
 
-        {/* Live AI WHO Percentile Feedback Preview */}
+        {/* Dynamic WHO Reference Preview */}
         <div className="growth-ai-assessment-box" id="growthLiveAiFeedback">
           <span className="growth-ai-icon" style={{ color: 'var(--color-sage-dark)' }}>
             <Sparkles size={18} />
           </span>
           <div className="growth-ai-text">
-            <strong>Đánh giá nhanh WHO:</strong> Với cân nặng <strong>{weight} kg</strong> và
-            chiều cao <strong>{height} cm</strong>, Bé Bơ nằm trong ngưỡng{' '}
-            <strong>P50 - P65</strong> chuẩn quốc tế. Tăng trưởng thể chất tối ưu! ✨
+            <strong>Mốc tham chiếu WHO ({labels[milestoneIdx]}):</strong> Cân nặng chuẩn P50:{' '}
+            <strong>{currentP50Weight} kg</strong> • Chiều cao chuẩn P50:{' '}
+            <strong>{currentP50Height} cm</strong> • Vòng đầu:{' '}
+            <strong>{currentP50Head} cm</strong>.
           </div>
         </div>
 
         {/* Notes */}
         <div className="log-form-group">
           <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <FileText size={12} /> Ghi chú sức khỏe / Lời dặn Bác sĩ:
+            <FileText size={12} /> Ghi chú sức khỏe / Bác sĩ dặn:
           </label>
           <input
             type="text"
             className="log-input-control"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Vd: Bé ăn dặm tốt, bú mẹ 780ml/ngày, lẫy thành thạo..."
+            placeholder="Vd: Bé ăn dặm tốt, bú mẹ đủ cữ, lẫy thành thạo..."
           />
         </div>
 

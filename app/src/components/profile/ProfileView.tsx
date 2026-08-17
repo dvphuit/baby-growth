@@ -47,10 +47,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
           </div>
         </div>
         <div className="profile-identity-badges-grid">
-          <div className="profile-badge-pill"><span>{family.gender === 'boy' ? '👦 Bé trai' : '👧 Bé gái'}</span></div>
+          <div className="profile-badge-pill"><span>{family.gender === 'boy' ? 'Bé trai' : 'Bé gái'}</span></div>
           <div className="profile-badge-pill"><Droplet size={13} /><span>Nhóm máu {family.bloodType || 'chưa cập nhật'}</span></div>
-          <div className="profile-badge-pill"><span>🌟 {zodiac}</span></div>
+          <div className="profile-badge-pill"><span>{zodiac}</span></div>
         </div>
+
       </section>
 
       <section className="profile-section-block">
@@ -86,13 +87,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
         <button type="button" className="log-btn-primary" onClick={onOpenNotifications}><Bell size={15} /> Cài đặt notification & reminder</button>
       </section>
 
-      <section className="profile-section-block">
-        <div className="section-title-row"><span className="section-main-title">Gia đình</span></div>
-        <div className="profile-medical-card"><div className="medical-info-row"><div className="medical-info-item"><div><span className="medical-item-lbl">Mẹ</span><span className="medical-item-val">{family.momName}</span></div></div><div className="medical-info-item"><div><span className="medical-item-lbl">Ba</span><span className="medical-item-val">{family.dadName}</span></div></div></div></div>
-      </section>
-
       <GoogleSyncCard />
       <p style={{ padding: '0 4px 20px', fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>Cung hoàng đạo chỉ là thông tin hồ sơ mang tính giải trí và không được dùng cho đánh giá sức khỏe hay nhắc chăm sóc.</p>
     </div>
   );
 };
+

@@ -24,8 +24,9 @@ describe('BabyTodayTracker', () => {
     expect(screen.getByText('6 lần trong ngày')).toBeInTheDocument();
     expect(screen.getByText('36.8°C')).toBeInTheDocument();
     expect(screen.getByText('Đang vui vẻ')).toBeInTheDocument();
-    expect(screen.getByText('😊')).toBeInTheDocument();
+    expect(screen.getByText('Vui vẻ')).toBeInTheDocument();
     expect(screen.getByText('92')).toBeInTheDocument();
+
 
     const actionNames = [
       'Thêm ghi chép hôm nay',

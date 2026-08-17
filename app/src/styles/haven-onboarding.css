@@ -1,0 +1,255 @@
+/* Haven first-time setup / onboarding stylesheet */
+
+.haven-onboarding-container {
+  min-height: 100vh;
+  padding: 24px 16px 40px;
+  background: var(--color-canvas, #FAF8F5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.haven-onboarding-card {
+  width: 100%;
+  max-width: 520px;
+  background: #FFFFFF;
+  border-radius: 28px;
+  padding: 28px 22px;
+  box-shadow: 0 16px 36px rgba(51, 37, 31, 0.08);
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+}
+
+.haven-onboarding-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.haven-onboarding-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: var(--color-sage-light, #E5ECD9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 14px rgba(75, 102, 55, 0.12);
+}
+
+.haven-onboarding-header h2 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-primary, #2D231E);
+  line-height: 1.25;
+  margin: 6px 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.haven-onboarding-header p {
+  font-size: 13.5px;
+  color: var(--color-text-secondary, #82776E);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.haven-onboarding-form {
+  display: grid;
+  gap: 20px;
+}
+
+.haven-onboarding-section {
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+  border-radius: 20px;
+  padding: 16px 14px 14px;
+  background: var(--color-card-warm, #F6F3ED);
+  margin: 0;
+}
+
+.haven-section-legend {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-sage-dark, #4b6637);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.04);
+}
+
+.haven-field-group {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.haven-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.haven-field-row.three-cols {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.haven-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary, #2D231E);
+}
+
+.haven-label .required-star {
+  color: #E07A5F;
+  font-size: 13px;
+}
+
+.haven-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text-primary, #2D231E);
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.haven-input:focus {
+  outline: none;
+  border-color: var(--color-sage-dark, #4b6637);
+  box-shadow: 0 0 0 3px rgba(75, 102, 55, 0.12);
+}
+
+.haven-input-icon-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.haven-input-icon-box svg {
+  position: absolute;
+  left: 10px;
+  color: var(--color-text-muted, #B2A89F);
+  pointer-events: none;
+}
+
+.haven-input-icon-box .haven-input {
+  padding-left: 32px;
+}
+
+.haven-gender-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #FFFFFF;
+  padding: 3px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+}
+
+.haven-gender-btn {
+  padding: 7px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #82776E);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.haven-gender-btn.active {
+  background: var(--color-sage-light, #E5ECD9);
+  color: var(--color-sage-dark, #4b6637);
+  box-shadow: 0 2px 6px rgba(75, 102, 55, 0.12);
+}
+
+.haven-avatar-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-subtle, #ECE6DD);
+}
+
+.haven-avatar-preview-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-sage-light, #E5ECD9);
+}
+
+.haven-avatar-note {
+  display: grid;
+  gap: 2px;
+}
+
+.haven-avatar-note strong {
+  font-size: 13px;
+  color: var(--color-text-primary, #2D231E);
+}
+
+.haven-avatar-note span {
+  font-size: 11px;
+  color: var(--color-text-muted, #B2A89F);
+}
+
+.haven-form-error {
+  padding: 10px 14px;
+  background: #FDF0E9;
+  border: 1px solid #F5C7B3;
+  border-radius: 12px;
+  color: #B42318;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.haven-onboarding-submit-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: linear-gradient(140deg, #4b6637 0%, #344a25 100%);
+  border: none;
+  border-radius: 9999px;
+  box-shadow: 0 10px 22px rgba(52, 74, 37, 0.28);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 6px;
+}
+
+.haven-onboarding-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(52, 74, 37, 0.35);
+}
+
+.haven-onboarding-submit-btn:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+  .haven-onboarding-card {
+    padding: 20px 16px;
+    border-radius: 22px;
+  }
+  .haven-field-row.three-cols {
+    grid-template-columns: 1fr;
+  }
+}

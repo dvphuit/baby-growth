@@ -1,0 +1,676 @@
+/* Haven growth implementation: forest sage hero, responsive WHO growth chart, vital delta cards, interactive milestone roadmap, and measurement history. */
+
+.haven-growth {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+/* ==========================================================================
+   1. Growth Hero Banner
+   ========================================================================== */
+.haven-growth-hero {
+  position: relative;
+  min-height: 216px;
+  overflow: hidden;
+  padding: 22px 18px 18px;
+  color: #ffffff;
+  border-radius: 26px;
+  background: linear-gradient(140deg, #4b6637 0%, #344a25 100%);
+  box-shadow: 0 14px 28px rgba(52, 74, 37, 0.22);
+}
+
+.haven-growth-hero::before {
+  content: '';
+  position: absolute;
+  right: -52px;
+  top: -46px;
+  width: 176px;
+  height: 176px;
+  border: 22px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.haven-growth-hero::after {
+  content: '';
+  position: absolute;
+  right: 124px;
+  bottom: -46px;
+  width: 76px;
+  height: 76px;
+  border: 14px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.haven-growth-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 220px;
+}
+
+.haven-growth-hero .haven-eyebrow {
+  display: block;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+}
+
+.haven-growth-hero h2 {
+  margin: 7px 0 6px;
+  color: #ffffff;
+  font-family: var(--font-family-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.haven-growth-hero p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.haven-growth-orbit {
+  position: absolute;
+  z-index: 1;
+  right: 16px;
+  top: 44px;
+  display: grid;
+  place-items: center;
+  width: 94px;
+  height: 94px;
+  text-align: center;
+  border: 7px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.haven-growth-orbit strong {
+  font-family: var(--font-family-display);
+  font-size: 17px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.04em;
+}
+
+.haven-growth-orbit span {
+  margin-top: -24px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.haven-growth-add {
+  position: absolute;
+  z-index: 2;
+  left: 18px;
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 14px;
+  color: var(--color-primary-dark);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  font-family: var(--font-family-body);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 6px 14px rgba(52, 74, 37, 0.16);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.haven-growth-add:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   2. Growth Vitals Cards
+   ========================================================================== */
+.haven-growth-vitals-sheet {
+  padding: 17px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.haven-growth-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.haven-vital-card {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  padding: 11px 9px;
+  border-radius: 18px;
+  background: var(--color-card-warm);
+  border: 1px solid rgba(51, 37, 31, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.haven-vital-card.weight-card {
+  background: #edf4e3;
+}
+
+.haven-vital-card.height-card {
+  background: #fff3d4;
+}
+
+.haven-vital-card.head-card {
+  background: #f4e8e1;
+}
+
+.haven-vital-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.haven-vital-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--color-primary-dark);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.haven-vital-delta-badge {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-sage-dark);
+  white-space: nowrap;
+}
+
+.haven-vital-label {
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.haven-vital-value {
+  margin-top: 2px;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.haven-vital-ref {
+  margin-top: auto;
+  padding-top: 5px;
+  color: var(--color-text-muted);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   3. WHO Growth Chart Sheet
+   ========================================================================== */
+.haven-growth-chart-sheet {
+  padding: 17px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.haven-chart-metric-pills {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  background: var(--color-card-warm);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+}
+
+.haven-metric-pill-btn {
+  flex: 1;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-body);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.haven-metric-pill-btn.active {
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  box-shadow: 0 2px 8px rgba(51, 37, 31, 0.08);
+}
+
+.haven-chart-canvas-box {
+  height: 250px;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.haven-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 10px;
+  background: var(--color-canvas);
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.haven-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.haven-legend-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.haven-legend-indicator.child {
+  background: var(--color-primary-dark);
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px var(--color-primary-dark);
+}
+
+.haven-legend-indicator.p50 {
+  background: var(--color-sage);
+  border-radius: 2px;
+  height: 3px;
+  width: 12px;
+}
+
+.haven-legend-indicator.band {
+  background: rgba(245, 184, 66, 0.35);
+  border-radius: 2px;
+  height: 6px;
+  width: 14px;
+}
+
+.haven-chart-info-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f1f5eb;
+  border: 1px solid #dfe9d5;
+  border-radius: 16px;
+  font-size: 10px;
+  color: var(--color-primary-brown);
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.haven-chart-info-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ==========================================================================
+   4. Milestone Roadmap Sheet
+   ========================================================================== */
+.haven-milestones-sheet {
+  padding: 17px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.haven-milestones-list {
+  display: grid;
+  gap: 10px;
+}
+
+.haven-milestone-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 18px;
+  background: var(--color-canvas);
+  transition: all var(--transition-fast);
+}
+
+.haven-milestone-card.completed {
+  background: #f3f7ed;
+  border-color: #dce7ce;
+}
+
+.haven-milestone-card.in-progress {
+  background: #fcf8ee;
+  border-color: #f7e8be;
+}
+
+.haven-milestone-icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 17px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.05);
+}
+
+.haven-milestone-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.haven-milestone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.haven-milestone-title {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.haven-milestone-toggle-btn {
+  border: 0;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 8.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.haven-milestone-toggle-btn.achieved {
+  background: var(--color-sage-light);
+  color: var(--color-sage-dark);
+}
+
+.haven-milestone-toggle-btn.progress {
+  background: #feeed2;
+  color: #b5790e;
+}
+
+.haven-milestone-toggle-btn.upcoming {
+  background: var(--color-card-warm);
+  color: var(--color-text-muted);
+}
+
+.haven-milestone-window {
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.haven-milestone-achieved-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--color-sage-dark);
+  margin-bottom: 4px;
+}
+
+.haven-milestone-desc {
+  margin: 0;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   5. Measurement History Sheet
+   ========================================================================== */
+.haven-growth-history-sheet {
+  padding: 17px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.haven-growth-history-list {
+  display: grid;
+  gap: 9px;
+}
+
+.haven-growth-history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 13px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 17px;
+  background: var(--color-canvas);
+  transition: border-color var(--transition-fast);
+}
+
+.haven-growth-history-row:hover {
+  border-color: var(--color-border-hover);
+}
+
+.haven-growth-history-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.haven-growth-history-age {
+  font-family: var(--font-family-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.haven-growth-history-date-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.haven-growth-history-date {
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.haven-growth-delete-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.haven-growth-delete-btn:hover {
+  color: #e63946;
+  border-color: #f7c5c8;
+  background: #fdf2f2;
+}
+
+.haven-growth-history-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.haven-growth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  background: #ffffff;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+}
+
+.haven-growth-chip-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.haven-growth-history-note {
+  margin: 0;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  padding-left: 2px;
+}
+
+/* ==========================================================================
+   6. Mobile Responsive Adjustments
+   ========================================================================== */
+@media (max-width: 360px) {
+  .haven-growth-hero h2 {
+    font-size: 25px;
+  }
+  .haven-growth-orbit {
+    right: 12px;
+    width: 86px;
+    height: 86px;
+  }
+  .haven-growth-vitals-sheet,
+  .haven-growth-chart-sheet,
+  .haven-milestones-sheet,
+  .haven-growth-history-sheet {
+    padding: 14px;
+  }
+  .haven-chart-canvas-box {
+    height: 220px;
+  }
+  .haven-vital-card {
+    padding: 9px 6px;
+  }
+  .haven-vital-value {
+    font-size: 14px;
+  }
+}
+
+/* ==========================================================================
+   Haven Custom Vector Icon Badge Styles
+   ========================================================================== */
+.haven-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.haven-badge-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+}
+
+.haven-badge-md {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+}
+
+.haven-badge-lg {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+}
+
+.haven-badge-sage {
+  background: var(--color-sage-light, #E5ECD9);
+  color: var(--color-sage-dark, #4b6637);
+  box-shadow: 0 4px 10px rgba(75, 102, 55, 0.08);
+}
+
+.haven-badge-rose {
+  background: var(--color-mom-rose-light, #F9ECEE);
+  color: var(--color-mom-rose, #C86D7C);
+  box-shadow: 0 4px 10px rgba(200, 109, 124, 0.08);
+}
+
+.haven-badge-amber {
+  background: var(--color-happy-bg, #FEF7E9);
+  color: var(--color-happy, #F5B842);
+  box-shadow: 0 4px 10px rgba(245, 184, 66, 0.08);
+}
+
+.haven-badge-lavender {
+  background: var(--color-depressed-bg, #F3EFFD);
+  color: var(--color-depressed, #9477ED);
+  box-shadow: 0 4px 10px rgba(148, 119, 237, 0.08);
+}
+
+.haven-badge-clay {
+  background: var(--color-neutral-bg, #F5EEE9);
+  color: var(--color-neutral, #83583E);
+  box-shadow: 0 4px 10px rgba(131, 88, 62, 0.08);
+}
+
+.haven-badge-meadow {
+  background: var(--color-overjoyed-bg, #EEF7E6);
+  color: var(--color-overjoyed, #7EAF50);
+  box-shadow: 0 4px 10px rgba(126, 175, 80, 0.08);
+}
+
+.haven-badge-blue {
+  background: #EDF3FD;
+  color: #5B8DEF;
+  box-shadow: 0 4px 10px rgba(91, 141, 239, 0.08);
+}
+

@@ -1,19 +1,20 @@
 import { useState } from 'react';
+import { Frown, Meh, Smile, Sparkles } from 'lucide-react';
 
 interface MoodItem {
   id: string;
-  emoji: string;
+  icon: React.ReactNode;
   label: string;
   color: string;
   bgColor: string;
 }
 
 const MOODS: MoodItem[] = [
-  { id: 'depressed', emoji: '😭', label: 'Quấy khóc', color: 'var(--color-depressed)', bgColor: 'var(--color-depressed-bg)' },
-  { id: 'sad', emoji: '🙁', label: 'Mệt mỏi', color: 'var(--color-sad)', bgColor: 'var(--color-sad-bg)' },
-  { id: 'neutral', emoji: '😐', label: 'Bình thường', color: 'var(--color-neutral)', bgColor: 'var(--color-neutral-bg)' },
-  { id: 'happy', emoji: '😊', label: 'Vui vẻ', color: 'var(--color-happy)', bgColor: 'var(--color-happy-bg)' },
-  { id: 'overjoyed', emoji: '🤩', label: 'Hào hứng', color: 'var(--color-overjoyed)', bgColor: 'var(--color-overjoyed-bg)' },
+  { id: 'depressed', icon: <Frown size={20} />, label: 'Quấy khóc', color: 'var(--color-depressed)', bgColor: 'var(--color-depressed-bg)' },
+  { id: 'sad', icon: <Meh size={20} />, label: 'Mệt mỏi', color: 'var(--color-sad)', bgColor: 'var(--color-sad-bg)' },
+  { id: 'neutral', icon: <Smile size={20} />, label: 'Bình thường', color: 'var(--color-neutral)', bgColor: 'var(--color-neutral-bg)' },
+  { id: 'happy', icon: <Smile size={20} />, label: 'Vui vẻ', color: '#B5790E', bgColor: 'var(--color-happy-bg)' },
+  { id: 'overjoyed', icon: <Sparkles size={20} />, label: 'Hào hứng', color: 'var(--color-overjoyed)', bgColor: 'var(--color-overjoyed-bg)' },
 ];
 
 export const MoodSlider: React.FC = () => {
@@ -29,7 +30,7 @@ export const MoodSlider: React.FC = () => {
           className="mood-current-badge"
           style={{ backgroundColor: currentMoodObj.bgColor, color: currentMoodObj.color }}
         >
-          {currentMoodObj.emoji} {currentMoodObj.label}
+          {currentMoodObj.label}
         </span>
       </div>
 
@@ -44,9 +45,10 @@ export const MoodSlider: React.FC = () => {
               style={{
                 borderColor: isSelected ? 'var(--color-primary-dark)' : 'transparent',
                 backgroundColor: isSelected ? m.bgColor : '#FFFFFF',
+                color: isSelected ? m.color : 'var(--color-text-secondary)',
               }}
             >
-              <span className="mood-emoji-char">{m.emoji}</span>
+              <span className="mood-emoji-char">{m.icon}</span>
               <span className="mood-emoji-label">{m.label}</span>
             </button>
           );
@@ -55,3 +57,4 @@ export const MoodSlider: React.FC = () => {
     </div>
   );
 };
+

@@ -56,8 +56,19 @@ vi.mock('@/components/common/PWAInstallPrompt', () => ({ PWAInstallPrompt: () =>
 vi.mock('@/components/common/AppVersionBadge', () => ({ AppVersionBadge: () => <div>Version marker</div> }));
 vi.mock('./PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
 
+import { useBabyStore } from './store/useBabyStore';
+
 describe('AppContent', () => {
-  it('composes the shell and mounts sync/reminder lifecycles', () => {
+  it('renders onboarding view when baby profile is not initialized', () => {
+    useBabyStore.getState().resetToDefaults();
+    render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
+
+    expect(screen.getByRole('heading', { name: /Bắt đầu hành trình/i })).toBeInTheDocument();
+    expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
+  });
+
+  it('composes the shell and mounts sync/reminder lifecycles when initialized', () => {
+    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
     render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
 
     expect(screen.getByText('Header marker')).toBeInTheDocument();
@@ -72,9 +83,11 @@ describe('AppContent', () => {
     expect(useReminderLifecycleMock).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the main header on the profile route', () => {
+  it('hides the main header on the profile route when initialized', () => {
+    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
     render(<MemoryRouter initialEntries={['/profile']}><AppContent /></MemoryRouter>);
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
     expect(screen.getByText('App Routes marker')).toBeInTheDocument();
   });
 });
+

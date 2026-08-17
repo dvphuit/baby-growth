@@ -9,10 +9,20 @@ const localRecordChangeListeners = new Set<LocalRecordChangeListener>();
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
+const memoryFallback = new Map<string, string>();
+
+function hasIndexedDb(): boolean {
+  return typeof indexedDB !== 'undefined';
+}
+
 function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
 
   dbPromise = new Promise((resolve, reject) => {
+    if (!hasIndexedDb()) {
+      reject(new Error('IndexedDB is not available'));
+      return;
+    }
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -28,6 +38,9 @@ function openDb(): Promise<IDBDatabase> {
 }
 
 async function readValue(key: string): Promise<string | null> {
+  if (!hasIndexedDb()) {
+    return memoryFallback.get(key) ?? (typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem(key) : null);
+  }
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const request = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(key);
@@ -37,6 +50,13 @@ async function readValue(key: string): Promise<string | null> {
 }
 
 async function writeValue(key: string, value: string): Promise<void> {
+  if (!hasIndexedDb()) {
+    memoryFallback.set(key, value);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+    return;
+  }
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(value, key);
@@ -46,6 +66,13 @@ async function writeValue(key: string, value: string): Promise<void> {
 }
 
 async function removeValue(key: string): Promise<void> {
+  if (!hasIndexedDb()) {
+    memoryFallback.delete(key);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
+    return;
+  }
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(key);
@@ -53,6 +80,7 @@ async function removeValue(key: string): Promise<void> {
     request.onerror = () => reject(request.error ?? new Error('Không thể xóa IndexedDB'));
   });
 }
+
 
 /**
  * Zustand storage backed by IndexedDB. Existing localStorage snapshots are

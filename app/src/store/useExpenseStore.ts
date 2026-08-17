@@ -3,6 +3,8 @@ import type { ExpenseRecord } from '@/types/expense';
 
 interface ExpenseStoreState {
   expenses: ExpenseRecord[];
+  monthlyBudget: number;
+  setMonthlyBudget: (budget: number) => void;
   addExpense: (input: Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>) => ExpenseRecord;
   updateExpense: (id: string, patch: Partial<Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>>) => void;
   deleteExpense: (id: string) => void;
@@ -14,6 +16,8 @@ interface ExpenseStoreState {
 export function useExpenseStore<T>(selector: (state: ExpenseStoreState) => T): T {
   return useBabyStore((state) => selector({
     expenses: state.expenseRecords ?? [],
+    monthlyBudget: state.monthlyExpenseBudget ?? 5_000_000,
+    setMonthlyBudget: state.setMonthlyExpenseBudget,
     addExpense: state.addExpenseRecord,
     updateExpense: state.updateExpenseRecord,
     deleteExpense: state.deleteExpenseRecord,

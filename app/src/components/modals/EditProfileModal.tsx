@@ -26,21 +26,18 @@ interface EditProfileModalProps {
 const PRESET_AVATARS = [
   {
     label: 'Bé Bơ',
-    url: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=200&auto=format&fit=crop&q=80',
+    url: '/assets/avatars/baby_avatar.jpg',
   },
   {
-    label: 'Bé Gấu',
-    url: 'https://images.unsplash.com/photo-1544126592-807ade215a0b?w=200&auto=format&fit=crop&q=80',
+    label: 'Mẹ Thảo',
+    url: '/assets/avatars/mom_avatar.jpg',
   },
   {
-    label: 'Bé Miu',
-    url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    label: 'Bé Thỏ',
-    url: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=200&auto=format&fit=crop&q=80',
+    label: 'Bố Tuấn',
+    url: '/assets/avatars/dad_avatar.jpg',
   },
 ];
+
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   isOpen,
@@ -83,8 +80,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateFamilyData({
-      childName: childName.trim() || 'Bé Bơ',
-      childFullName: childFullName.trim() || 'Nguyễn Minh Khang',
+
+      childName: childName.trim() || family.childName || 'Bé',
+
+      childFullName: childFullName.trim(),
       birthDate,
       birthTime,
       gender,
@@ -99,9 +98,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     onClose();
     if (onSuccessToast) {
-      onSuccessToast(`Đã cập nhật thông tin cho ${childName || 'Bé'} thành công! ✨`, '👶');
+      onSuccessToast(`Đã cập nhật thông tin cho ${childName || 'Bé'} thành công!`);
     }
   };
+
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Chỉnh sửa Hồ sơ Bé">

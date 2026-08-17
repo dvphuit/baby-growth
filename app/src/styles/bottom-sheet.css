@@ -1,3 +1,7 @@
+/* ==========================================================================
+   MATERIAL MOTION 3 (M3) BOTTOM SHEET & GESTURES
+   ========================================================================== */
+
 .bottom-sheet {
   background: #FFFFFF;
   border-radius: 28px 28px 0 0;
@@ -8,17 +12,41 @@
   max-width: 520px;
   margin: 0 auto;
   overflow-y: auto;
-  box-shadow: var(--shadow-modal);
-  transform: translateY(100%);
-  transition: transform var(--transition-smooth);
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -12px 48px rgba(32, 26, 23, 0.26);
+  transform: translate3d(0, 100%, 0);
+  will-change: transform;
+  touch-action: pan-y;
+}
+
+.bottom-sheet.is-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sheet-drag-handle-area {
+  width: 100%;
+  padding-bottom: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .sheet-handle-bar {
-  width: 36px;
-  height: 4px;
-  background: var(--color-border-subtle);
-  border-radius: var(--radius-pill);
+  width: 42px;
+  height: 5px;
+  background: var(--color-border-subtle, #E8DDD5);
+  border-radius: var(--radius-pill, 9999px);
   margin: 0 auto 12px auto;
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1.0), background-color 0.2s ease;
+}
+
+.sheet-handle-bar:hover {
+  background: var(--color-border-hover, #D7CCC0);
+  transform: scaleX(1.15);
 }
 
 .sheet-header-row {
@@ -27,27 +55,39 @@
   justify-content: space-between;
   margin-bottom: 12px;
   white-space: nowrap;
+  touch-action: none;
 }
 
 .sheet-title {
-  font-family: var(--font-family-display);
+  font-family: var(--font-family-display, serif);
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-dark, #39261D);
   white-space: nowrap;
 }
 
 .sheet-close-btn {
   border: none;
-  background: var(--color-canvas);
-  width: 26px;
-  height: 26px;
+  background: var(--color-canvas, #FBF7F2);
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--color-text-secondary, #846E62);
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.1, 0.9, 0.2, 1.0);
+}
+
+.sheet-close-btn:hover {
+  background: var(--color-card-warm, #F4ECE6);
+  color: var(--color-primary-dark, #39261D);
+  transform: scale(1.08);
+}
+
+.sheet-close-btn:active {
+  transform: scale(0.92);
 }

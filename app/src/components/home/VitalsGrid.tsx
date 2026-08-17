@@ -1,4 +1,12 @@
 import { useBabyStore } from '@/store/useBabyStore';
+import {
+  HavenDiaperIcon,
+  HavenFeedingIcon,
+  HavenRulerIcon,
+  HavenScaleIcon,
+  HavenSleepIcon,
+  HavenTemperatureIcon,
+} from '../common/HavenIcons';
 
 interface VitalsGridProps {
   onOpenAddMeasurement: () => void;
@@ -9,7 +17,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
   onOpenAddMeasurement,
   onOpenQuickLog,
 }) => {
-  const currentStageData = useBabyStore(s => s.currentStageData());
+  const currentStageData = useBabyStore((s) => s.currentStageData());
   const vitals = currentStageData.todayVitals;
 
   const items = [
@@ -17,7 +25,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Cân nặng',
       value: vitals.weight || '8.6 kg',
       sub: 'Chuẩn WHO P50',
-      icon: '⚖️',
+      icon: <HavenScaleIcon size={20} />,
       colorBg: 'var(--color-sage-light)',
       action: onOpenAddMeasurement,
     },
@@ -25,7 +33,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Chiều cao',
       value: vitals.height || '71.5 cm',
       sub: '+2.5 cm tháng này',
-      icon: '📏',
+      icon: <HavenRulerIcon size={20} />,
       colorBg: 'var(--color-overjoyed-bg)',
       action: onOpenAddMeasurement,
     },
@@ -33,7 +41,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Giấc ngủ hôm nay',
       value: vitals.sleepTotal || '13.5 giờ',
       sub: 'Đêm 10h • Ngày 3.5h',
-      icon: '🌙',
+      icon: <HavenSleepIcon size={20} />,
       colorBg: 'var(--color-depressed-bg)',
       action: onOpenQuickLog,
     },
@@ -41,7 +49,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Lượng sữa hôm nay',
       value: vitals.milkTotal || '780 ml',
       sub: '5 cữ bú mẹ',
-      icon: '🥛',
+      icon: <HavenFeedingIcon size={20} />,
       colorBg: 'var(--color-happy-bg)',
       action: onOpenQuickLog,
     },
@@ -49,7 +57,7 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Tã bỉm',
       value: `${vitals.diaperCount || 5} lần`,
       sub: 'Tiêu hóa tốt',
-      icon: '🧷',
+      icon: <HavenDiaperIcon size={20} />,
       colorBg: 'var(--color-neutral-bg)',
       action: onOpenQuickLog,
     },
@@ -57,11 +65,13 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({
       label: 'Thân nhiệt',
       value: vitals.temperature || '36.8 °C',
       sub: 'Bình thường',
-      icon: '🌡️',
-      colorBg: 'var(--color-sage-subtle)',
+      icon: <HavenTemperatureIcon size={20} />,
+      colorBg: 'var(--color-sad-bg)',
       action: onOpenQuickLog,
     },
   ];
+
+
 
   return (
     <div className="vitals-section">

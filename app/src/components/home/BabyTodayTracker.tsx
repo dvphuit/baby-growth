@@ -18,10 +18,10 @@ export const BabyTodayTracker: React.FC<BabyTodayTrackerProps> = ({
   diaperCount,
   temperature,
   mood,
-  moodEmoji,
   growthScore,
   onOpenQuickLog,
 }) => (
+
   <>
     <div className="section-title-row">
       <span className="section-main-title">Nhật ký hôm nay</span>
@@ -130,8 +130,13 @@ export const BabyTodayTracker: React.FC<BabyTodayTrackerProps> = ({
             <span className="tracker-item-sub">{mood ? `Đang ${getMoodLabel(mood).toLowerCase()}` : 'Chưa cập nhật'}</span>
           </div>
         </div>
-        <div className="tracker-item-right"><span style={{ fontSize: '18px', lineHeight: 1 }}>{moodEmoji || '—'}</span></div>
+        <div className="tracker-item-right">
+          <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-sage-dark)' }}>
+            {mood ? getMoodLabel(mood) : '—'}
+          </span>
+        </div>
       </button>
     </div>
   </>
 );
+

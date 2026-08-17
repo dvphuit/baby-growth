@@ -101,6 +101,7 @@ export interface StageData {
 }
 
 export interface FamilyData {
+  isInitialized?: boolean;
   childName: string;
   childFullName: string;
   birthDate: string;
@@ -110,8 +111,8 @@ export interface FamilyData {
   childAvatar: string;
   momName: string;
   momAvatar: string;
-  dadName: string;
-  dadAvatar: string;
+  dadName?: string;
+  dadAvatar?: string;
   birthWeight?: string;
   birthHeight?: string;
   headCircAtBirth?: string;
@@ -120,6 +121,7 @@ export interface FamilyData {
   allergies?: string[];
   notes?: string;
 }
+
 
 export interface PumpingSession {
   time: string;

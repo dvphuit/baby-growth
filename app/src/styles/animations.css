@@ -1,5 +1,6 @@
 /* ==========================================================================
    ANIMATIONS & MICRO-INTERACTIONS
+   Native iOS/Android spring-like bottom sheet animations and interactions.
    ========================================================================== */
 
 @keyframes pulseRing {
@@ -28,23 +29,45 @@
   }
 }
 
+/* Bottom Sheet Native Slide Up & Down Animations */
 @keyframes slideUpSheet {
-  from {
+  0% {
     transform: translateY(100%);
-    opacity: 0.7;
+    opacity: 0.85;
   }
-  to {
+  100% {
     transform: translateY(0);
     opacity: 1;
   }
 }
 
-@keyframes fadeInBackdrop {
-  from {
+@keyframes slideDownSheet {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
     opacity: 0;
   }
-  to {
+}
+
+/* Backdrop Fade In & Out */
+@keyframes fadeInBackdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
     opacity: 1;
+  }
+}
+
+@keyframes fadeOutBackdrop {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 

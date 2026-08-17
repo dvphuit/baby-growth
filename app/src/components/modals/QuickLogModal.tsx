@@ -1,16 +1,16 @@
 import { useUIStore } from '@/store/useUIStore';
 import { BottomSheet } from '../common/BottomSheet';
+import { Camera, HeartPulse } from 'lucide-react';
 import {
-  Milk,
-  Moon,
-  HeartPulse,
-  Baby,
-  Ruler,
-  Wallet,
-  Camera,
-  Layers,
-  Pill,
-} from 'lucide-react';
+  HavenDiaperIcon,
+  HavenFeedingIcon,
+  HavenIconBadge,
+  HavenMedicineIcon,
+  HavenPumpingIcon,
+  HavenScaleIcon,
+  HavenSleepIcon,
+  HavenWalletIcon,
+} from '../common/HavenIcons';
 
 interface QuickLogModalProps {
   isOpen: boolean;
@@ -27,10 +27,25 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
     onSelectAction(type);
   };
 
-  const Action = ({ type, label, icon }: { type: string; label: string; icon: React.ReactNode }) => (
-    <button type="button" className="quick-action-item" onClick={() => handleAction(type)} style={{ cursor: 'pointer', border: 0, background: 'transparent' }}>
-      <div className="action-icon-circle">{icon}</div>
-      <span className="action-item-label">{label}</span>
+  const Action = ({
+    type,
+    label,
+    icon,
+    tone = 'sage',
+  }: {
+    type: string;
+    label: string;
+    icon: React.ReactNode;
+    tone?: 'sage' | 'rose' | 'amber' | 'lavender' | 'clay' | 'blue' | 'meadow';
+  }) => (
+    <button
+      type="button"
+      className="quick-action-item"
+      onClick={() => handleAction(type)}
+      style={{ cursor: 'pointer', border: 0, background: 'transparent' }}
+    >
+      <HavenIconBadge icon={icon} tone={tone} size="lg" />
+      <span className="action-item-label" style={{ marginTop: 6 }}>{label}</span>
     </button>
   );
 
@@ -39,19 +54,29 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
       <div className="quick-log-actions-grid">
         {isMom ? (
           <>
-            <Action type="pumping" label="Hút sữa" icon={<Milk size={20} color="var(--color-mom-rose)" />} />
-            <Action type="mom-sleep" label="Giấc ngủ" icon={<Moon size={20} color="#9579EE" />} />
-            <Action type="mom-mood" label="Tâm lý" icon={<HeartPulse size={20} color="var(--color-sage-dark)" />} />
+            <Action type="pumping" label="Hút sữa" icon={<HavenPumpingIcon size={24} />} tone="rose" />
+            <Action type="mom-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+            <Action
+              type="mom-mood"
+              label="Tâm lý"
+              icon={<HeartPulse size={22} color="var(--color-sage-dark)" />}
+              tone="sage"
+            />
           </>
         ) : (
           <>
-            <Action type="feeding" label="Cữ bú" icon={<Baby size={20} color="var(--color-sage-dark)" />} />
-            <Action type="diaper" label="Thay tã" icon={<Layers size={20} color="#F5B842" />} />
-            <Action type="baby-sleep" label="Giấc ngủ" icon={<Moon size={20} color="#9579EE" />} />
-            <Action type="medicine" label="Thuốc / vitamin" icon={<Pill size={20} color="#5B8DEF" />} />
-            <Action type="growth" label="Cân đo" icon={<Ruler size={20} color="var(--color-sage-dark)" />} />
-            <Action type="smart-expense" label="Chi tiêu" icon={<Wallet size={20} color="#E87A90" />} />
-            <Action type="diary" label="Khoảnh khắc" icon={<Camera size={20} color="var(--color-primary-dark)" />} />
+            <Action type="feeding" label="Cữ bú" icon={<HavenFeedingIcon size={24} />} tone="sage" />
+            <Action type="diaper" label="Thay tã" icon={<HavenDiaperIcon size={24} />} tone="amber" />
+            <Action type="baby-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+            <Action type="medicine" label="Thuốc / vitamin" icon={<HavenMedicineIcon size={24} />} tone="blue" />
+            <Action type="growth" label="Cân đo" icon={<HavenScaleIcon size={24} />} tone="meadow" />
+            <Action type="smart-expense" label="Chi tiêu" icon={<HavenWalletIcon size={24} />} tone="clay" />
+            <Action
+              type="diary"
+              label="Khoảnh khắc"
+              icon={<Camera size={22} color="var(--color-primary-dark)" />}
+              tone="sage"
+            />
           </>
         )}
       </div>
@@ -62,3 +87,4 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
     </BottomSheet>
   );
 };
+

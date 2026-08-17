@@ -158,25 +158,24 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(32, 26, 23, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(28, 20, 16, 0.58);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 80;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition-normal);
+  will-change: opacity;
 }
 
 .modal-backdrop.open {
-  opacity: 1;
   pointer-events: auto;
 }
 
-.modal-backdrop.open .bottom-sheet {
-  transform: translateY(0);
+.modal-backdrop.closing {
+  pointer-events: none;
 }
 
 .quick-log-actions-grid {

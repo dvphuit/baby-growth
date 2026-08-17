@@ -16,10 +16,15 @@ import { useAppModals } from './hooks/useAppModals';
 import { useReminderLifecycle } from './hooks/useReminderLifecycle';
 import { useThemeColor } from './hooks/useThemeColor';
 import { runDataMigration } from './services/dataMigration';
+import { useBabyStore } from './store/useBabyStore';
+import { OnboardingView } from './components/onboarding/OnboardingView';
+
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
   const isProfilePage = location.pathname === '/profile';
+  const familyData = useBabyStore((state) => state.familyData);
+  const isInitialized = Boolean(familyData?.isInitialized && familyData?.childName);
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   useEffect(() => { void runDataMigration(); }, []);
@@ -41,9 +46,20 @@ export const AppContent: React.FC = () => {
   useThemeColor({ pathname: location.pathname, isModalOpen });
   useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
 
+  if (!isInitialized) {
+    return (
+      <div className="app-container" id="appContainer">
+        <ToastContainer toasts={toasts} />
+        <OnboardingView onComplete={() => addToast('Chào mừng Ba Mẹ đến với Haven! Hồ sơ của Bé đã sẵn sàng.')} />
+        <PWABadge />
+      </div>
+    );
+  }
+
   return (
     <div className="app-container" id="appContainer">
       <ToastContainer toasts={toasts} />
+
       {!isProfilePage && <Header onOpenNotifications={modals.openNotifications} />}
       <main id="appMainContent" className="view-content-wrapper">
         <AppRoutes
