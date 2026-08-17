@@ -39,7 +39,7 @@ describe('BottomSheet accessibility and dismissal', () => {
 
     await user.click(close);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 500 });
-    expect(opener).toHaveFocus();
+    await waitFor(() => expect(opener).toHaveFocus());
   });
 
   it('does not start any dismissal path when dismissible is false', () => {
