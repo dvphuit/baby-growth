@@ -1,2 +1,8 @@
 .npm-cache
 mockup
+*.json
+!package.json
+!tsconfig*.json
+!firebase.json
+.firebase
+.DS_Store

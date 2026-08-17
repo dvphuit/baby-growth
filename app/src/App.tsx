@@ -14,6 +14,7 @@ import { useToast } from './hooks/useToast';
 import { useAutoSyncLifecycle } from './hooks/useAutoSyncLifecycle';
 import { useAppModals } from './hooks/useAppModals';
 import { useReminderLifecycle } from './hooks/useReminderLifecycle';
+import { useThemeColor } from './hooks/useThemeColor';
 import { runDataMigration } from './services/dataMigration';
 
 export const AppContent: React.FC = () => {
@@ -26,6 +27,18 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals(addToast);
+  const isModalOpen = (
+    modals.isNotificationOpen ||
+    modals.isQuickLogOpen ||
+    modals.isAddGrowthOpen ||
+    modals.isAddPumpingOpen ||
+    modals.isAddExpenseOpen ||
+    modals.isEditProfileOpen ||
+    modals.activityLogMode !== null ||
+    modals.lightboxSrc !== null
+  );
+
+  useThemeColor({ pathname: location.pathname, isModalOpen });
   useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   return (
