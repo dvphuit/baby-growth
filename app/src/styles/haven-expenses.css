@@ -1,7 +1,7 @@
 /* Haven expenses implementation: compact financial focus, warm category hierarchy, and non-clinical controls. */
 
 .view-content-wrapper { padding-top: 14px; }
-.app-header { padding: calc(7px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 15px; border-radius: 0 0 22px 22px; }
+.app-header { padding: calc(7px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 15px; border-radius: 0 0 22px 22px; border: none; outline: none; }
 .header-date-row { margin-bottom: 3px; }.header-date-text { font-size: 10px; }.header-profile-row { margin-bottom: 0; }.header-avatar-circle { width: 34px; height: 34px; }.header-welcome-title { font-size: 14px; }.header-profile-meta > div:last-child { margin-top: 1px !important; font-size: 10px !important; }.dual-mode-btn { padding: 4px 8px; font-size: 9px; }.header-notification-btn { width: 28px; height: 28px; }
 .haven-home { margin-top: 0; }
 
