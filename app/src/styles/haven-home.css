@@ -1,0 +1,46 @@
+/* Haven mobile implementation: espresso context header, restorative metric focus, soft anchored surfaces. */
+
+.app-header {
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--page-padding-x) 28px;
+  color: #fff;
+  background: linear-gradient(145deg, #39261d 0%, #553520 100%);
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 10px 26px rgba(57, 38, 29, 0.12);
+}
+
+.header-date-text,
+.header-welcome-title,
+.header-profile-meta > div:last-child { color: rgba(255, 255, 255, 0.82) !important; }
+.header-welcome-title { color: #fff !important; font-family: var(--font-family-body); font-size: 16px; font-weight: 900; }
+.header-welcome-title svg { color: rgba(255,255,255,.6) !important; }
+.header-notification-btn { color: #fff; border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.1); box-shadow: none; }
+.header-avatar-circle { border: 2px solid rgba(255,255,255,.3); box-shadow: none; }
+.dual-mode-toggle { padding: 3px; background: rgba(255,255,255,.14); }
+.dual-mode-btn { color: rgba(255,255,255,.7); }
+.dual-mode-btn.active { color: var(--color-primary-dark); background: #fff; box-shadow: none; }
+
+.haven-home { position: relative; z-index: 2; display: grid; gap: 14px; margin-top: -18px; padding-bottom: 6px; }
+.haven-summary-card { position: relative; overflow: hidden; min-height: 204px; padding: 22px 18px 17px; color: #fff; border-radius: 26px; background: linear-gradient(140deg, #96b96d 0%, #7f9f5c 100%); box-shadow: 0 14px 28px rgba(111, 139, 74, .22); }
+.haven-summary-card::after { content: ''; position: absolute; width: 170px; height: 170px; right: -64px; top: -44px; border: 22px solid rgba(255,255,255,.13); border-radius: 50%; }
+.haven-summary-card::before { content: ''; position: absolute; width: 72px; height: 72px; right: 120px; bottom: -45px; border: 14px solid rgba(255,255,255,.12); border-radius: 50%; }
+.haven-summary-card-mom { background: linear-gradient(140deg, #c7828e 0%, #ad6370 100%); box-shadow: 0 14px 28px rgba(174, 99, 112, .2); }
+.haven-summary-copy { position: relative; z-index: 1; max-width: 220px; }
+.haven-eyebrow { display: block; color: var(--color-sage-dark); font-size: 9px; font-weight: 900; letter-spacing: .11em; }
+.haven-summary-card .haven-eyebrow { color: rgba(255,255,255,.75); }
+.haven-summary-copy h2 { margin: 8px 0 7px; color: #fff; font-family: var(--font-family-display); font-size: 30px; font-weight: 700; line-height: .98; letter-spacing: -.045em; }
+.haven-summary-copy p { margin: 0; color: rgba(255,255,255,.88); font-size: 11px; font-weight: 700; line-height: 1.45; }
+.haven-summary-orbit { position: absolute; z-index: 1; right: 17px; top: 47px; display: grid; place-items: center; width: 96px; height: 96px; text-align: center; border: 7px solid rgba(255,255,255,.27); border-top-color: #fff; border-radius: 50%; background: rgba(255,255,255,.09); }
+.haven-summary-orbit strong { font-size: 17px; font-weight: 900; letter-spacing: -.04em; }.haven-summary-orbit span { margin-top: -28px; color: rgba(255,255,255,.88); font-size: 8px; font-weight: 800; }
+.haven-summary-action { position: absolute; z-index: 2; left: 18px; bottom: 17px; display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 8px 13px; color: var(--color-primary-dark); border: 0; border-radius: var(--radius-pill); background: #fff; font-family: var(--font-family-body); font-size: 11px; font-weight: 900; box-shadow: 0 6px 14px rgba(57,38,29,.13); transition: transform var(--transition-fast); }.haven-summary-action span { font-size: 16px; line-height: 0; }.haven-summary-action:active { transform: scale(.97); }
+
+.haven-metrics-sheet,.haven-activity-surface { padding: 17px; border: 1px solid var(--color-border-subtle); border-radius: 24px; background: #fff; box-shadow: var(--shadow-card); }
+.haven-sheet-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 12px; }.haven-sheet-heading h3 { margin: 3px 0 0; color: var(--color-text-primary); font-family: var(--font-family-display); font-size: 19px; font-weight: 700; letter-spacing: -.035em; }.haven-sheet-date { padding: 5px 8px; color: var(--color-sage-dark); border-radius: var(--radius-pill); background: var(--color-sage-light); font-size: 9px; font-weight: 900; }
+.haven-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }.haven-metric-card { min-height: 116px; display: flex; flex-direction: column; padding: 12px; border-radius: 18px; }.haven-metric-sage { background: #edf4e3; }.haven-metric-lilac { background: #f0ebfa; }.haven-metric-yellow { background: #fff3d4; }.haven-metric-clay { background: #f4e8e1; }.haven-metric-rose { background: #fcedf0; }.haven-metric-icon { display: grid; place-items: center; width: 28px; height: 28px; margin-bottom: 9px; color: var(--color-primary-dark); border-radius: 10px; background: rgba(255,255,255,.68); font-size: 15px; }.haven-metric-label { color: var(--color-text-secondary); font-size: 9px; font-weight: 900; }.haven-metric-card strong { margin-top: 2px; color: var(--color-text-primary); font-family: var(--font-family-display); font-size: 17px; font-weight: 700; letter-spacing: -.04em; }.haven-metric-card small { margin-top: auto; color: var(--color-text-muted); font-size: 8.5px; font-weight: 800; }
+
+.haven-text-action { padding: 7px 9px; color: var(--color-primary-dark); border: 0; border-radius: var(--radius-pill); background: var(--color-card-warm); font-size: 9px; font-weight: 900; }.haven-activity-list { display: grid; gap: 8px; }.haven-activity-row { display: flex; align-items: center; gap: 10px; padding: 11px; border: 1px solid var(--color-border-subtle); border-radius: 16px; background: var(--color-canvas); }.haven-activity-dot { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: var(--color-sage); box-shadow: 0 0 0 5px var(--color-sage-light); }.haven-activity-dot-mom { background: var(--color-mom-rose); box-shadow: 0 0 0 5px var(--color-mom-rose-light); }.haven-activity-row strong { display: block; color: var(--color-text-primary); font-size: 11px; }.haven-activity-row p { margin: 3px 0 0; color: var(--color-text-muted); font-size: 9px; font-weight: 700; }.haven-chevron { margin-left: auto; color: var(--color-text-muted); font-size: 22px; line-height: 1; }.haven-empty-state { display: grid; justify-items: center; padding: 16px 8px 4px; text-align: center; }.haven-empty-state > span { display: grid; place-items: center; width: 34px; height: 34px; color: var(--color-sage-dark); border-radius: 50%; background: var(--color-sage-light); }.haven-empty-state strong { margin-top: 9px; color: var(--color-text-primary); font-size: 12px; }.haven-empty-state p { max-width: 240px; margin: 5px 0 12px; color: var(--color-text-muted); font-size: 10px; font-weight: 700; line-height: 1.45; }.haven-empty-action { width: 100%; min-height: 42px; color: #fff; border: 0; border-radius: var(--radius-pill); background: var(--color-primary-dark); font-size: 10px; font-weight: 900; }
+.haven-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.pwa-install-banner { margin: 4px 0 12px; padding: 9px 11px; border: 1px solid var(--color-border-subtle); border-radius: 17px; background: var(--color-card-warm); box-shadow: none; }.pwa-install-icon { width: 28px; height: 28px; color: var(--color-sage-dark); background: var(--color-sage-light); }.pwa-install-title { font-size: 10px; }.pwa-install-sub { display: none; }.pwa-install-btn { min-height: 28px; padding: 5px 8px; background: var(--color-sage); }.pwa-dismiss-btn { width: 26px; height: 26px; background: transparent; }
+.bottom-nav-container { min-height: 68px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); border: 1px solid rgba(232,221,213,.92); border-radius: 22px 22px 0 0; background: rgba(255,255,255,.96); box-shadow: 0 -8px 26px rgba(57,38,29,.09); }.fab-center-btn { width: 54px; height: 54px; color: #fff; border: 5px solid var(--color-canvas); background: var(--color-sage); box-shadow: 0 9px 18px rgba(111,139,74,.28); }.nav-tab-item.active { color: var(--color-sage-dark); }
+
+@media (max-width: 360px) { .haven-summary-copy h2 { font-size: 27px; }.haven-summary-orbit { right: 13px; width: 88px; height: 88px; }.haven-metrics-sheet,.haven-activity-surface { padding: 14px; } }

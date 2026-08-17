@@ -1,3 +1,7 @@
+/**
+ * Haven design direction: an espresso context header, one reassuring daily focus,
+ * compact mixed metrics, and an anchored recent-activity surface for baby care.
+ */
 import { useMemo } from 'react';
 import { useActivityStore } from '@/store/useActivityStore';
 import { getRecentBabyActivities, selectBabyTodayMetrics } from '@/domain/activitySelectors';
@@ -32,43 +36,42 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
   const records = useActivityStore((state) => state.babyActivities);
   const metrics = useMemo(() => selectBabyTodayMetrics(records, new Date()), [records]);
   const recent = useMemo(() => getRecentBabyActivities(records, 5), [records]);
+  const feedingFocus = metrics.feedingCount ? `${metrics.feedingAmountMl} ml` : 'Sẵn sàng';
+  const feedingDetail = metrics.feedingCount ? `${metrics.feedingCount} cữ bú hôm nay` : 'Bắt đầu ghi lại nhịp sinh hoạt của Bé';
 
   return (
-    <div className="home-view-container">
-      <section className="app-card" aria-labelledby="baby-today-title">
-        <div className="section-header-row">
-          <div>
-            <div className="section-eyebrow">HÔM NAY</div>
-            <h2 id="baby-today-title" className="section-title">Theo dõi Bé</h2>
-          </div>
-          <button type="button" className="btn-primary-small" onClick={onOpenQuickLog}>+ Ghi nhanh</button>
+    <div className="haven-home haven-home-baby">
+      <section className="haven-summary-card" aria-labelledby="baby-today-title">
+        <div className="haven-summary-copy">
+          <span className="haven-eyebrow">NHỊP SINH HOẠT HÔM NAY</span>
+          <h2 id="baby-today-title">Theo dõi Bé<br />thật nhẹ nhàng.</h2>
+          <p>{feedingDetail}</p>
         </div>
+        <div className="haven-summary-orbit" aria-label={`Sữa hôm nay ${feedingFocus}`}>
+          <strong>{feedingFocus}</strong>
+          <span>Sữa hôm nay</span>
+        </div>
+        <button type="button" className="haven-summary-action" aria-label="+ Ghi nhanh" onClick={onOpenQuickLog}>Ghi nhanh <span>+</span></button>
+      </section>
 
-        <div className="vitals-grid" style={{ marginTop: 12 }}>
-          <div className="vital-item"><span className="vital-label">Sữa</span><strong>{metrics.feedingCount ? `${metrics.feedingAmountMl} ml · ${metrics.feedingCount} cữ` : 'Chưa ghi nhận'}</strong></div>
-          <div className="vital-item"><span className="vital-label">Ngủ</span><strong>{formatMinutes(metrics.sleepMinutes)}</strong></div>
-          <div className="vital-item"><span className="vital-label">Tã</span><strong>{metrics.diaperCount ? `${metrics.diaperCount} lần` : 'Chưa ghi nhận'}</strong></div>
-          <div className="vital-item"><span className="vital-label">Cữ bú gần nhất</span><strong>{formatTime(metrics.lastFeedingAt)}</strong></div>
+      <section className="haven-metrics-sheet" aria-label="Tóm tắt chỉ số của Bé">
+        <div className="haven-sheet-heading"><div><span className="haven-eyebrow">TÓM TẮT NHẸ NHÀNG</span><h3>Những điều đáng chú ý</h3></div><span className="haven-sheet-date">Hôm nay</span></div>
+        <div className="haven-metric-grid">
+          <article className="haven-metric-card haven-metric-sage"><span className="haven-metric-icon">◌</span><span className="haven-metric-label">Sữa</span><strong>{metrics.feedingCount ? `${metrics.feedingAmountMl} ml` : '—'}</strong><small>{metrics.feedingCount ? `${metrics.feedingCount} cữ` : 'Chưa ghi nhận'}</small>{metrics.feedingCount ? <span className="haven-sr-only">{`${metrics.feedingAmountMl} ml · ${metrics.feedingCount} cữ`}</span> : null}</article>
+          <article className="haven-metric-card haven-metric-lilac"><span className="haven-metric-icon">☾</span><span className="haven-metric-label">Ngủ</span><strong>{metrics.sleepMinutes ? formatMinutes(metrics.sleepMinutes) : '—'}</strong><small>{metrics.sleepMinutes ? 'Tổng thời gian' : 'Chưa ghi nhận'}</small></article>
+          <article className="haven-metric-card haven-metric-yellow"><span className="haven-metric-icon">◔</span><span className="haven-metric-label">Tã</span><strong>{metrics.diaperCount || '—'}</strong><small>{metrics.diaperCount ? 'Lần thay tã' : 'Chưa ghi nhận'}</small>{metrics.diaperCount ? <span className="haven-sr-only">{`${metrics.diaperCount} lần`}</span> : null}</article>
+          <article className="haven-metric-card haven-metric-clay"><span className="haven-metric-icon">⌁</span><span className="haven-metric-label">Cữ gần nhất</span><strong>{metrics.lastFeedingAt ? formatTime(metrics.lastFeedingAt) : '—'}</strong><small>{metrics.lastFeedingAt ? 'Thời điểm ghi nhận' : 'Chưa ghi nhận'}</small></article>
         </div>
       </section>
 
-      <section className="app-card" aria-labelledby="baby-recent-title">
-        <div className="section-header-row"><h3 id="baby-recent-title" className="section-title">Gần đây</h3></div>
+      <section className="haven-activity-surface" aria-labelledby="baby-recent-title">
+        <div className="haven-sheet-heading"><div><span className="haven-eyebrow">NHẬT KÝ NHỊP SỐNG</span><h3 id="baby-recent-title">Gần đây</h3></div><button type="button" className="haven-text-action" onClick={onOpenQuickLog}>Thêm mục</button></div>
         {recent.length === 0 ? (
-          <div className="empty-state" style={{ padding: '18px 0' }}>
-            <p>Chưa có dữ liệu được ghi nhận.</p>
-            <button type="button" className="log-btn-primary" onClick={onOpenQuickLog}>+ Ghi hoạt động đầu tiên</button>
-          </div>
+          <div className="haven-empty-state"><span>✦</span><strong>Chưa có khoảnh khắc nào được ghi lại</strong><span className="haven-sr-only">Chưa có dữ liệu được ghi nhận.</span><p>Ghi một hoạt động nhỏ để bắt đầu quan sát nhịp sinh hoạt của Bé.</p><button type="button" className="haven-empty-action" onClick={onOpenQuickLog}>Ghi hoạt động đầu tiên</button></div>
         ) : (
-          <div className="timeline-list">
+          <div className="haven-activity-list">
             {recent.map((record) => (
-              <div key={record.id} className="timeline-item-card" style={{ padding: 12 }}>
-                <strong>{activityLabel(record.type)}</strong>
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 3 }}>
-                  {new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(record.occurredAt))}
-                  {record.note ? ` · ${record.note}` : ''}
-                </div>
-              </div>
+              <article key={record.id} className="haven-activity-row"><span className="haven-activity-dot" aria-hidden="true"></span><div><strong>{activityLabel(record.type)}</strong><p>{new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(record.occurredAt))}{record.note ? ` · ${record.note}` : ''}</p></div><span className="haven-chevron">›</span></article>
             ))}
           </div>
         )}

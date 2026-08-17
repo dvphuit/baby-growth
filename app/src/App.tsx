@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+/** Haven mobile implementation keeps install guidance below the primary home story. */
 import { useLocation } from 'react-router-dom';
 import { Header } from './components/common/Header';
 import { BottomNav } from './components/common/BottomNav';
@@ -32,7 +33,6 @@ export const AppContent: React.FC = () => {
       <ToastContainer toasts={toasts} />
       {!isProfilePage && <Header onOpenNotifications={modals.openNotifications} />}
       <main id="appMainContent" className="view-content-wrapper">
-        <PWAInstallPrompt />
         <AppRoutes
           onOpenQuickLog={modals.openQuickLog}
           onOpenPumping={modals.openAddPumping}
@@ -44,6 +44,7 @@ export const AppContent: React.FC = () => {
           onOpenEditProfile={modals.openEditProfile}
           onOpenNotifications={modals.openNotifications}
         />
+        <PWAInstallPrompt />
         <div className="bottom-safe-spacer"></div>
       </main>
       <AppVersionBadge />
