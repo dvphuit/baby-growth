@@ -6,6 +6,7 @@ const css = [
   'src/styles/home.css',
   'src/styles/timeline.css',
   'src/styles/modals.css',
+  'src/styles/refactor-primitives.css',
 ].map((file) => readFileSync(file, 'utf8')).join('\n');
 
 describe('refactored tracker UI styles', () => {
