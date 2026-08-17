@@ -9,6 +9,7 @@ interface MomStoreState {
   momData: MomData;
   addPumpingSession: (amountMl: number, side?: string) => void;
   updateMomData: (partial: Partial<MomData>) => void;
+  resetTrackingData: () => void;
 }
 
 export const useMomStore = create<MomStoreState>()(
@@ -43,6 +44,14 @@ export const useMomStore = create<MomStoreState>()(
       updateMomData: (partial) => set((state) => ({
         momData: { ...state.momData, ...partial }
       })),
+
+      resetTrackingData: () => {
+        const momData = structuredClone(INITIAL_MOM_DATA);
+        momData.name = get().momData.name;
+        momData.pumping.todayTotal = '0 ml';
+        momData.pumping.history = [];
+        set({ momData });
+      },
     }),
     {
       name: 'babygrowth_v2_mom',
