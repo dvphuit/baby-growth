@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <style>
+      .canvas-bg { fill: #FAF8F5; }
+      .sage-dark { fill: #8DA06F; }
+      .sage-light { fill: #E5ECD9; }
+      .sage-subtle { fill: #F1F5EB; }
+      .amber { fill: #F5B842; }
+      .amber-light { fill: #FEF7E9; }
+      .terracotta { fill: #E97332; }
+      .brown { fill: #4A372E; }
+      .lavender { fill: #9477ED; }
+      .paper { fill: #FFFFFF; stroke: #ECE6DD; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Background aura -->
+  <rect width="400" height="300" rx="24" class="canvas-bg" />
+  <circle cx="200" cy="150" r="100" class="sage-subtle" />
+  <circle cx="270" cy="110" r="45" class="amber-light" />
+
+  <!-- Botanical branch behind -->
+  <path d="M120,220 Q150,140 180,80" stroke="#8DA06F" stroke-width="3" fill="none" stroke-linecap="round" />
+  <path d="M145,170 Q130,155 140,145 Q155,150 145,170 Z" class="sage-dark" />
+  <path d="M160,135 Q175,120 170,110 Q155,120 160,135 Z" class="sage-dark" />
+  <path d="M175,98 Q165,85 175,75 Q185,85 175,98 Z" class="sage-dark" />
+
+  <!-- Open Journal / Memory Book -->
+  <g transform="translate(130, 110)">
+    <!-- Back cover -->
+    <rect x="-10" y="5" width="160" height="110" rx="8" class="sage-dark" />
+    
+    <!-- Left page -->
+    <path d="M0,0 Q65,10 70,15 L70,105 Q65,100 0,90 Z" fill="#FFFFFF" stroke="#ECE6DD" stroke-width="1.5" />
+    <!-- Right page -->
+    <path d="M140,0 Q75,10 70,15 L70,105 Q75,100 140,90 Z" fill="#FAF8F5" stroke="#ECE6DD" stroke-width="1.5" />
+    <!-- Spine shadow -->
+    <line x1="70" y1="15" x2="70" y2="105" stroke="#8DA06F" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+    
+    <!-- Left page lines & baby footprint -->
+    <line x1="15" y1="30" x2="55" y2="36" stroke="#E5ECD9" stroke-width="3" stroke-linecap="round" />
+    <line x1="15" y1="45" x2="50" y2="50" stroke="#E5ECD9" stroke-width="3" stroke-linecap="round" />
+    <line x1="15" y1="60" x2="45" y2="64" stroke="#E5ECD9" stroke-width="3" stroke-linecap="round" />
+    
+    <!-- Baby footprint motif on left page -->
+    <ellipse cx="35" cy="76" rx="6" ry="9" class="amber" transform="rotate(-15 35 76)" />
+    <circle cx="28" cy="65" r="2" class="amber" />
+    <circle cx="33" cy="63" r="2.2" class="amber" />
+    <circle cx="38" cy="64" r="2" class="amber" />
+    <circle cx="43" cy="67" r="1.8" class="amber" />
+    <circle cx="46" cy="71" r="1.5" class="amber" />
+
+    <!-- Right page photo frame -->
+    <rect x="85" y="25" width="42" height="42" rx="4" fill="#FFFFFF" stroke="#ECE6DD" stroke-width="1.5" />
+    <circle cx="106" cy="42" r="12" class="sage-light" />
+    <!-- Heart icon in photo -->
+    <path d="M106,47 C106,47 100,43 100,39 C100,36.5 102,35 104,35 C105.2,35 106,36 106,36 C106,36 106.8,35 108,35 C110,35 112,36.5 112,39 C112,43 106,47 106,47 Z" class="terracotta" />
+    
+    <line x1="85" y1="76" x2="125" y2="72" stroke="#E5ECD9" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Floating stars and sparkles -->
+  <path d="M295,80 L298,88 L306,91 L298,94 L295,102 L292,94 L284,91 L292,88 Z" class="amber" />
+  <path d="M110,95 L112,100 L117,102 L112,104 L110,109 L108,104 L103,102 L108,100 Z" class="amber" />
+  <circle cx="280" cy="170" r="3.5" class="terracotta" />
+  <circle cx="115" cy="180" r="3" class="sage-dark" />
+</svg>

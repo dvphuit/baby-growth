@@ -21,6 +21,7 @@ vi.mock('@/components/modals/AddGrowthModal', () => ({
 }));
 vi.mock('@/components/modals/AddPumpingModal', () => ({ AddPumpingModal: () => <span>Add Pumping marker</span> }));
 vi.mock('@/components/modals/AddExpenseModal', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
+vi.mock('@/components/modals/AddPostModal', () => ({ AddPostModal: () => <span>Add Post marker</span> }));
 vi.mock('@/components/modals/EditProfileModal', () => ({ EditProfileModal: () => <span>Edit Profile marker</span> }));
 vi.mock('@/components/modals/NotificationModal', () => ({
   NotificationModal: ({ onClose, onQuickLog }: { onClose: () => void; onQuickLog?: (action: string) => void }) => (
@@ -35,6 +36,7 @@ function createController(overrides: Partial<AppModalController> = {}): AppModal
     isAddGrowthOpen: false,
     isAddPumpingOpen: false,
     isAddExpenseOpen: false,
+    isAddPostOpen: false,
     isEditProfileOpen: false,
     activityLogMode: null,
     lightboxSrc: null,
@@ -49,6 +51,7 @@ function createController(overrides: Partial<AppModalController> = {}): AppModal
     closeAddPumping: vi.fn(),
     openAddExpense: vi.fn(),
     closeAddExpense: vi.fn(),
+    closeAddPost: vi.fn(),
     openEditProfile: vi.fn(),
     closeEditProfile: vi.fn(),
     closeActivityLog: vi.fn(),
@@ -83,6 +86,11 @@ describe('AppModals', () => {
     expect(await screen.findByText('Activity marker feeding')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'save activity' }));
     expect(onSuccessToast).toHaveBeenCalledWith('saved activity', '✓');
+  });
+
+  it('renders the moment composer when opened from Home', async () => {
+    render(<AppModals modals={createController({ isAddPostOpen: true })} onSuccessToast={vi.fn()} />);
+    expect(await screen.findByText('Add Post marker')).toBeInTheDocument();
   });
 
   it('routes reminder quick log actions back through the controller', async () => {

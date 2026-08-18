@@ -7,8 +7,12 @@ const localDb = vi.hoisted(() => ({
   setLocalRecord: vi.fn(),
   subscribeLocalRecordChanges: vi.fn(),
 }));
+const timelineMediaDriveSync = vi.hoisted(() => ({
+  syncTimelineMediaToDrive: vi.fn(),
+}));
 
 vi.mock('./localDb', () => localDb);
+vi.mock('./timelineMediaDriveSync', () => timelineMediaDriveSync);
 
 function deferred<T = void>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve!: (value: T) => void;
@@ -29,6 +33,15 @@ function jsonResponse(value: unknown): Response {
     ok: true,
     status: 200,
     json: vi.fn().mockResolvedValue(value),
+    text: vi.fn().mockResolvedValue(''),
+  } as unknown as Response;
+}
+
+function blobResponse(value: Blob): Response {
+  return {
+    ok: true,
+    status: 200,
+    blob: vi.fn().mockResolvedValue(value),
     text: vi.fn().mockResolvedValue(''),
   } as unknown as Response;
 }
@@ -65,6 +78,7 @@ describe('explicit Google Drive reset operations', () => {
       localRecordListener = listener;
       return vi.fn();
     });
+    timelineMediaDriveSync.syncTimelineMediaToDrive.mockResolvedValue(0);
     installGoogleTokenClient();
   });
 
@@ -113,6 +127,54 @@ describe('explicit Google Drive reset operations', () => {
       'babygrowth_v2_sync_meta',
       expect.stringContaining('remote-new'),
     );
+  });
+
+  it('uploads private timeline media without Base64 conversion', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: 'drive-media-1', name: 'baby.jpg' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+    const media = new Blob(['image-bytes'], { type: 'image/jpeg' });
+
+    await expect(sync.uploadTimelineMediaToDrive('media-1', media, { name: 'baby.jpg' })).resolves.toBe('drive-media-1');
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(fetchMock.mock.calls[0][0]).toContain('/upload/drive/v3/files?uploadType=multipart');
+    expect(init).toMatchObject({ method: 'POST' });
+    expect(init.body).toBeInstanceOf(Blob);
+    await expect((init.body as Blob).text()).resolves.toContain('babygrowthMediaId');
+  });
+
+  it('downloads private timeline media with the current Google token', async () => {
+    const media = new Blob(['image-bytes'], { type: 'image/jpeg' });
+    const fetchMock = vi.fn().mockResolvedValue(blobResponse(media));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+
+    await expect(sync.downloadTimelineMediaFromDrive('drive-media-1')).resolves.toBe(media);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/drive/v3/files/drive-media-1?alt=media'),
+      expect.objectContaining({ headers: { Authorization: 'Bearer token' } }),
+    );
+  });
+
+  it('lists private timeline media with storage metadata', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      files: [{
+        id: 'drive-media-1', name: 'baby.jpg', mimeType: 'image/jpeg', size: '2048',
+        createdTime: '2026-08-18T08:00:00.000Z', modifiedTime: '2026-08-18T09:00:00.000Z',
+      }],
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+
+    await expect(sync.listTimelineMediaFromDrive()).resolves.toEqual([expect.objectContaining({
+      id: 'drive-media-1', name: 'baby.jpg', mimeType: 'image/jpeg', size: 2048,
+    })]);
+    expect(fetchMock.mock.calls[0][0]).toContain('appDataFolder');
+    expect(decodeURIComponent(fetchMock.mock.calls[0][0])).toContain("babygrowthMedia");
   });
 
   it('clears queued auto-sync and restores scheduling after a rejected operation', async () => {

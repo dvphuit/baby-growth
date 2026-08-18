@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/services/localDb';
-import type { TimelineItem, CalendarViewMode } from '@/types';
+import type { TimelineItem, TimelineMediaItem, CalendarViewMode } from '@/types';
 import { INITIAL_TIMELINE_ITEMS, FAMILY_DATA } from '@/data/seedData';
 import { todayStr, currentTimeStr } from '@/utils/date';
 import { generateId } from '@/utils/format';
@@ -18,6 +18,7 @@ interface TimelineStoreState {
   currentTimelineSubTab: 'feed' | 'mood-history';
 
   addTimelineItem: (item: Partial<TimelineItem>) => void;
+  updateTimelineItem: (id: string, patch: Partial<Pick<TimelineItem, 'date' | 'timeFormatted' | 'title' | 'content' | 'mediaItems' | 'mediaUrl' | 'mediaType' | 'tag' | 'tagType' | 'owner'>>) => void;
   toggleLike: (id: string) => void;
   setSelectedCalendarDate: (date: string) => void;
   setCalendarMonth: (year: number, month: number) => void;
@@ -41,26 +42,41 @@ export const useTimelineStore = create<TimelineStoreState>()(
 
       addTimelineItem: (item) => {
         const dateStr = item.date || todayStr();
-        const timeNow = currentTimeStr();
+        const timeNow = item.timeFormatted || currentTimeStr();
         const dateParts = dateStr.split('-');
         const formattedDay =
           dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : dateStr;
 
         const profileMode = useUIStore.getState().profileMode;
-        const currentStage = useBabyStore.getState().currentStage;
+        const babyState = useBabyStore.getState();
+        const currentStage = babyState.currentStage;
+        const family = babyState.familyData;
+        const mediaItems: TimelineMediaItem[] = (item.mediaItems ?? [])
+          .filter((media) => media.blobId || media.driveFileId || media.url?.trim())
+          .map((media) => ({
+            ...media,
+            id: media.id || generateId('media'),
+            url: media.url?.trim() || undefined,
+          }));
+        if (mediaItems.length === 0 && item.mediaUrl) {
+          mediaItems.push({ id: generateId('media'), url: item.mediaUrl, type: item.mediaType === 'video' ? 'video' : 'photo' });
+        }
+        const primaryMedia = mediaItems[0];
 
         const newItem: TimelineItem = {
           id: generateId('tl'),
+          owner: item.owner || profileMode,
           stage: currentStage,
           date: dateStr,
           timeFormatted: timeNow,
           time: `${formattedDay} • ${timeNow}`,
-          author: profileMode === 'mom' ? FAMILY_DATA.momName : FAMILY_DATA.momName,
-          authorAvatar: profileMode === 'mom' ? FAMILY_DATA.momAvatar : FAMILY_DATA.momAvatar,
+          author: family.momName || FAMILY_DATA.momName,
+          authorAvatar: family.momAvatar || FAMILY_DATA.momAvatar,
           title: item.title || 'Nhật ký mới',
           content: item.content || '',
-          mediaUrl: item.mediaUrl || null,
-          mediaType: item.mediaType || null,
+          mediaItems,
+          mediaUrl: primaryMedia?.url ?? null,
+          mediaType: primaryMedia?.type ?? null,
           stats: item.stats || [],
           likes: 1,
           comments: 0,
@@ -74,6 +90,29 @@ export const useTimelineStore = create<TimelineStoreState>()(
           timelineItems: [newItem, ...state.timelineItems],
         }));
       },
+
+      updateTimelineItem: (id, patch) => set((state) => ({
+        timelineItems: state.timelineItems.map((item) => {
+          if (item.id !== id) return item;
+          const date = patch.date ?? item.date;
+          const timeFormatted = patch.timeFormatted ?? item.timeFormatted;
+          const [year, month, day] = date.split('-');
+          const formattedDay = year && month && day ? `${day}/${month}/${year}` : date;
+          const next = { ...item, ...patch, id: item.id, date, timeFormatted, time: `${formattedDay} • ${timeFormatted}` };
+          if (patch.mediaItems) {
+            next.mediaItems = patch.mediaItems
+              .filter((media) => media.blobId || media.driveFileId || media.url?.trim())
+              .map((media) => ({
+                ...media,
+                id: media.id || generateId('media'),
+                url: media.url?.trim() || undefined,
+              }));
+            next.mediaUrl = next.mediaItems[0]?.url ?? null;
+            next.mediaType = next.mediaItems[0]?.type ?? null;
+          }
+          return next;
+        }),
+      })),
 
       toggleLike: (id) => set((state) => ({
         timelineItems: state.timelineItems.map((item) => {

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <style>
+      .canvas-bg { fill: #FAF8F5; }
+      .sage-dark { fill: #8DA06F; }
+      .sage-light { fill: #E5ECD9; }
+      .sage-subtle { fill: #F1F5EB; }
+      .amber { fill: #F5B842; }
+      .amber-light { fill: #FEF7E9; }
+      .terracotta { fill: #E97332; }
+      .brown { fill: #4A372E; }
+    </style>
+  </defs>
+
+  <rect width="400" height="300" rx="24" class="canvas-bg" />
+  <circle cx="200" cy="150" r="95" class="amber-light" />
+  <circle cx="250" cy="115" r="45" class="sage-subtle" />
+
+  <!-- Botanical branch -->
+  <path d="M110,210 Q140,160 170,120" stroke="#8DA06F" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M135,175 Q120,165 130,155 Q145,160 135,175 Z" class="sage-dark" />
+  <path d="M150,145 Q165,135 160,125 Q145,135 150,145 Z" class="sage-dark" />
+
+  <!-- Savings / Budget Envelope & Piggy Bank -->
+  <g transform="translate(130, 95)">
+    <!-- Envelope Base -->
+    <rect x="0" y="25" width="140" height="90" rx="12" fill="#FFFFFF" stroke="#8DA06F" stroke-width="2.5" />
+    
+    <!-- Envelope Flap open -->
+    <path d="M0,25 L70,-15 L140,25 Z" fill="#F6F3ED" stroke="#8DA06F" stroke-width="2.5" stroke-linejoin="round" />
+    
+    <!-- Envelope Fold Lines -->
+    <path d="M0,115 L50,65" stroke="#ECE6DD" stroke-width="2" />
+    <path d="M140,115 L90,65" stroke="#ECE6DD" stroke-width="2" />
+    
+    <!-- Sprout coming out of envelope -->
+    <path d="M70,25 Q70,-5 80,-25" stroke="#8DA06F" stroke-width="3" fill="none" stroke-linecap="round" />
+    <path d="M74,0 Q60,-10 65,-20 Q80,-15 74,0 Z" class="sage-dark" />
+    <path d="M78,-15 Q95,-22 90,-32 Q75,-25 78,-15 Z" class="sage-dark" />
+    
+    <!-- Heart seal on envelope -->
+    <circle cx="70" cy="70" r="18" class="amber" />
+    <path d="M70,76 C70,76 63,71 63,66 C63,63 65.5,61 68,61 C69.5,61 70,62.5 70,62.5 C70,62.5 70.5,61 72,61 C74.5,61 77,63 77,66 C77,71 70,76 70,76 Z" fill="#FFFFFF" />
+
+    <!-- Coin tokens floating -->
+    <g transform="translate(115, -15)">
+      <circle cx="0" cy="0" r="15" class="amber" />
+      <circle cx="0" cy="0" r="11" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
+      <text x="0" y="4" font-family="sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">₫</text>
+    </g>
+
+    <g transform="translate(15, -5)">
+      <circle cx="0" cy="0" r="12" class="terracotta" />
+      <circle cx="0" cy="0" r="8.5" fill="none" stroke="#FFFFFF" stroke-width="1.2" />
+      <circle cx="0" cy="0" r="2.5" fill="#FFFFFF" />
+    </g>
+  </g>
+
+  <!-- Sparkles -->
+  <path d="M285,75 L288,81 L294,83 L288,85 L285,91 L282,85 L276,83 L282,81 Z" class="amber" />
+  <circle cx="105" cy="115" r="3.5" class="terracotta" />
+  <circle cx="280" cy="180" r="3" class="sage-dark" />
+</svg>

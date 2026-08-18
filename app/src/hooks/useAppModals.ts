@@ -9,6 +9,7 @@ export interface AppModalController {
   isAddGrowthOpen: boolean;
   isAddPumpingOpen: boolean;
   isAddExpenseOpen: boolean;
+  isAddPostOpen: boolean;
   isEditProfileOpen: boolean;
   activityLogMode: ActivityLogMode | null;
   lightboxSrc: string | null;
@@ -23,6 +24,7 @@ export interface AppModalController {
   closeAddPumping: () => void;
   openAddExpense: () => void;
   closeAddExpense: () => void;
+  closeAddPost: () => void;
   openEditProfile: () => void;
   closeEditProfile: () => void;
   closeActivityLog: () => void;
@@ -40,6 +42,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
   const [isAddGrowthOpen, setIsAddGrowthOpen] = useState(false);
   const [isAddPumpingOpen, setIsAddPumpingOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [activityLogMode, setActivityLogMode] = useState<ActivityLogMode | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
@@ -65,7 +68,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
         break;
       case 'moment':
       case 'diary':
-        setActivityLogMode('baby-note');
+        setIsAddPostOpen(true);
         break;
       case 'pumping':
         setIsAddPumpingOpen(true);
@@ -89,6 +92,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
     isAddGrowthOpen,
     isAddPumpingOpen,
     isAddExpenseOpen,
+    isAddPostOpen,
     isEditProfileOpen,
     activityLogMode,
     lightboxSrc,
@@ -103,6 +107,7 @@ export function useAppModals(addToast: AddToast): AppModalController {
     closeAddPumping: () => setIsAddPumpingOpen(false),
     openAddExpense: () => setIsAddExpenseOpen(true),
     closeAddExpense: () => setIsAddExpenseOpen(false),
+    closeAddPost: () => setIsAddPostOpen(false),
     openEditProfile: () => setIsEditProfileOpen(true),
     closeEditProfile: () => setIsEditProfileOpen(false),
     closeActivityLog: () => setActivityLogMode(null),

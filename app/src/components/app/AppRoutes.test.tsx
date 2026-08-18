@@ -9,6 +9,7 @@ vi.mock('@/components/timeline/TimelineView', () => ({ TimelineView: ({ onOpenLi
 vi.mock('@/components/growth/GrowthView', () => ({ GrowthView: ({ onOpenAddMeasurement }: { onOpenAddMeasurement: () => void }) => <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div> }));
 vi.mock('@/components/expenses/ExpensesView', () => ({ ExpensesView: ({ onOpenAddExpense }: { onOpenAddExpense: () => void }) => <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div> }));
 vi.mock('@/components/profile/ProfileView', () => ({ ProfileView: ({ onOpenEditProfile, onOpenNotifications }: { onOpenEditProfile: () => void; onOpenNotifications: () => void }) => <div><span>Profile marker</span><button onClick={onOpenEditProfile}>edit profile</button><button onClick={onOpenNotifications}>profile reminders</button></div> }));
+vi.mock('@/components/profile/GoogleDriveDataView', () => ({ GoogleDriveDataView: () => <div>Drive data marker</div> }));
 
 function createProps(overrides: Partial<AppRoutesProps> = {}): AppRoutesProps {
   return {
@@ -25,7 +26,7 @@ function renderRoute(path: string, props = createProps()) {
 
 describe('AppRoutes', () => {
   it.each([
-    ['/', 'Home marker'], ['/timeline', 'Timeline marker'], ['/growth', 'Growth marker'], ['/expenses', 'Expenses marker'], ['/profile', 'Profile marker'], ['/unknown', 'Home marker'],
+    ['/', 'Home marker'], ['/timeline', 'Timeline marker'], ['/growth', 'Growth marker'], ['/expenses', 'Expenses marker'], ['/profile', 'Profile marker'], ['/profile/google-drive', 'Drive data marker'], ['/unknown', 'Home marker'],
   ])('renders %s at the expected surface', async (path, marker) => {
     renderRoute(path);
     expect(await screen.findByText(marker)).toBeInTheDocument();

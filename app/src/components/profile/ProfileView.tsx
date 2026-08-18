@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -21,6 +22,7 @@ import { ResetTrackingDataSection } from './ResetTrackingDataSection';
 import { formatDateDisplay } from '@/utils/date';
 import { getZodiacSign } from '@/utils/zodiac';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
+import { AppBar } from '@/components/common/AppBar';
 
 interface ProfileViewProps {
   onOpenEditProfile: () => void;
@@ -84,21 +86,25 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
     { key: 'head', label: 'Vòng đầu', value: latestGrowth?.headCirc, unit: 'cm', Icon: HeartPulse },
   ] as const;
 
-  return (
-    <div className="baby-profile-view-container">
-      <header className="profile-top-bar">
-        <button className="profile-icon-btn" onClick={() => navigate('/')} aria-label="Về trang chủ" id="btnBackFromProfile">
+  return createPortal(
+    <div className="baby-profile-view-container profile-page-overlay">
+      <AppBar
+        className="profile-app-bar"
+        tone="baby"
+        variant="page"
+        ariaLabel="Điều hướng hồ sơ"
+        start={<button type="button" className="profile-icon-btn" onClick={() => navigate('/')} aria-label="Về trang chủ" id="btnBackFromProfile">
           <ArrowLeft size={20} />
-        </button>
-        <div className="profile-top-heading">
+        </button>}
+        center={<div className="profile-top-heading">
           <span className="profile-top-eyebrow">HỒ SƠ CỦA BÉ</span>
           <h1>Thông tin của {family.childName || 'Bé'}</h1>
-        </div>
-        <button className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop">
+        </div>}
+        end={<button type="button" className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop">
           <Edit3 size={15} />
           <span>Sửa</span>
-        </button>
-      </header>
+        </button>}
+      />
 
       <section className="profile-hero-card" aria-labelledby="profile-child-name">
         <div className="profile-hero-decoration profile-hero-decoration-one" />
@@ -214,6 +220,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
       <ResetTrackingDataSection onShowToast={onShowToast} />
 
       <p className="profile-zodiac-note">Cung hoàng đạo chỉ mang tính giải trí, không dùng để đánh giá sức khỏe hoặc đưa ra nhắc nhở chăm sóc.</p>
-    </div>
+    </div>,
+    document.body,
   );
 };

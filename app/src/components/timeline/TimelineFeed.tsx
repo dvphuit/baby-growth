@@ -1,5 +1,7 @@
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
+import { getTimelineMediaItems } from '@/domain/timelineMedia';
+import { useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
 import type { TimelineItem } from '../../types';
 
 interface TimelineFeedProps {
@@ -113,6 +115,8 @@ const TimelinePostCard: React.FC<TimelinePostCardProps> = ({
   onToggleLike,
   onOpenLightbox,
 }) => {
+  const media = getTimelineMediaItems(item)[0];
+  const mediaSrc = useTimelineMediaUrl(media ?? { type: 'photo' });
   return (
     <div className="timeline-card-item">
       {/* Post Author Header */}
@@ -132,12 +136,14 @@ const TimelinePostCard: React.FC<TimelinePostCardProps> = ({
       <p className="timeline-card-content">{item.content}</p>
 
       {/* Optional Photo Attachment */}
-      {item.mediaUrl && (
+      {media && mediaSrc && (
         <div
           className="timeline-photo-container"
-          onClick={() => onOpenLightbox(item.mediaUrl!, item.mediaType === 'video')}
+          onClick={() => onOpenLightbox(mediaSrc, media.type === 'video')}
         >
-          <img src={item.mediaUrl} alt={item.title} className="timeline-post-image" />
+          {media.type === 'video'
+            ? <video src={mediaSrc} className="timeline-post-image" preload="metadata" />
+            : <img src={mediaSrc} alt={item.title} className="timeline-post-image" />}
           <span className="photo-zoom-badge">🔍 Chạm để phóng to</span>
         </div>
       )}

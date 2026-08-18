@@ -3,6 +3,15 @@
    Native iOS/Android spring-like bottom sheet animations and interactions.
    ========================================================================== */
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes pulseRing {
   0% {
     transform: scale(0.95);

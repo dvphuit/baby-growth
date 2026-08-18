@@ -25,9 +25,11 @@ describe('BabyHomeView', () => {
 
   it('shows honest empty states when there are no records', () => {
     renderView();
-    expect(screen.getAllByText('Chưa ghi nhận').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByRole('progressbar', { name: 'Tiến độ lượng sữa' }).parentElement).toHaveTextContent('0 ml');
+    expect(screen.getByRole('progressbar', { name: 'Tiến độ giấc ngủ' }).parentElement).toHaveTextContent('0 phút');
     expect(screen.getByText('Chưa có dữ liệu được ghi nhận.')).toBeInTheDocument();
     expect(screen.queryByText(/540 ml|12h 30p|Growth Score|AI/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/hôm nay/i)).not.toBeInTheDocument();
   });
 
   it('derives today metrics from persisted activity records', () => {
@@ -39,8 +41,9 @@ describe('BabyHomeView', () => {
       { id: 's1', owner: 'baby', type: 'sleep', durationMinutes: 90, occurredAt: now.toISOString(), createdAt: now.toISOString() },
     ];
     renderView();
-    expect(screen.getByText('150 ml · 2 cữ')).toBeInTheDocument();
-    expect(screen.getByText('1g 30p')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Tiến độ lượng sữa' }).parentElement).toHaveTextContent('150 ml');
+    expect(screen.getByRole('progressbar', { name: 'Tiến độ lượng sữa' }).parentElement).toHaveTextContent('2 cữ');
+    expect(screen.getByRole('progressbar', { name: 'Tiến độ giấc ngủ' }).parentElement).toHaveTextContent('1g 30p');
     expect(screen.getByText('1 lần')).toBeInTheDocument();
   });
 
@@ -48,5 +51,36 @@ describe('BabyHomeView', () => {
     const onOpenQuickLog = renderView();
     fireEvent.click(screen.getByRole('button', { name: '+ Ghi nhanh' }));
     expect(onOpenQuickLog).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows only today records in the home diary', () => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    records = [
+      feeding('today-feeding', 90, 8),
+      {
+        id: 'yesterday-note', owner: 'baby', type: 'health_note', note: 'Nội dung của hôm qua',
+        occurredAt: yesterday.toISOString(), createdAt: yesterday.toISOString(),
+      },
+    ];
+
+    renderView();
+
+    expect(screen.getByRole('heading', { name: 'Dòng thời gian' })).toBeInTheDocument();
+    expect(screen.getByText('Cữ bú')).toBeInTheDocument();
+    expect(screen.queryByText(/Nội dung của hôm qua/i)).not.toBeInTheDocument();
+  });
+
+  it('uses the shared notebook timeline in chronological order', () => {
+    records = [feeding('late-feeding', 60, 11), feeding('early-feeding', 90, 7)];
+
+    const { container } = render(
+      <BabyHomeView onOpenScoreDetail={vi.fn()} onOpenQuickLog={vi.fn()} onOpenAiChat={vi.fn()} />,
+    );
+
+    expect(container.querySelector('.journal-story.owner-baby.haven-home-notebook')).toBeInTheDocument();
+    expect(container.querySelector('.haven-activity-list')).not.toBeInTheDocument();
+    expect([...container.querySelectorAll('.journal-story-time')].map((node) => node.textContent)).toEqual(['07:00', '11:00']);
   });
 });

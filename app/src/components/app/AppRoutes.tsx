@@ -7,6 +7,7 @@ const TimelineView = lazy(async () => ({ default: (await import('@/components/ti
 const GrowthView = lazy(async () => ({ default: (await import('@/components/growth/GrowthView')).GrowthView }));
 const ExpensesView = lazy(async () => ({ default: (await import('@/components/expenses/ExpensesView')).ExpensesView }));
 const ProfileView = lazy(async () => ({ default: (await import('@/components/profile/ProfileView')).ProfileView }));
+const GoogleDriveDataView = lazy(async () => ({ default: (await import('@/components/profile/GoogleDriveDataView')).GoogleDriveDataView }));
 
 const RouteLoadingFallback = () => <div className="route-loading-state" role="status" aria-live="polite">Đang mở trang…</div>;
 
@@ -41,6 +42,7 @@ export function AppRoutes({
         <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
         <Route path="/expenses" element={<ExpensesView onOpenAddExpense={onOpenAddExpense} onShowToast={onShowToast} />} />
         <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onOpenNotifications={onOpenNotifications} onShowToast={onShowToast} />} />
+        <Route path="/profile/google-drive" element={<GoogleDriveDataView onOpenLightbox={onOpenLightbox} onShowToast={onShowToast} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

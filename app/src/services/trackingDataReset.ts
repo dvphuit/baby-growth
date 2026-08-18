@@ -1,5 +1,6 @@
-import { waitForLocalRecordWrites } from './localDb';
+import { clearLocalMedia, waitForLocalRecordWrites } from './localDb';
 import {
+  deleteTimelineMediaFromDrive,
   runWithAutoSyncPaused,
   SYNC_KEYS,
 } from './googleDriveSync';
@@ -43,6 +44,8 @@ async function waitForTrackingStoresHydrated(): Promise<void> {
 export async function resetTrackingData(): Promise<TrackingDataResetResult> {
   return runWithAutoSyncPaused(async ({ overwriteDriveBackupWithLocalData }) => {
     await waitForTrackingStoresHydrated();
+    const driveMediaIds = useTimelineStore.getState().timelineItems.flatMap((item) =>
+      (item.mediaItems ?? []).flatMap((media) => media.driveFileId ? [media.driveFileId] : []));
     useBabyStore.getState().resetTrackingData();
     useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
@@ -52,8 +55,12 @@ export async function resetTrackingData(): Promise<TrackingDataResetResult> {
     useUIStore.getState().resetTrackingData();
 
     await waitForLocalRecordWrites(SYNC_KEYS);
+    await clearLocalMedia();
 
     try {
+      await Promise.allSettled(
+        driveMediaIds.map((fileId) => deleteTimelineMediaFromDrive(fileId, { interactive: true })),
+      );
       await overwriteDriveBackupWithLocalData();
       return { status: 'synced' };
     } catch (error) {

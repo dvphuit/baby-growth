@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Cloud, CloudDownload, CloudUpload, RefreshCw, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight, Cloud, CloudDownload, CloudUpload, Database, RefreshCw, ShieldCheck } from 'lucide-react';
 import {
   getLastSyncedAt,
   getSyncState,
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<SyncState['status'], string> = {
 };
 
 export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) => {
+  const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(isGoogleConnected());
   const [syncState, setSyncState] = useState<SyncState>(getSyncState());
@@ -215,6 +217,11 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
         <button type="button" className="profile-action-btn secondary" style={{ marginTop: 16 }} onClick={handleSync} disabled={busy}>
           <RefreshCw size={16} className={busy ? 'spin' : ''} />
           <span>{busy ? 'Đang đồng bộ...' : connected ? 'Đồng bộ ngay với Google Drive' : 'Kết nối Google & đồng bộ'}</span>
+        </button>
+        <button type="button" className="profile-drive-manage-link" onClick={() => navigate('/profile/google-drive')}>
+          <span className="profile-drive-manage-icon"><Database size={17} /></span>
+          <span><strong>Quản lý dữ liệu Drive</strong><small>Xem backup, ảnh và video đã đồng bộ</small></span>
+          <ChevronRight size={17} />
         </button>
       </div>
     </div>

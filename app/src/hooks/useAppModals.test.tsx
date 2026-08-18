@@ -8,6 +8,8 @@ describe('useAppModals', () => {
     ['pumping', 'isAddPumpingOpen'],
     ['smart-expense', 'isAddExpenseOpen'],
     ['expense', 'isAddExpenseOpen'],
+    ['moment', 'isAddPostOpen'],
+    ['diary', 'isAddPostOpen'],
   ] as const)('maps %s to %s', (action, key) => {
     const { result } = renderHook(() => useAppModals(vi.fn()));
     act(() => result.current.handleQuickAction(action));
@@ -21,8 +23,6 @@ describe('useAppModals', () => {
     ['mom-sleep', 'mom-sleep'],
     ['mom-mood', 'mom-mood'],
     ['medicine', 'medicine'],
-    ['moment', 'baby-note'],
-    ['diary', 'baby-note'],
   ] as const)('routes %s to the persisted activity modal %s', (action, expectedMode) => {
     const addToast = vi.fn();
     const { result } = renderHook(() => useAppModals(addToast));

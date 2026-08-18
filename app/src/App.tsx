@@ -23,7 +23,7 @@ import { PullToRefresh } from './components/common/PullToRefresh';
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
-  const isProfilePage = location.pathname === '/profile';
+  const isProfilePage = location.pathname.startsWith('/profile');
   const familyData = useBabyStore((state) => state.familyData);
   const isInitialized = Boolean(familyData?.isInitialized && familyData?.childName);
 
@@ -39,6 +39,7 @@ export const AppContent: React.FC = () => {
     modals.isAddGrowthOpen ||
     modals.isAddPumpingOpen ||
     modals.isAddExpenseOpen ||
+    modals.isAddPostOpen ||
     modals.isEditProfileOpen ||
     modals.activityLogMode !== null ||
     modals.lightboxSrc !== null

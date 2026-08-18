@@ -58,14 +58,16 @@ export function selectMomTodayMetrics(records: MomActivity[], now: Date) {
   };
 }
 
-export function getRecentBabyActivities(records: BabyActivity[], limit = 5): BabyActivity[] {
-  return [...records]
-    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
-    .slice(0, limit);
+export function getBabyActivitiesForDay(records: BabyActivity[], now: Date, limit?: number): BabyActivity[] {
+  const today = records
+    .filter((record) => isInLocalDay(record.occurredAt, now))
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
+  return limit == null ? today : today.slice(0, limit);
 }
 
-export function getRecentMomActivities(records: MomActivity[], limit = 5): MomActivity[] {
-  return [...records]
-    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())
-    .slice(0, limit);
+export function getMomActivitiesForDay(records: MomActivity[], now: Date, limit?: number): MomActivity[] {
+  const today = records
+    .filter((record) => isInLocalDay(record.occurredAt, now))
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
+  return limit == null ? today : today.slice(0, limit);
 }

@@ -15,6 +15,7 @@ const persistence = vi.hoisted(() => ({
   setLocalRecord: vi.fn(),
   subscribeLocalRecordChanges: vi.fn(),
   waitForLocalRecordWrites: vi.fn(),
+  clearLocalMedia: vi.fn(),
   indexedDbStorage: {
     getItem: vi.fn(async () => null),
     setItem: vi.fn(async () => undefined),
@@ -23,6 +24,7 @@ const persistence = vi.hoisted(() => ({
 }));
 
 const drive = vi.hoisted(() => ({
+  deleteTimelineMediaFromDrive: vi.fn(),
   overwriteDriveBackupWithLocalData: vi.fn(),
   runWithAutoSyncPaused: vi.fn(),
 }));
@@ -30,6 +32,7 @@ const drive = vi.hoisted(() => ({
 vi.mock('./localDb', () => persistence);
 vi.mock('./googleDriveSync', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./googleDriveSync')>()),
+  deleteTimelineMediaFromDrive: drive.deleteTimelineMediaFromDrive,
   overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
   runWithAutoSyncPaused: drive.runWithAutoSyncPaused,
 }));
@@ -78,7 +81,9 @@ describe('resetTrackingData', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     persistence.waitForLocalRecordWrites.mockResolvedValue(undefined);
+    persistence.clearLocalMedia.mockResolvedValue(undefined);
     drive.overwriteDriveBackupWithLocalData.mockResolvedValue(undefined);
+    drive.deleteTimelineMediaFromDrive.mockResolvedValue(undefined);
     drive.runWithAutoSyncPaused.mockImplementation(async (operation) => operation({
       overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
     }));
@@ -99,6 +104,7 @@ describe('resetTrackingData', () => {
     seedTrackingData();
     drive.overwriteDriveBackupWithLocalData.mockImplementation(async () => {
       expect(persistence.waitForLocalRecordWrites).toHaveBeenCalledWith(SYNC_KEYS);
+      expect(persistence.clearLocalMedia).toHaveBeenCalledOnce();
       expectTrackingDataReset();
     });
 
@@ -114,6 +120,17 @@ describe('resetTrackingData', () => {
 
     await expect(resetTrackingData()).resolves.toEqual({ status: 'local-only', error: 'Drive unavailable' });
     expectTrackingDataReset();
+  });
+
+  it('removes known timeline media files from Drive during reset', async () => {
+    useTimelineStore.getState().addTimelineItem({
+      title: 'Ảnh đã đồng bộ',
+      mediaItems: [{ id: 'media-1', blobId: 'media-1', driveFileId: 'drive-media-1', type: 'photo' }],
+    });
+    const { resetTrackingData } = await import('./trackingDataReset');
+
+    await expect(resetTrackingData()).resolves.toEqual({ status: 'synced' });
+    expect(drive.deleteTimelineMediaFromDrive).toHaveBeenCalledWith('drive-media-1', { interactive: true });
   });
 
   it('is idempotent and does not recreate tracked demo content', async () => {

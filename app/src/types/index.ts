@@ -167,6 +167,7 @@ export interface CalendarRangeEvent {
 
 export interface TimelineItem {
   id: string;
+  owner?: ProfileMode;
   stage?: StageKey;
   date: string;
   timeFormatted: string;
@@ -175,6 +176,7 @@ export interface TimelineItem {
   authorAvatar: string;
   title: string;
   content: string;
+  mediaItems?: TimelineMediaItem[];
   mediaUrl?: string | null;
   mediaType?: 'photo' | 'video' | null;
   stats: string[];
@@ -184,6 +186,17 @@ export interface TimelineItem {
   tag: string;
   tagType: 'milestone' | 'feeding' | 'mom' | 'health' | 'general';
   type?: 'growth' | 'mom' | 'daily' | 'milestone';
+}
+
+export interface TimelineMediaItem {
+  id?: string;
+  url?: string;
+  blobId?: string;
+  driveFileId?: string;
+  type: 'photo' | 'video';
+  name?: string;
+  focalX?: number;
+  focalY?: number;
 }
 
 export interface ChatMessage {

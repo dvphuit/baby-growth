@@ -13,15 +13,15 @@ export interface DerivedTimelineEntry {
 function babyEntry(record: BabyActivity): DerivedTimelineEntry {
   switch (record.type) {
     case 'feeding':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Cữ bú', detail: record.note ?? 'Đã ghi nhận cữ bú.', stats: [record.amountMl ? `${record.amountMl} ml` : '', record.durationMinutes ? `${record.durationMinutes} phút` : ''].filter(Boolean) };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Cữ bú', detail: record.note ?? '', stats: [record.amountMl ? `${record.amountMl} ml` : '', record.durationMinutes ? `${record.durationMinutes} phút` : ''].filter(Boolean) };
     case 'sleep':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Giấc ngủ của bé', detail: record.note ?? 'Đã ghi nhận giấc ngủ.', stats: [`${record.durationMinutes} phút`] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Giấc ngủ của bé', detail: record.note ?? '', stats: [`${record.durationMinutes} phút`] };
     case 'diaper':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Thay tã', detail: record.note ?? 'Đã ghi nhận thay tã.', stats: [record.diaperKind === 'wet' ? 'Ướt' : record.diaperKind === 'dirty' ? 'Bẩn' : 'Ướt + bẩn'] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Thay tã', detail: record.note ?? '', stats: [record.diaperKind === 'wet' ? 'Ướt' : record.diaperKind === 'dirty' ? 'Bẩn' : 'Ướt + bẩn'] };
     case 'medicine':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: record.name, detail: record.note ?? 'Thuốc / vitamin', stats: record.dose ? [record.dose] : [] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: record.name, detail: record.note ?? '', stats: record.dose ? [record.dose] : [] };
     case 'temperature':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Nhiệt độ', detail: record.note ?? 'Đã đo nhiệt độ.', stats: [`${record.temperatureC} °C`] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Nhiệt độ', detail: record.note ?? '', stats: [`${record.temperatureC} °C`] };
     default:
       return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Ghi chú sức khỏe', detail: record.note ?? '', stats: [] };
   }
@@ -30,11 +30,11 @@ function babyEntry(record: BabyActivity): DerivedTimelineEntry {
 function momEntry(record: MomActivity): DerivedTimelineEntry {
   switch (record.type) {
     case 'pumping':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Hút sữa', detail: record.note ?? 'Đã ghi nhận cữ hút sữa.', stats: [`${record.amountMl} ml`, record.side === 'both' ? '2 bên' : record.side === 'left' ? 'Bên trái' : 'Bên phải'] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Hút sữa', detail: record.note ?? '', stats: [`${record.amountMl} ml`, record.side === 'both' ? '2 bên' : record.side === 'left' ? 'Bên trái' : 'Bên phải'] };
     case 'sleep':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Giấc ngủ của mẹ', detail: record.note ?? 'Đã ghi nhận giấc ngủ.', stats: [`${record.durationMinutes} phút`] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Giấc ngủ của mẹ', detail: record.note ?? '', stats: [`${record.durationMinutes} phút`] };
     case 'mood':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Tâm trạng', detail: record.note ?? 'Đã ghi nhận tâm trạng.', stats: [record.mood] };
+      return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Tâm trạng', detail: record.note ?? '', stats: [record.mood] };
     default:
       return { id: record.id, occurredAt: record.occurredAt, owner: 'mom', type: record.type, title: 'Phục hồi', detail: record.note ?? '', stats: [] };
   }
@@ -58,7 +58,7 @@ function growthEntry(record: GrowthHistoryRecord): DerivedTimelineEntry | null {
     owner: 'baby',
     type: 'growth',
     title: 'Cân đo tăng trưởng',
-    detail: record.note || 'Đã ghi nhận số đo.',
+    detail: record.note || '',
     stats: [`${record.weight} kg`, `${record.height} cm`, `${record.headCirc} cm vòng đầu`],
   };
 }
@@ -79,6 +79,21 @@ export function filterTimelineByLocalDate(entries: DerivedTimelineEntry[], date:
   const [year, month, day] = date.split('-').map(Number);
   const start = new Date(year, month - 1, day).getTime();
   const end = new Date(year, month - 1, day + 1).getTime();
+  return entries.filter((entry) => {
+    const time = new Date(entry.occurredAt).getTime();
+    return time >= start && time < end;
+  });
+}
+
+export function filterTimelineByLocalDateRange(
+  entries: DerivedTimelineEntry[],
+  startDate: string,
+  endDate: string,
+): DerivedTimelineEntry[] {
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+  const start = new Date(startYear, startMonth - 1, startDay).getTime();
+  const end = new Date(endYear, endMonth - 1, endDay + 1).getTime();
   return entries.filter((entry) => {
     const time = new Date(entry.occurredAt).getTime();
     return time >= start && time < end;

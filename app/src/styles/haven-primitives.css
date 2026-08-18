@@ -1,0 +1,116 @@
+/* Reusable Haven popup, dropdown, dialog, alert, and calendar primitives. */
+.haven-popup-root { position: relative; min-width: 0; }
+.haven-popup-panel {
+  position: absolute; top: calc(100% + 9px); z-index: 80;
+  width: min(340px, calc(100vw - 32px)); overflow: hidden;
+  border: 1px solid rgba(92, 58, 39, 0.11); border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98); box-shadow: 0 18px 46px rgba(57, 38, 29, 0.17);
+  animation: haven-popup-in 160ms cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+.haven-popup-panel.align-start { left: 0; }
+.haven-popup-panel.align-end { right: 0; }
+@keyframes haven-popup-in { from { opacity: 0; transform: translateY(-5px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.haven-dropdown-trigger {
+  min-height: 50px; padding: 0 14px; border: 1px solid var(--color-border-subtle); border-radius: 16px;
+  background: #fff; color: var(--color-text-primary); display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font: 700 12px var(--font-family-body); cursor: pointer; box-shadow: 0 3px 12px rgba(57, 38, 29, 0.035);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.haven-dropdown-trigger:hover, .haven-dropdown-trigger[aria-expanded='true'] { border-color: rgba(111, 139, 74, 0.55); box-shadow: 0 5px 14px rgba(57, 38, 29, 0.08); }
+.haven-dropdown-trigger > svg:last-child { color: var(--color-text-muted); transition: transform var(--transition-fast); }
+.haven-dropdown-trigger > svg.is-open:last-child { transform: rotate(180deg); }
+.haven-dropdown-menu { display: grid; gap: 4px; padding: 8px; }
+.haven-dropdown-option {
+  width: 100%; min-height: 54px; padding: 8px 10px; border: 0; border-radius: 14px; background: transparent;
+  color: var(--color-text-primary); display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer;
+}
+.haven-dropdown-option:hover { background: var(--color-canvas); }
+.haven-dropdown-option.selected { background: var(--color-sage-subtle); }
+.haven-dropdown-option-icon { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 11px; display: grid; place-items: center; background: var(--color-card-warm); color: var(--color-primary-brown); }
+.haven-dropdown-option.selected .haven-dropdown-option-icon { background: var(--color-sage-light); color: var(--color-sage-dark); }
+.haven-dropdown-option-copy { min-width: 0; display: grid; gap: 2px; }
+.haven-dropdown-option-copy strong { font: 700 13px var(--font-family-body); }
+.haven-dropdown-option-copy small { color: var(--color-text-muted); font: 500 10px var(--font-family-body); }
+.haven-dropdown-check { margin-left: auto; color: var(--color-sage-dark); }
+
+.haven-alert { width: 100%; box-sizing: border-box; display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: start; padding: 15px; border: 1px solid transparent; border-radius: 18px; }
+.haven-alert.tone-info { background: #eef5f8; border-color: #dcebef; color: #466a77; }
+.haven-alert.tone-success { background: #f0f7e8; border-color: #dfecd0; color: var(--color-sage-dark); }
+.haven-alert.tone-warning { background: #fff5e8; border-color: #f4dfc2; color: #9a622e; }
+.haven-alert.tone-sage { background: var(--color-sage-subtle); border-color: #dfe9d3; color: var(--color-sage-dark); }
+.haven-alert-icon { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.75); }
+.haven-alert-copy { min-width: 0; display: grid; gap: 4px; }
+.haven-alert-copy strong { color: var(--color-text-primary); font: 750 13px var(--font-family-body); }
+.haven-alert-copy > div { color: var(--color-text-secondary); font: 500 11px/1.55 var(--font-family-body); }
+.haven-alert-action { grid-column: 2; }
+.haven-alert-action button { padding: 0; border: 0; background: transparent; color: currentColor; font: 800 11px var(--font-family-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+.haven-dialog-backdrop {
+  position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px;
+  background: rgba(44, 30, 23, 0.38); backdrop-filter: blur(4px); animation: haven-dialog-backdrop-in 180ms ease-out;
+}
+.haven-dialog {
+  width: min(420px, 100%); max-height: min(680px, calc(100vh - 40px)); overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 26px; background: #fff;
+  box-shadow: 0 28px 70px rgba(57, 38, 29, 0.27); animation: haven-dialog-in 200ms cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+.haven-dialog-backdrop.non-modal { z-index: 45; align-items: end; padding: 12px 12px calc(78px + env(safe-area-inset-bottom, 0px)); background: transparent; backdrop-filter: none; pointer-events: none; animation: none; }
+.haven-dialog-backdrop.non-modal .haven-dialog { width: min(440px, 100%); max-height: min(68vh, 620px); border-radius: 25px; pointer-events: auto; box-shadow: 0 18px 54px rgba(57, 38, 29, 0.24); }
+@keyframes haven-dialog-backdrop-in { from { opacity: 0; } }
+@keyframes haven-dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+.haven-dialog-header { display: flex; justify-content: space-between; gap: 16px; padding: 20px 20px 14px; border-bottom: 1px solid var(--color-border-subtle); }
+.haven-dialog-header h2 { margin: 0; color: var(--color-text-primary); font: 750 21px/1.2 var(--font-family-display); }
+.haven-dialog-header p { margin: 5px 0 0; color: var(--color-text-muted); font: 500 11px/1.5 var(--font-family-body); }
+.haven-dialog-close { width: 34px; height: 34px; flex: 0 0 34px; border: 0; border-radius: 50%; background: var(--color-card-warm); color: var(--color-text-secondary); display: grid; place-items: center; cursor: pointer; }
+.haven-dialog-body { padding: 20px; }
+.haven-dialog-footer { display: flex; justify-content: flex-end; gap: 9px; padding: 0 20px 20px; }
+.haven-dialog-footer button { min-height: 40px; padding: 0 16px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: 750 12px var(--font-family-body); cursor: pointer; }
+.haven-dialog-secondary { border: 1px solid var(--color-border-subtle); background: #fff; color: var(--color-text-secondary); }
+.haven-dialog-primary { border: 1px solid var(--color-primary-dark); background: var(--color-primary-dark); color: #fff; }
+
+.haven-calendar { padding: 8px; }
+.haven-calendar-header { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 8px; }
+.haven-calendar-header strong { color: var(--color-text-primary); text-align: center; text-transform: capitalize; font: 750 15px var(--font-family-display); }
+.haven-calendar-header button { width: 34px; height: 34px; padding: 0; border: 1px solid var(--color-border-subtle); border-radius: 11px; background: #fff; color: var(--color-text-secondary); display: grid; place-items: center; cursor: pointer; }
+.haven-calendar-header button:hover { background: var(--color-canvas); color: var(--color-primary-dark); }
+.haven-calendar-header button:disabled { opacity: 0.32; cursor: default; }
+.haven-calendar-weekdays, .haven-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.haven-calendar-weekdays { margin-top: 9px; color: var(--color-text-muted); }
+.haven-calendar-weekdays span { padding: 5px 0; text-align: center; font: 700 9px var(--font-family-body); }
+.haven-calendar-weekdays span.weekend { color: #a95c69; }
+.haven-calendar-pager { overflow: hidden; touch-action: pan-y; }
+.haven-calendar-track { width: 300%; display: flex; will-change: transform; }
+.haven-calendar-track.is-dragging { transition: none; }
+.haven-calendar-track.is-settling { transition: transform 280ms cubic-bezier(0.2, 0.78, 0.28, 1); }
+.haven-calendar-page { width: 33.333333%; flex: 0 0 33.333333%; }
+.haven-calendar-grid { row-gap: 4px; }
+.haven-calendar-day { position: relative; min-width: 0; height: 38px; padding: 0; border: 0; background: transparent; color: var(--color-text-primary); display: grid; place-items: center; cursor: pointer; font: 650 11px var(--font-family-body); }
+.haven-calendar-day::before { content: ''; position: absolute; inset: 3px; z-index: 0; border-radius: 12px; }
+.haven-calendar-day > span { position: relative; z-index: 2; }
+.haven-calendar-day:hover::before { background: var(--color-card-warm); }
+.haven-calendar-day.weekend { color: #b56b77; }
+.haven-calendar-day.other-month { color: #c8bdb7; }
+.haven-calendar-day.disabled { opacity: 0.24; cursor: default; }
+.haven-calendar-day.today > span { color: var(--color-sage-dark); font-weight: 850; }
+.haven-calendar-day.today::after { content: ''; position: absolute; bottom: 5px; width: 3px; height: 3px; z-index: 3; border-radius: 50%; background: var(--color-sage-dark); }
+.haven-calendar-day.selected::before { background: var(--color-primary-dark); }
+.haven-calendar-day.selected > span { color: #fff; }
+.haven-calendar-day.weekend.selected > span { color: #fff; }
+.haven-calendar-day.selected.today::after { background: #fff; }
+.haven-calendar-day.in-range::before { inset-inline: 0; border-radius: 0; background: var(--color-sage-light); }
+.haven-calendar-day.range-start:not(.range-end)::before { right: 0; border-radius: 12px 0 0 12px; }
+.haven-calendar-day.range-end:not(.range-start)::before { left: 0; border-radius: 0 12px 12px 0; }
+.haven-calendar-day > i { position: absolute; right: 6px; top: 5px; z-index: 3; width: 4px; height: 4px; border-radius: 50%; background: #dfa45e; }
+.haven-calendar-footer { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.haven-calendar-footer span { color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 5px; font: 550 9px var(--font-family-body); }
+.haven-calendar-footer button { padding: 6px 10px; border: 0; border-radius: 10px; background: var(--color-sage-light); color: var(--color-sage-dark); font: 800 10px var(--font-family-body); cursor: pointer; }
+.haven-calendar-footer button:disabled { opacity: 0.35; cursor: default; }
+
+@media (max-width: 420px) {
+  .haven-popup-panel { position: fixed; top: 50%; left: 50% !important; right: auto !important; transform: translate(-50%, -50%); width: calc(100vw - 28px); animation-name: haven-popup-mobile-in; }
+  @keyframes haven-popup-mobile-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(0.985); } }
+  .haven-dialog-backdrop { align-items: end; padding: 12px; }
+  .haven-dialog { width: 100%; border-radius: 25px; }
+}
+@media (prefers-reduced-motion: reduce) { .haven-popup-panel, .haven-dialog, .haven-dialog-backdrop { animation: none; } .haven-calendar-track.is-settling { transition-duration: 1ms; } }

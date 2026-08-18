@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { BabyActivity, MomActivity } from '@/types';
-import { selectBabyTodayMetrics, selectMomTodayMetrics } from './activitySelectors';
+import {
+  getBabyActivitiesForDay,
+  getMomActivitiesForDay,
+  selectBabyTodayMetrics,
+  selectMomTodayMetrics,
+} from './activitySelectors';
 
 const now = new Date(2026, 7, 16, 15, 0, 0);
 
@@ -57,5 +62,18 @@ describe('activitySelectors', () => {
     expect(result.sleepMinutes).toBe(180);
     expect(result.lastPumpingAt).toBe(records[1].occurredAt);
     expect(result.latestMood?.type).toBe('mood');
+  });
+
+  it('returns only today activities for the home diary, newest first', () => {
+    const yesterdayBaby = baby({ type: 'health_note', occurredAt: new Date(2026, 7, 15, 23, 0, 0).toISOString(), note: 'Hôm qua' });
+    const morningBaby = baby({ type: 'feeding', amountMl: 90, method: 'bottle' });
+    const noonBaby = baby({ type: 'diaper', diaperKind: 'wet', occurredAt: new Date(2026, 7, 16, 12, 0, 0).toISOString() });
+    const yesterdayMom = mom({ type: 'recovery_note', occurredAt: new Date(2026, 7, 15, 22, 0, 0).toISOString(), note: 'Hôm qua' });
+    const todayMom = mom({ type: 'mood', mood: 'good' });
+
+    expect(getBabyActivitiesForDay([yesterdayBaby, morningBaby, noonBaby], now).map((item) => item.id))
+      .toEqual([noonBaby.id, morningBaby.id]);
+    expect(getMomActivitiesForDay([yesterdayMom, todayMom], now).map((item) => item.id))
+      .toEqual([todayMom.id]);
   });
 });

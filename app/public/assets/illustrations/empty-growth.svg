@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <style>
+      .canvas-bg { fill: #FAF8F5; }
+      .sage-dark { fill: #8DA06F; }
+      .sage-light { fill: #E5ECD9; }
+      .sage-subtle { fill: #F1F5EB; }
+      .amber { fill: #F5B842; }
+      .amber-light { fill: #FEF7E9; }
+      .terracotta { fill: #E97332; }
+      .brown { fill: #4A372E; }
+    </style>
+  </defs>
+
+  <rect width="400" height="300" rx="24" class="canvas-bg" />
+  <circle cx="200" cy="150" r="95" class="sage-subtle" />
+  <circle cx="150" cy="120" r="40" class="amber-light" />
+
+  <!-- Growth ruler tape ribbon on the left -->
+  <g transform="translate(130, 60)">
+    <rect x="0" y="0" width="22" height="170" rx="6" fill="#F6F3ED" stroke="#8DA06F" stroke-width="2" />
+    <!-- Ruler tick marks -->
+    <line x1="12" y1="20" x2="22" y2="20" stroke="#8DA06F" stroke-width="2" />
+    <line x1="16" y1="35" x2="22" y2="35" stroke="#8DA06F" stroke-width="1.5" />
+    <line x1="12" y1="50" x2="22" y2="50" stroke="#8DA06F" stroke-width="2" />
+    <line x1="16" y1="65" x2="22" y2="65" stroke="#8DA06F" stroke-width="1.5" />
+    <line x1="12" y1="80" x2="22" y2="80" stroke="#8DA06F" stroke-width="2" />
+    <line x1="16" y1="95" x2="22" y2="95" stroke="#8DA06F" stroke-width="1.5" />
+    <line x1="12" y1="110" x2="22" y2="110" stroke="#8DA06F" stroke-width="2" />
+    <line x1="16" y1="125" x2="22" y2="125" stroke="#8DA06F" stroke-width="1.5" />
+    <line x1="12" y1="140" x2="22" y2="140" stroke="#8DA06F" stroke-width="2" />
+    <line x1="16" y1="155" x2="22" y2="155" stroke="#8DA06F" stroke-width="1.5" />
+  </g>
+
+  <!-- Growing botanical sprout in center -->
+  <g transform="translate(180, 75)">
+    <!-- Main stem -->
+    <path d="M20,155 Q22,80 35,25" stroke="#8DA06F" stroke-width="4" fill="none" stroke-linecap="round" />
+    
+    <!-- Leaves -->
+    <path d="M22,125 Q5,115 10,100 Q25,108 22,125 Z" class="sage-dark" />
+    <path d="M25,95 Q45,85 40,70 Q25,78 25,95 Z" class="sage-dark" />
+    <path d="M30,65 Q12,55 18,40 Q32,48 30,65 Z" class="sage-dark" />
+    
+    <!-- Top bud -->
+    <path d="M35,25 Q38,10 48,15 Q45,28 35,25 Z" class="amber" />
+    <path d="M35,25 Q30,8 20,14 Q24,26 35,25 Z" class="sage-dark" />
+    
+    <!-- Little flower pot or soil hill -->
+    <path d="M-10,155 Q20,145 50,155 Q40,165 0,165 Z" class="terracotta" />
+  </g>
+
+  <!-- Baby footsteps ascending -->
+  <g transform="translate(240, 70)">
+    <!-- Footstep 1 -->
+    <ellipse cx="15" cy="140" rx="5" ry="8" class="amber" transform="rotate(10 15 140)" />
+    <circle cx="12" cy="130" r="1.5" class="amber" />
+    <circle cx="15" cy="129" r="1.7" class="amber" />
+    <circle cx="18" cy="130" r="1.5" class="amber" />
+
+    <!-- Footstep 2 -->
+    <ellipse cx="28" cy="100" rx="5.5" ry="8.5" class="sage-dark" transform="rotate(-5 28 100)" />
+    <circle cx="25" cy="89" r="1.7" class="sage-dark" />
+    <circle cx="29" cy="88" r="1.9" class="sage-dark" />
+    <circle cx="33" cy="90" r="1.7" class="sage-dark" />
+
+    <!-- Footstep 3 -->
+    <ellipse cx="18" cy="55" rx="6" ry="9" class="terracotta" transform="rotate(15 18 55)" />
+    <circle cx="14" cy="43" r="1.8" class="terracotta" />
+    <circle cx="18" cy="42" r="2.0" class="terracotta" />
+    <circle cx="22" cy="44" r="1.8" class="terracotta" />
+  </g>
+
+  <!-- Sparkle stars -->
+  <path d="M95,110 L98,116 L104,118 L98,120 L95,126 L92,120 L86,118 L92,116 Z" class="amber" />
+  <path d="M305,90 L308,96 L314,98 L308,100 L305,106 L302,100 L296,98 L302,96 Z" class="amber" />
+</svg>

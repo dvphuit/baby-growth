@@ -23,6 +23,7 @@ interface BabyStoreState {
   ) => void;
   updateFamilyData: (data: Partial<FamilyData>) => void;
   addGrowthMeasurement: (measurement: { weight: number; height: number; headCirc: number; date?: string; note?: string }) => void;
+  updateGrowthMeasurement: (id: string, patch: Partial<Pick<GrowthHistoryRecord, 'date' | 'weight' | 'height' | 'headCirc' | 'note'>>) => void;
   deleteGrowthMeasurement: (id: string) => void;
   toggleMilestone: (milestoneId: string, status?: 'completed' | 'in-progress' | 'upcoming', dateAchieved?: string) => void;
   addExpenseRecord: (input: Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>) => ExpenseRecord;
@@ -35,6 +36,14 @@ interface BabyStoreState {
 
 function createExpenseId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `expense-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function growthDateTimestamp(value: string): number {
+  const parsed = new Date(value).getTime();
+  if (Number.isFinite(parsed)) return parsed;
+  const match = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (!match) return 0;
+  return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]), 12).getTime();
 }
 
 export const useBabyStore = create<BabyStoreState>()(
@@ -164,6 +173,51 @@ export const useBabyStore = create<BabyStoreState>()(
             percentileLabel: '', status: 'optimal', note: note?.trim() ?? '',
           };
           stage.growthHistory = [newRecord, ...(stage.growthHistory || [])];
+          return { ...prevState, stages: { ...prevState.stages, [currentStage]: stage } };
+        });
+      },
+
+      updateGrowthMeasurement: (id, patch) => {
+        set((prevState) => {
+          const currentStage = prevState.currentStage;
+          const stage = { ...prevState.stages[currentStage] };
+          if (!stage?.growthHistory) return prevState;
+
+          const currentRecord = stage.growthHistory.find((record) => record.id === id);
+          if (!currentRecord) return prevState;
+          const updatedRecord = { ...currentRecord, ...patch, id: currentRecord.id };
+          const updatedHistory = stage.growthHistory
+            .map((record) => record.id === id ? updatedRecord : record)
+            .sort((a, b) => growthDateTimestamp(b.date) - growthDateTimestamp(a.date));
+
+          if (typeof updatedRecord.labelIndex === 'number' && stage.growthChart?.labels) {
+            const index = updatedRecord.labelIndex;
+            const heightValues = [...stage.growthChart.height.child];
+            const weightValues = [...stage.growthChart.weight.child];
+            const headValues = [...stage.growthChart.headCirc.child];
+            if (index >= 0 && index < stage.growthChart.labels.length) {
+              heightValues[index] = updatedRecord.height;
+              weightValues[index] = updatedRecord.weight;
+              headValues[index] = updatedRecord.headCirc;
+              stage.growthChart = {
+                ...stage.growthChart,
+                height: { ...stage.growthChart.height, child: heightValues },
+                weight: { ...stage.growthChart.weight, child: weightValues },
+                headCirc: { ...stage.growthChart.headCirc, child: headValues },
+              };
+            }
+          }
+
+          const latest = updatedHistory[0];
+          if (latest) {
+            stage.todayVitals = {
+              ...stage.todayVitals,
+              weight: latest.weight > 0 ? `${latest.weight} kg` : stage.todayVitals.weight,
+              height: latest.height > 0 ? `${latest.height} cm` : stage.todayVitals.height,
+              headCirc: latest.headCirc > 0 ? `${latest.headCirc} cm` : stage.todayVitals.headCirc,
+            };
+          }
+          stage.growthHistory = updatedHistory;
           return { ...prevState, stages: { ...prevState.stages, [currentStage]: stage } };
         });
       },

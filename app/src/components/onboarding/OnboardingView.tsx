@@ -284,21 +284,21 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                 )}
               </button>
 
-              {!googleConfigured && (
-                <div className="haven-auth-dev-box">
+              <div className="haven-auth-dev-box">
+                {!googleConfigured && (
                   <span className="haven-auth-dev-label">
                     ⚠️ Google Client ID chưa cấu hình (Môi trường Dev/Test)
                   </span>
-                  <button
-                    type="button"
-                    id="btnDevBypass"
-                    className="haven-auth-dev-btn"
-                    onClick={handleBypassAuth}
-                  >
-                    Bỏ qua & Thiết lập Offline
-                  </button>
-                </div>
-              )}
+                )}
+                <button
+                  type="button"
+                  id="btnDevBypass"
+                  className="haven-auth-dev-btn"
+                  onClick={handleBypassAuth}
+                >
+                  Bỏ qua & Thiết lập Offline
+                </button>
+              </div>
             </div>
 
             <footer className="haven-auth-footer">

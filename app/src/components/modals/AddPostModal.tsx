@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowRight, CalendarDays, Camera, Image, Images, Plus, Tag, Video, X } from 'lucide-react';
 import { useTimelineStore } from '@/store/useTimelineStore';
+import { TimelineMediaAsset } from '@/components/timeline/TimelineMediaAsset';
+import { readTimelineMediaFiles, removeTimelineMediaFiles } from '@/components/timeline/timelineMediaFiles';
+import type { TimelineMediaItem } from '@/types';
 import { BottomSheet } from '../common/BottomSheet';
-import { Image, Tag, X, ArrowRight } from 'lucide-react';
 
 type PostTagType = 'milestone' | 'feeding' | 'mom' | 'health' | 'general';
 
@@ -12,160 +15,170 @@ interface AddPostModalProps {
   presetTagType?: PostTagType;
 }
 
-export const AddPostModal: React.FC<AddPostModalProps> = ({
-  isOpen,
-  onClose,
-  onSuccessToast,
-  presetTagType,
-}) => {
-  const addTimelineItem = useTimelineStore(s => s.addTimelineItem);
+function localDateValue(date = new Date()): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
 
-  const [title, setTitle] = useState<string>('');
-  const [content, setContent] = useState<string>('');
-  const [tag, setTag] = useState<string>(presetTagType === 'feeding' ? 'Ăn dặm' : 'Cột mốc vàng');
-  const [tagType, setTagType] = useState<PostTagType>(presetTagType || 'milestone');
-  const [mediaUrl, setMediaUrl] = useState<string>('');
+function localTimeValue(date = new Date()): string {
+  return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+}
 
-  const samplePhotos = [
-    { label: 'Bé cười', url: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&auto=format&fit=crop&q=80' },
-    { label: 'Ăn dặm', url: 'https://images.unsplash.com/photo-1544126592-807ade215a0b?w=600&auto=format&fit=crop&q=80' },
-    { label: 'Tập bò', url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80' },
-  ];
+export const AddPostModal: React.FC<AddPostModalProps> = ({ isOpen, onClose, onSuccessToast, presetTagType }) => {
+  const addTimelineItem = useTimelineStore((state) => state.addTimelineItem);
+  const [date, setDate] = useState(localDateValue);
+  const [time, setTime] = useState(localTimeValue);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [tag, setTag] = useState(presetTagType === 'feeding' ? 'Ăn dặm' : 'Khoảnh khắc');
+  const [tagType, setTagType] = useState<PostTagType>(presetTagType ?? 'general');
+  const [mediaItems, setMediaItems] = useState<TimelineMediaItem[]>([]);
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaType, setMediaType] = useState<'photo' | 'video'>('photo');
+  const [error, setError] = useState<string | null>(null);
+  const pendingBlobIds = useRef(new Set<string>());
+  const isOpenRef = useRef(isOpen);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const discardPendingMedia = useCallback(async () => {
+    const items = [...pendingBlobIds.current].map((blobId) => ({ blobId, type: 'photo' as const }));
+    pendingBlobIds.current.clear();
+    await removeTimelineMediaFiles(items);
+  }, []);
+
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+    if (!isOpen) void discardPendingMedia();
+  }, [discardPendingMedia, isOpen]);
+
+  useEffect(() => () => {
+    isOpenRef.current = false;
+    void discardPendingMedia();
+  }, [discardPendingMedia]);
+
+  const clearMedia = () => {
+    setMediaItems([]);
+    setMediaUrl('');
+  };
+
+  const selectFiles = async (files?: FileList | null) => {
+    try {
+      const nextItems = await readTimelineMediaFiles(files);
+      if (nextItems.length === 0) return;
+      if (!isOpenRef.current) {
+        await removeTimelineMediaFiles(nextItems);
+        return;
+      }
+      nextItems.forEach((item) => { if (item.blobId) pendingBlobIds.current.add(item.blobId); });
+      setMediaItems((current) => [...current, ...nextItems]);
+      setError(null);
+    } catch (fileError) {
+      setError(fileError instanceof Error ? fileError.message : 'Không thể đọc media đã chọn.');
+    }
+  };
+
+  const addMediaUrl = () => {
+    const url = mediaUrl.trim();
+    if (!url) return;
+    setMediaItems((current) => [...current, {
+      id: `media-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      url,
+      type: mediaType,
+    }]);
+    setMediaUrl('');
+    setError(null);
+  };
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!title.trim()) {
-      alert('Vui lòng nhập tiêu đề nhật ký!');
+      setError('Nhập tiêu đề khoảnh khắc.');
       return;
     }
-
+    const pendingMedia = mediaUrl.trim()
+      ? [{ url: mediaUrl.trim(), type: mediaType } satisfies TimelineMediaItem]
+      : [];
+    const nextMediaItems = [...mediaItems, ...pendingMedia];
     addTimelineItem({
-      title,
-      content,
+      date,
+      timeFormatted: time,
+      title: title.trim(),
+      content: content.trim(),
       tag,
       tagType,
-      mediaUrl: mediaUrl || null,
-      mediaType: mediaUrl ? 'photo' : null,
-      stats: [tag, 'Ghi nhận hôm nay'],
+      mediaItems: nextMediaItems,
+      mediaUrl: nextMediaItems[0]?.url ?? null,
+      mediaType: nextMediaItems[0]?.type ?? null,
+      stats: [],
+      type: 'daily',
     });
-
-    onSuccessToast(`Đã thêm nhật ký mới: "${title}" ✨`);
+    pendingBlobIds.current.clear();
+    onSuccessToast(`Đã lưu khoảnh khắc “${title.trim()}”.`);
     setTitle('');
     setContent('');
-    setMediaUrl('');
+    clearMedia();
+    setError(null);
     onClose();
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Viết Nhật Ký & Khoảnh Khắc">
-      <form onSubmit={handleSubmit}>
-        <div className="log-form-group">
-          <label className="log-form-label">Tiêu đề khoảnh khắc</label>
-          <input
-            type="text"
-            required
-            className="log-input-control"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="VD: Bé tự xúc thìa ăn hết bát cháo..."
-          />
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Thêm khoảnh khắc">
+      <form className="moment-form" onSubmit={submit}>
+        <div className="moment-datetime-row">
+          <label className="log-form-group"><span className="log-form-label"><CalendarDays size={12} /> Ngày</span><input className="log-input-control" type="date" max={localDateValue()} value={date} onChange={(event) => setDate(event.target.value)} required /></label>
+          <label className="log-form-group"><span className="log-form-label">Thời gian</span><input className="log-input-control" type="time" value={time} onChange={(event) => setTime(event.target.value)} required /></label>
         </div>
 
-        <div className="log-form-group">
-          <label className="log-form-label">Nội dung chi tiết</label>
-          <textarea
-            className="log-input-control"
-            style={{ height: 'auto', minHeight: '64px', padding: '8px 10px', lineHeight: 1.4 }}
-            rows={3}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Kể lại cảm xúc, cử chỉ đáng yêu hoặc mốc mới của con..."
-          ></textarea>
-        </div>
+        <label className="log-form-group"><span className="log-form-label">Tiêu đề khoảnh khắc</span><input className="log-input-control" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Lần đầu bé tự đứng" required /></label>
+        <label className="log-form-group"><span className="log-form-label">Câu chuyện</span><textarea className="log-input-control" rows={3} value={content} onChange={(event) => setContent(event.target.value)} placeholder="Ghi lại điều đáng nhớ trong khoảnh khắc này…" /></label>
 
         <div className="log-form-group">
-          <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Tag size={12} /> Chủ đề phân loại
-          </label>
-          <div className="chart-metric-selector-pills" style={{ marginBottom: 0 }}>
+          <span className="log-form-label"><Tag size={12} /> Chủ đề</span>
+          <div className="moment-tag-options">
             {[
-              { label: 'Cột mốc vàng', type: 'milestone' as const },
+              { label: 'Khoảnh khắc', type: 'general' as const },
+              { label: 'Cột mốc', type: 'milestone' as const },
               { label: 'Ăn dặm', type: 'feeding' as const },
               { label: 'Sức khỏe', type: 'health' as const },
-              { label: 'Sữa mẹ', type: 'mom' as const },
-            ].map((t) => (
-              <button
-                type="button"
-                key={t.type}
-                className={`metric-pill-choice ${tagType === t.type ? 'active' : ''}`}
-                onClick={() => {
-                  setTagType(t.type);
-                  setTag(t.label);
-                }}
-              >
-                {t.label}
-              </button>
+              { label: 'Của mẹ', type: 'mom' as const },
+            ].map((option) => (
+              <button type="button" key={option.type} className={tagType === option.type ? 'active' : ''} onClick={() => { setTagType(option.type); setTag(option.label); }}>{option.label}</button>
             ))}
           </div>
         </div>
 
         <div className="log-form-group">
-          <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Image size={12} /> Đính kèm hình ảnh (Chọn mẫu nhanh)
-          </label>
-          <div className="photo-preview-choices" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
-            {samplePhotos.map((p, idx) => (
-              <button
-                type="button"
-                key={idx}
-                className={`photo-thumb-btn ${mediaUrl === p.url ? 'selected' : ''}`}
-                onClick={() => setMediaUrl(p.url)}
-                style={{
-                  border: mediaUrl === p.url ? '2px solid var(--color-sage-dark)' : '1px solid var(--color-border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  overflow: 'hidden',
-                  padding: '2px',
-                  background: '#FFFFFF',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '2px',
-                }}
-              >
-                <img src={p.url} alt={p.label} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
-                <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--color-primary-dark)' }}>{p.label}</span>
-              </button>
-            ))}
-            {mediaUrl && (
-              <button
-                type="button"
-                onClick={() => setMediaUrl('')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  fontSize: '10px',
-                  color: '#D96938',
-                  padding: '4px 8px',
-                  background: 'var(--color-canvas)',
-                  borderRadius: 'var(--radius-pill)',
-                  border: '1px solid var(--color-border-subtle)',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={11} />
-                <span>Bỏ ảnh</span>
-              </button>
-            )}
+          <span className="log-form-label">Ảnh và video</span>
+          <div className="moment-media-source-actions">
+            <label className="moment-upload-button"><Images size={16} /><span>Thư viện</span><input type="file" accept="image/*,video/*" multiple aria-label="Chọn từ thư viện" onChange={(event) => { void selectFiles(event.target.files); event.currentTarget.value = ''; }} /></label>
+            <label className="moment-upload-button"><Camera size={16} /><span>Chụp ảnh</span><input type="file" accept="image/*" capture="environment" aria-label="Chụp ảnh" onChange={(event) => { void selectFiles(event.target.files); event.currentTarget.value = ''; }} /></label>
+          </div>
+          <span className="log-form-label moment-url-label">Hoặc thêm bằng URL</span>
+          <div className="moment-media-type">
+            <button type="button" className={mediaType === 'photo' ? 'active' : ''} onClick={() => setMediaType('photo')}><Image size={15} /> Ảnh</button>
+            <button type="button" className={mediaType === 'video' ? 'active' : ''} onClick={() => setMediaType('video')}><Video size={15} /> Video</button>
+          </div>
+          <div className="moment-url-row">
+            <input className="log-input-control" type="url" value={mediaUrl} onChange={(event) => setMediaUrl(event.target.value)} placeholder={`Hoặc dán URL ${mediaType === 'photo' ? 'ảnh' : 'video'}`} />
+            <button type="button" aria-label="Thêm media từ URL" onClick={addMediaUrl} disabled={!mediaUrl.trim()}><Plus size={16} /></button>
           </div>
         </div>
 
-        <button type="submit" className="log-btn-primary">
-          <span>Đăng Nhật Ký</span>
-          <ArrowRight size={14} />
-        </button>
+        {mediaItems.length > 0 && (
+          <div className="moment-media-preview-list" aria-label={`${mediaItems.length} media đã chọn`}>
+            {mediaItems.map((media, index) => (
+              <div className="moment-media-preview" key={media.id ?? media.blobId ?? `${media.url}-${index}`}>
+                <TimelineMediaAsset media={media} controls alt={media.name || `Ảnh ${index + 1}`} />
+                <button type="button" aria-label={`Bỏ media ${index + 1}`} onClick={() => {
+                  setMediaItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                  if (media.blobId && pendingBlobIds.current.delete(media.blobId)) void removeTimelineMediaFiles([media]);
+                }}><X size={15} /></button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {error && <p className="moment-form-error" role="alert">{error}</p>}
+        <button type="submit" className="log-btn-primary"><span>Lưu khoảnh khắc</span><ArrowRight size={14} /></button>
       </form>
     </BottomSheet>
   );

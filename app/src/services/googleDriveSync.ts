@@ -107,6 +107,21 @@ interface DriveFileList {
   files?: DriveFile[];
 }
 
+export interface DriveTimelineMediaFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  createdTime?: string;
+  modifiedTime?: string;
+  thumbnailLink?: string;
+}
+
+interface DriveTimelineMediaFileList {
+  files?: Array<Omit<DriveTimelineMediaFile, 'size'> & { size?: string }>;
+  nextPageToken?: string;
+}
+
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
 let tokenScriptPromise: Promise<void> | null = null;
@@ -295,6 +310,130 @@ async function driveRequest<T>(url: string, init: RequestInit = {}, interactive 
   }
 }
 
+async function driveBlobRequest(url: string, interactive = false): Promise<Blob> {
+  const token = await ensureAccessToken(interactive);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (response.status === 401) {
+      accessToken = null;
+      accessTokenExpiresAt = 0;
+      if (!interactive) throw new GoogleAuthRequiredError();
+      throw new Error('Phiên Google đã hết hạn. Hãy đồng bộ lại để tải media.');
+    }
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Không thể tải media từ Google Drive (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+    }
+    return response.blob();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Google Drive không phản hồi kịp thời khi tải media.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+export async function uploadTimelineMediaToDrive(
+  mediaId: string,
+  blob: Blob,
+  options: { name?: string; interactive?: boolean } = {},
+): Promise<string> {
+  const interactive = options.interactive !== false;
+  const boundary = `babygrowth-media-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const metadata = {
+    name: options.name || mediaId,
+    mimeType: blob.type || 'application/octet-stream',
+    parents: ['appDataFolder'],
+    appProperties: { babygrowthMedia: 'true', babygrowthMediaId: mediaId },
+  };
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+    `--${boundary}\r\nContent-Type: ${metadata.mimeType}\r\n\r\n`,
+    blob,
+    `\r\n--${boundary}--\r\n`,
+  ], { type: `multipart/related; boundary=${boundary}` });
+  const file = await driveRequest<DriveFile>(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body },
+    interactive,
+  );
+  return file.id;
+}
+
+export async function listTimelineMediaFromDrive(
+  options: { interactive?: boolean } = {},
+): Promise<DriveTimelineMediaFile[]> {
+  const interactive = options.interactive !== false;
+  const files: DriveTimelineMediaFile[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const params = new URLSearchParams({
+      q: "'appDataFolder' in parents and appProperties has { key='babygrowthMedia' and value='true' } and trashed = false",
+      spaces: 'appDataFolder',
+      orderBy: 'modifiedTime desc',
+      pageSize: '100',
+      fields: 'nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime,thumbnailLink)',
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+    const result = await driveRequest<DriveTimelineMediaFileList>(
+      `https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+      {},
+      interactive,
+    );
+    files.push(...(result.files ?? []).map((file) => ({
+      ...file,
+      size: Number(file.size ?? 0),
+    })));
+    pageToken = result.nextPageToken;
+  } while (pageToken);
+
+  return files;
+}
+
+export function downloadTimelineMediaFromDrive(
+  fileId: string,
+  options: { interactive?: boolean } = {},
+): Promise<Blob> {
+  return driveBlobRequest(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
+    options.interactive === true,
+  );
+}
+
+export async function deleteTimelineMediaFromDrive(
+  fileId: string,
+  options: { interactive?: boolean } = {},
+): Promise<void> {
+  const interactive = options.interactive === true;
+  const token = await ensureAccessToken(interactive);
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (response.status === 401) {
+    accessToken = null;
+    accessTokenExpiresAt = 0;
+    if (!interactive) throw new GoogleAuthRequiredError();
+  }
+  if (!response.ok && response.status !== 404) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`Không thể xóa media trên Google Drive (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+  }
+}
+
+async function syncPendingTimelineMedia(interactive: boolean): Promise<void> {
+  const { syncTimelineMediaToDrive } = await import('./timelineMediaDriveSync');
+  await runWithAutoSyncSuppressed(() => syncTimelineMediaToDrive({ interactive }));
+}
+
 async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
   const query = encodeURIComponent(`'appDataFolder' in parents and name = '${SYNC_FILE_NAME}' and trashed = false`);
   const result = await driveRequest<DriveFileList>(
@@ -441,6 +580,7 @@ async function overwriteDriveBackupWithLocalDataUnlocked(
   options: { interactive?: boolean } = {},
 ): Promise<SyncSnapshot> {
   const interactive = options.interactive !== false;
+  await syncPendingTimelineMedia(interactive);
   const local = await getLocalSnapshot();
   const remoteFile = await findSyncFile(interactive);
   const savedFile = await writeRemoteSnapshot(local, remoteFile, interactive);
@@ -464,6 +604,7 @@ async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = 
 
   publishSyncState({ status: 'syncing', error: null });
   try {
+    await syncPendingTimelineMedia(interactive);
     const local = await getLocalSnapshot();
     const meta = await readMeta();
     const remoteFile = await findSyncFile(interactive);
@@ -534,6 +675,7 @@ async function resolveSyncConflictUnlocked(choice: 'local' | 'remote', remoteSna
     return 'downloaded';
   }
 
+  await syncPendingTimelineMedia(true);
   const local = await getLocalSnapshot();
   const updated = await writeRemoteSnapshot(local, remoteFile, true);
   await saveSyncedState(local, updated.id);

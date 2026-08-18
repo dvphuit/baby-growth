@@ -15,6 +15,7 @@ const modalController: AppModalController = {
   isAddGrowthOpen: false,
   isAddPumpingOpen: false,
   isAddExpenseOpen: false,
+  isAddPostOpen: false,
   isEditProfileOpen: false,
   activityLogMode: null,
   lightboxSrc: null,
@@ -29,6 +30,7 @@ const modalController: AppModalController = {
   closeAddPumping: vi.fn(),
   openAddExpense: vi.fn(),
   closeAddExpense: vi.fn(),
+  closeAddPost: vi.fn(),
   openEditProfile: vi.fn(),
   closeEditProfile: vi.fn(),
   closeActivityLog: vi.fn(),
@@ -89,5 +91,10 @@ describe('AppContent', () => {
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
     expect(screen.getByText('App Routes marker')).toBeInTheDocument();
   });
-});
 
+  it('hides the main header on nested profile routes', () => {
+    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
+    render(<MemoryRouter initialEntries={['/profile/google-drive']}><AppContent /></MemoryRouter>);
+    expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
+  });
+});
