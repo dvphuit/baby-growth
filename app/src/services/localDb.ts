@@ -14,6 +14,13 @@ let dbPromise: Promise<IDBDatabase> | null = null;
 const memoryFallback = new Map<string, string>();
 const memoryMediaFallback = new Map<string, Blob>();
 
+export interface LocalMediaRecord {
+  id: string;
+  blob: Blob;
+  size: number;
+  mimeType: string;
+}
+
 function hasIndexedDb(): boolean {
   return typeof indexedDB !== 'undefined';
 }
@@ -194,6 +201,37 @@ export async function getLocalMedia(id: string): Promise<Blob | null> {
     const request = db.transaction(MEDIA_STORE_NAME, 'readonly').objectStore(MEDIA_STORE_NAME).get(id);
     request.onsuccess = () => resolve(request.result instanceof Blob ? request.result : null);
     request.onerror = () => reject(request.error ?? new Error('Không thể đọc media cục bộ'));
+  });
+}
+
+export async function listLocalMedia(): Promise<LocalMediaRecord[]> {
+  if (!hasIndexedDb()) {
+    return [...memoryMediaFallback.entries()].map(([id, blob]) => ({
+      id,
+      blob,
+      size: blob.size,
+      mimeType: blob.type,
+    }));
+  }
+
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(MEDIA_STORE_NAME, 'readonly');
+    const store = transaction.objectStore(MEDIA_STORE_NAME);
+    const keysRequest = store.getAllKeys();
+    const valuesRequest = store.getAll();
+    const rejectTransaction = () => reject(transaction.error ?? new Error('Không thể đọc kho media cục bộ'));
+
+    transaction.oncomplete = () => {
+      const records = keysRequest.result.flatMap((key, index) => {
+        const blob = valuesRequest.result[index];
+        if (typeof key !== 'string' || !(blob instanceof Blob)) return [];
+        return [{ id: key, blob, size: blob.size, mimeType: blob.type }];
+      });
+      resolve(records);
+    };
+    transaction.onerror = rejectTransaction;
+    transaction.onabort = rejectTransaction;
   });
 }
 

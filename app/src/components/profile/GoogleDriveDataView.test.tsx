@@ -1,10 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearLocalMedia, getLocalMedia, setLocalMedia } from '@/services/localDb';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { GoogleDriveDataView } from './GoogleDriveDataView';
 
 const drive = vi.hoisted(() => ({
+  SYNC_KEYS: ['babygrowth_v2_timeline'],
   checkDriveBackup: vi.fn(),
   deleteTimelineMediaFromDrive: vi.fn(),
   downloadTimelineMediaFromDrive: vi.fn(),
@@ -16,8 +18,9 @@ const drive = vi.hoisted(() => ({
 
 vi.mock('@/services/googleDriveSync', () => drive);
 describe('GoogleDriveDataView', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     window.localStorage.clear();
+    await clearLocalMedia();
     drive.isGoogleConnected.mockReturnValue(true);
     drive.listTimelineMediaFromDrive.mockResolvedValue([{
       id: 'drive-1', name: 'baby.jpg', mimeType: 'image/jpeg', size: 2048,
@@ -29,6 +32,10 @@ describe('GoogleDriveDataView', () => {
     drive.downloadTimelineMediaFromDrive.mockResolvedValue(new Blob(['image-bytes'], { type: 'image/jpeg' }));
     drive.requestGoogleAccessToken.mockResolvedValue(undefined);
     vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:drive-preview'), revokeObjectURL: vi.fn() });
+    Object.defineProperty(navigator, 'storage', {
+      configurable: true,
+      value: { estimate: vi.fn().mockResolvedValue({ usage: 8192, quota: 1024 * 1024 }) },
+    });
     useTimelineStore.getState().resetTrackingData();
   });
 
@@ -66,5 +73,61 @@ describe('GoogleDriveDataView', () => {
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Drive management refresh completed')));
     expect(writeText.mock.calls[0][0]).not.toContain('Bearer');
+  });
+
+  it('shows local media and deletes only the device copy when it is backed up', async () => {
+    const photo = new Blob(['local-photo'], { type: 'image/jpeg' });
+    await setLocalMedia('blob-backed-up', photo);
+    useTimelineStore.getState().addTimelineItem({
+      title: 'Khoảnh khắc đã lưu',
+      mediaItems: [{ id: 'media-local', blobId: 'blob-backed-up', driveFileId: 'drive-1', type: 'photo', name: 'local-baby.jpg' }],
+    });
+
+    render(<MemoryRouter><GoogleDriveDataView onOpenLightbox={vi.fn()} onShowToast={vi.fn()} /></MemoryRouter>);
+
+    expect(await screen.findByText('local-baby.jpg')).toBeInTheDocument();
+    expect(screen.getByText('Đã backup')).toBeInTheDocument();
+    expect(screen.getByText('8.0 KB')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa bản local local-baby.jpg' }));
+    expect(screen.getByRole('dialog', { name: 'Xóa bản trên thiết bị?' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa media' }));
+
+    await waitFor(() => expect(screen.queryByText('local-baby.jpg')).not.toBeInTheDocument());
+    expect(await getLocalMedia('blob-backed-up')).toBeNull();
+    expect(useTimelineStore.getState().timelineItems[0].mediaItems?.[0]).toMatchObject({
+      blobId: 'blob-backed-up',
+      driveFileId: 'drive-1',
+    });
+  });
+
+  it('keeps local-only media during bulk cleanup and removes it from the timeline only after explicit confirmation', async () => {
+    await setLocalMedia('blob-backed-up', new Blob(['backed-up'], { type: 'image/jpeg' }));
+    await setLocalMedia('blob-only', new Blob(['only-local'], { type: 'image/jpeg' }));
+    useTimelineStore.getState().addTimelineItem({
+      title: 'Hai khoảnh khắc',
+      mediaItems: [
+        { id: 'media-backed-up', blobId: 'blob-backed-up', driveFileId: 'drive-1', type: 'photo', name: 'backed.jpg' },
+        { id: 'media-only', blobId: 'blob-only', type: 'photo', name: 'only.jpg' },
+      ],
+    });
+
+    render(<MemoryRouter><GoogleDriveDataView onOpenLightbox={vi.fn()} onShowToast={vi.fn()} /></MemoryRouter>);
+
+    await screen.findByText('backed.jpg');
+    fireEvent.click(screen.getByRole('button', { name: 'Dọn 1 đã backup' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dọn bản local' }));
+    await waitFor(() => expect(screen.queryByText('backed.jpg')).not.toBeInTheDocument());
+    expect(await getLocalMedia('blob-backed-up')).toBeNull();
+    expect(await getLocalMedia('blob-only')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa bản local only.jpg' }));
+    expect(screen.getByRole('dialog', { name: 'Media này chưa được backup' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa media' }));
+
+    await waitFor(() => expect(screen.queryByText('only.jpg')).not.toBeInTheDocument());
+    expect(await getLocalMedia('blob-only')).toBeNull();
+    expect(useTimelineStore.getState().timelineItems[0].mediaItems).toEqual([
+      expect.objectContaining({ blobId: 'blob-backed-up', driveFileId: 'drive-1' }),
+    ]);
   });
 });

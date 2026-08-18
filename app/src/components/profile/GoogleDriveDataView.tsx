@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, ChevronDown, ChevronUp, ClipboardCopy, Cloud, Database, HardDrive, Image as ImageIcon, Images,
-  RefreshCw, ShieldCheck, Terminal, Trash2, Video,
+  AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, ClipboardCopy, Cloud, Database, FileJson,
+  HardDrive, Image as ImageIcon, Images, RefreshCw, ShieldCheck, Smartphone, Terminal, Trash2, Video,
 } from 'lucide-react';
 import { AppBar } from '@/components/common/AppBar';
 import { HavenDialog } from '@/components/common/HavenDialog';
@@ -15,10 +15,17 @@ import {
   isGoogleConnected,
   listTimelineMediaFromDrive,
   requestGoogleAccessToken,
+  SYNC_KEYS,
   type DriveBackupSummary,
   type DriveTimelineMediaFile,
 } from '@/services/googleDriveSync';
-import { removeLocalMedia, waitForLocalRecordWrites } from '@/services/localDb';
+import {
+  getAllLocalRecords,
+  listLocalMedia,
+  removeLocalMedia,
+  waitForLocalRecordWrites,
+  type LocalMediaRecord,
+} from '@/services/localDb';
 import {
   clearDiagnosticLogs,
   formatDiagnosticLogs,
@@ -36,11 +43,20 @@ interface GoogleDriveDataViewProps {
 }
 
 function formatBytes(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return 'Không rõ dung lượng';
+  if (!Number.isFinite(value) || value < 0) return 'Không rõ dung lượng';
+  if (value === 0) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];
   const unitIndex = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
   const amount = value / 1024 ** unitIndex;
   return `${amount >= 10 || unitIndex === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function getTextSize(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function isMediaBackedUp(mediaItems?: TimelineMediaItem[]): boolean {
+  return Boolean(mediaItems?.length) && mediaItems!.every((media) => Boolean(media.driveFileId));
 }
 
 function formatDate(value?: string): string {
@@ -135,6 +151,59 @@ function DriveMediaTile({
   );
 }
 
+function LocalMediaTile({
+  record,
+  linkedTitle,
+  linkedMedia,
+  onOpen,
+  onDelete,
+}: {
+  record: LocalMediaRecord;
+  linkedTitle?: string;
+  linkedMedia?: TimelineMediaItem[];
+  onOpen: (src: string, isVideo: boolean) => void;
+  onDelete: () => void;
+}) {
+  const metadata = linkedMedia?.[0];
+  const isVideo = record.mimeType.startsWith('video/') || metadata?.type === 'video';
+  const backedUp = isMediaBackedUp(linkedMedia);
+  const name = metadata?.name || `${isVideo ? 'Video' : 'Ảnh'} ${record.id.slice(-8)}`;
+  const [objectUrl, setObjectUrl] = useState('');
+
+  useEffect(() => {
+    const nextObjectUrl = URL.createObjectURL(record.blob);
+    setObjectUrl(nextObjectUrl);
+    return () => URL.revokeObjectURL(nextObjectUrl);
+  }, [record.blob]);
+
+  return (
+    <article className="drive-media-card local-media-card">
+      <button
+        type="button"
+        className="drive-media-preview"
+        onClick={() => objectUrl && onOpen(objectUrl, isVideo)}
+        aria-label={`Xem ${isVideo ? 'video' : 'ảnh'} local ${name}`}
+      >
+        <span className="drive-media-placeholder" aria-hidden="true">{isVideo ? <Video size={24} /> : <ImageIcon size={24} />}</span>
+        {objectUrl && (isVideo
+          ? <video src={objectUrl} muted preload="metadata" />
+          : <img src={objectUrl} alt="" loading="lazy" />)}
+        <span className={`local-media-status ${backedUp ? 'is-backed-up' : 'is-local-only'}`}>
+          {backedUp ? <><CheckCircle2 size={11} /> Đã backup</> : <><Smartphone size={11} /> Chỉ trên máy</>}
+        </span>
+      </button>
+      <div className="drive-media-info">
+        <strong title={name}>{name}</strong>
+        <span>{formatBytes(record.size)} · {record.mimeType || (isVideo ? 'video' : 'image')}</span>
+        <small>{linkedTitle ? `Trong “${linkedTitle}”` : 'Không còn liên kết trong nhật ký'}</small>
+      </div>
+      <button type="button" className="drive-media-delete" onClick={onDelete} aria-label={`Xóa bản local ${name}`}>
+        <Trash2 size={16} />
+      </button>
+    </article>
+  );
+}
+
 export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDriveDataViewProps) {
   const navigate = useNavigate();
   const timelineItems = useTimelineStore((state) => state.timelineItems);
@@ -146,6 +215,14 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DriveTimelineMediaFile | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [localFiles, setLocalFiles] = useState<LocalMediaRecord[]>([]);
+  const [localRecordCount, setLocalRecordCount] = useState(0);
+  const [localRecordSize, setLocalRecordSize] = useState(0);
+  const [storageEstimate, setStorageEstimate] = useState<StorageEstimate>({});
+  const [localLoading, setLocalLoading] = useState(true);
+  const [localDeleteTarget, setLocalDeleteTarget] = useState<LocalMediaRecord | null>(null);
+  const [localDeleting, setLocalDeleting] = useState(false);
+  const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
   const [logsOpen, setLogsOpen] = useState(false);
   const [logs, setLogs] = useState<DiagnosticLogEntry[]>(getDiagnosticLogs);
 
@@ -166,8 +243,55 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
     return result;
   }, [timelineItems]);
 
+  const linkedLocalMedia = useMemo(() => {
+    const result = new Map<string, { title: string; media: TimelineMediaItem[] }>();
+    timelineItems.forEach((item) => {
+      (item.mediaItems ?? []).forEach((media) => {
+        if (!media.blobId) return;
+        const current = result.get(media.blobId);
+        result.set(media.blobId, {
+          title: current?.title ?? item.title,
+          media: [...(current?.media ?? []), media],
+        });
+      });
+    });
+    return result;
+  }, [timelineItems]);
+
   const totalSize = useMemo(() => files.reduce((sum, file) => sum + file.size, 0), [files]);
   const videoCount = useMemo(() => files.filter((file) => file.mimeType.startsWith('video/')).length, [files]);
+  const localMediaSize = useMemo(() => localFiles.reduce((sum, file) => sum + file.size, 0), [localFiles]);
+  const localAppSize = localRecordSize + localMediaSize;
+  const backedUpLocalFiles = useMemo(() => localFiles.filter((file) => (
+    isMediaBackedUp(linkedLocalMedia.get(file.id)?.media)
+  )), [linkedLocalMedia, localFiles]);
+
+  const loadLocalData = useCallback(async () => {
+    logDiagnostic('local-data', 'info', 'Local data refresh started');
+    setLocalLoading(true);
+    try {
+      const recordKeys = [...SYNC_KEYS, 'babygrowth_v2_sync_meta'];
+      const [nextFiles, records, nextStorageEstimate] = await Promise.all([
+        listLocalMedia(),
+        getAllLocalRecords(recordKeys),
+        navigator.storage?.estimate?.() ?? Promise.resolve({}),
+      ]);
+      setLocalFiles(nextFiles);
+      setLocalRecordCount(Object.keys(records).length);
+      setLocalRecordSize(Object.values(records).reduce((sum, value) => sum + getTextSize(value), 0));
+      setStorageEstimate(nextStorageEstimate);
+      logDiagnostic('local-data', 'info', 'Local data refresh completed', {
+        mediaCount: nextFiles.length,
+        mediaBytes: nextFiles.reduce((sum, file) => sum + file.size, 0),
+        recordCount: Object.keys(records).length,
+      });
+    } catch (loadError) {
+      logDiagnostic('local-data', 'error', 'Local data refresh failed', loadError);
+      setError(loadError instanceof Error ? loadError.message : 'Không thể đọc dữ liệu trên thiết bị.');
+    } finally {
+      setLocalLoading(false);
+    }
+  }, []);
 
   const loadDriveData = useCallback(async () => {
     logDiagnostic('drive-ui', 'info', 'Drive management refresh started');
@@ -199,6 +323,10 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
   useEffect(() => {
     if (connected) void loadDriveData();
   }, [connected, loadDriveData]);
+
+  useEffect(() => {
+    void loadLocalData();
+  }, [loadLocalData]);
 
   const connectGoogle = async () => {
     logDiagnostic('drive-ui', 'info', 'Connect Google requested');
@@ -240,6 +368,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
         await waitForLocalRecordWrites(['babygrowth_v2_timeline']);
       }
       setFiles((current) => current.filter((file) => file.id !== target.id));
+      await loadLocalData();
       setDeleteTarget(null);
       onShowToast?.('Đã xóa media khỏi Google Drive.', '✓');
     } catch (deleteError) {
@@ -247,6 +376,69 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
       setError(deleteError instanceof Error ? deleteError.message : 'Không thể xóa media khỏi Google Drive.');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const removeMediaFromTimeline = async (blobIds: Set<string>) => {
+    useTimelineStore.setState((state) => ({
+      timelineItems: state.timelineItems.map((item) => {
+        const mediaItems = (item.mediaItems ?? []).filter((media) => !media.blobId || !blobIds.has(media.blobId));
+        if (mediaItems.length === (item.mediaItems ?? []).length) return item;
+        return {
+          ...item,
+          mediaItems,
+          mediaUrl: mediaItems[0]?.url ?? null,
+          mediaType: mediaItems[0]?.type ?? null,
+        };
+      }),
+    }));
+    await waitForLocalRecordWrites(['babygrowth_v2_timeline']);
+  };
+
+  const deleteLocalFile = async () => {
+    const target = localDeleteTarget;
+    if (!target) return;
+    const linked = linkedLocalMedia.get(target.id);
+    const backedUp = isMediaBackedUp(linked?.media);
+    setLocalDeleting(true);
+    setError(null);
+    logDiagnostic('local-data', 'info', 'Local media delete requested', {
+      blobId: target.id,
+      size: target.size,
+      backedUp,
+    });
+    try {
+      await removeLocalMedia(target.id);
+      if (!backedUp && linked) await removeMediaFromTimeline(new Set([target.id]));
+      setLocalDeleteTarget(null);
+      await loadLocalData();
+      onShowToast?.(backedUp ? 'Đã xóa bản media trên thiết bị.' : 'Đã xóa media local khỏi nhật ký.', '✓');
+      logDiagnostic('local-data', 'info', 'Local media delete completed', { blobId: target.id, backedUp });
+    } catch (deleteError) {
+      logDiagnostic('local-data', 'error', 'Local media delete failed', { blobId: target.id, error: deleteError });
+      setError(deleteError instanceof Error ? deleteError.message : 'Không thể xóa media trên thiết bị.');
+    } finally {
+      setLocalDeleting(false);
+    }
+  };
+
+  const cleanupBackedUpMedia = async () => {
+    if (backedUpLocalFiles.length === 0) return;
+    setLocalDeleting(true);
+    setError(null);
+    const ids = backedUpLocalFiles.map((file) => file.id);
+    logDiagnostic('local-data', 'info', 'Backed-up local media cleanup started', { mediaCount: ids.length });
+    try {
+      await Promise.all(ids.map(removeLocalMedia));
+      setCleanupConfirmOpen(false);
+      await loadLocalData();
+      onShowToast?.(`Đã dọn ${ids.length} media đã backup.`, '✓');
+      logDiagnostic('local-data', 'info', 'Backed-up local media cleanup completed', { mediaCount: ids.length });
+    } catch (cleanupError) {
+      logDiagnostic('local-data', 'error', 'Backed-up local media cleanup failed', cleanupError);
+      setError(cleanupError instanceof Error ? cleanupError.message : 'Không thể dọn media đã backup.');
+    } finally {
+      setLocalDeleting(false);
     }
   };
 
@@ -265,11 +457,70 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
         className="profile-app-bar"
         tone="baby"
         variant="page"
-        ariaLabel="Quản lý dữ liệu Google Drive"
+        ariaLabel="Quản lý dữ liệu"
         start={<button type="button" className="profile-icon-btn" onClick={() => navigate('/profile')} aria-label="Về hồ sơ"><ArrowLeft size={20} /></button>}
-        center={<div className="profile-top-heading"><span className="profile-top-eyebrow">DỮ LIỆU RIÊNG TƯ</span><h1>Google Drive</h1></div>}
-        end={<button type="button" className="profile-icon-btn" onClick={() => { if (connected) void loadDriveData(); else void connectGoogle(); }} aria-label="Làm mới dữ liệu" disabled={loading}><RefreshCw size={18} className={loading ? 'spin' : ''} /></button>}
+        center={<div className="profile-top-heading"><span className="profile-top-eyebrow">DỮ LIỆU RIÊNG TƯ</span><h1>Quản lý dữ liệu</h1></div>}
+        end={<button type="button" className="profile-icon-btn" onClick={() => { void loadLocalData(); if (connected) void loadDriveData(); }} aria-label="Làm mới dữ liệu" disabled={loading || localLoading}><RefreshCw size={18} className={loading || localLoading ? 'spin' : ''} /></button>}
       />
+
+      <section className="profile-section-block local-data-section" aria-labelledby="local-data-title">
+        <div className="profile-section-heading">
+          <div><span className="profile-section-kicker">TRÊN THIẾT BỊ</span><h2 id="local-data-title">Dữ liệu local</h2></div>
+          <span className="section-score-pill">Riêng tư</span>
+        </div>
+
+        <section className="drive-data-summary local-data-summary" aria-label="Tổng quan dữ liệu local">
+          <article><span><Images size={17} /></span><small>Media local</small><strong>{localFiles.length}</strong></article>
+          <article><span><FileJson size={17} /></span><small>Dữ liệu app</small><strong>{formatBytes(localAppSize)}</strong></article>
+          <article><span><HardDrive size={17} /></span><small>Trình duyệt</small><strong>{formatBytes(storageEstimate.usage ?? 0)}</strong></article>
+        </section>
+
+        <div className="local-storage-card">
+          <span className="local-storage-icon"><Smartphone size={19} /></span>
+          <div>
+            <strong>{localRecordCount} nhóm dữ liệu · {formatBytes(localRecordSize)} nội dung</strong>
+            <span>{storageEstimate.quota ? `${formatBytes(storageEstimate.usage ?? 0)} / ${formatBytes(storageEstimate.quota)} bộ nhớ trình duyệt` : 'Dung lượng được trình duyệt quản lý tự động'}</span>
+            {storageEstimate.quota && <span className="local-storage-track"><i style={{ width: `${Math.min(100, ((storageEstimate.usage ?? 0) / storageEstimate.quota) * 100)}%` }} /></span>}
+          </div>
+        </div>
+
+        <div className="local-media-heading">
+          <div><strong>Ảnh và video trên máy</strong><span>Media gốc lưu trực tiếp, không chuyển Base64</span></div>
+          {backedUpLocalFiles.length > 0 && (
+            <button type="button" onClick={() => setCleanupConfirmOpen(true)} disabled={localDeleting}>
+              <Trash2 size={14} /> Dọn {backedUpLocalFiles.length} đã backup
+            </button>
+          )}
+        </div>
+
+        {localLoading && localFiles.length === 0 ? (
+          <div className="drive-data-state local-data-state" role="status"><RefreshCw size={20} className="spin" /><span>Đang đọc dữ liệu trên thiết bị...</span></div>
+        ) : localFiles.length === 0 ? (
+          <div className="drive-data-state local-data-state"><Smartphone size={24} /><strong>Không có media local</strong><span>Media đã dọn vẫn có thể được đọc lại từ Google Drive nếu đã backup.</span></div>
+        ) : (
+          <div className="drive-media-list">
+            {localFiles.map((file) => {
+              const linked = linkedLocalMedia.get(file.id);
+              return (
+                <LocalMediaTile
+                  key={file.id}
+                  record={file}
+                  linkedTitle={linked?.title}
+                  linkedMedia={linked?.media}
+                  onOpen={onOpenLightbox}
+                  onDelete={() => setLocalDeleteTarget(file)}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <div className="drive-area-heading">
+        <span className="drive-area-icon"><Cloud size={19} /></span>
+        <div><span>TRÊN ĐÁM MÂY</span><strong>Google Drive</strong></div>
+        <small>{connected ? 'Đã kết nối' : 'Chưa kết nối'}</small>
+      </div>
 
       {!connected ? (
         <section className="drive-connect-card">
@@ -364,6 +615,30 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
         footer={<><button type="button" className="haven-dialog-secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>Giữ lại</button><button type="button" className="haven-dialog-primary drive-delete-confirm" onClick={() => void deleteFile()} disabled={deleting}><Trash2 size={15} /> {deleting ? 'Đang xóa...' : 'Xóa media'}</button></>}
       >
         <p className="drive-delete-copy">Media sẽ bị xóa khỏi Google Drive và khỏi các khoảnh khắc đang liên kết trên thiết bị này. Thao tác này không thể hoàn tác.</p>
+      </HavenDialog>
+
+      <HavenDialog
+        open={localDeleteTarget !== null}
+        onClose={() => { if (!localDeleting) setLocalDeleteTarget(null); }}
+        title={isMediaBackedUp(linkedLocalMedia.get(localDeleteTarget?.id ?? '')?.media) ? 'Xóa bản trên thiết bị?' : 'Media này chưa được backup'}
+        description={linkedLocalMedia.get(localDeleteTarget?.id ?? '')?.media[0]?.name || localDeleteTarget?.id}
+        footer={<><button type="button" className="haven-dialog-secondary" onClick={() => setLocalDeleteTarget(null)} disabled={localDeleting}>Giữ lại</button><button type="button" className="haven-dialog-primary drive-delete-confirm" onClick={() => void deleteLocalFile()} disabled={localDeleting}><Trash2 size={15} /> {localDeleting ? 'Đang xóa...' : 'Xóa media'}</button></>}
+      >
+        {isMediaBackedUp(linkedLocalMedia.get(localDeleteTarget?.id ?? '')?.media) ? (
+          <p className="drive-delete-copy">Chỉ bản local được xóa để giải phóng dung lượng. Media vẫn còn trên Google Drive và vẫn hiển thị trong nhật ký khi có mạng.</p>
+        ) : (
+          <div className="local-delete-warning"><AlertTriangle size={20} /><p>Đây là bản duy nhất. Xóa sẽ gỡ media khỏi các khoảnh khắc đang liên kết và không thể khôi phục từ Drive.</p></div>
+        )}
+      </HavenDialog>
+
+      <HavenDialog
+        open={cleanupConfirmOpen}
+        onClose={() => { if (!localDeleting) setCleanupConfirmOpen(false); }}
+        title="Dọn media đã backup?"
+        description={`${backedUpLocalFiles.length} ảnh/video · ${formatBytes(backedUpLocalFiles.reduce((sum, file) => sum + file.size, 0))}`}
+        footer={<><button type="button" className="haven-dialog-secondary" onClick={() => setCleanupConfirmOpen(false)} disabled={localDeleting}>Để sau</button><button type="button" className="haven-dialog-primary" onClick={() => void cleanupBackedUpMedia()} disabled={localDeleting}><Trash2 size={15} /> {localDeleting ? 'Đang dọn...' : 'Dọn bản local'}</button></>}
+      >
+        <p className="drive-delete-copy">Chỉ các file đã có bản trên Google Drive được xóa khỏi thiết bị. Nhật ký và media chưa backup được giữ nguyên.</p>
       </HavenDialog>
     </div>,
     document.body,

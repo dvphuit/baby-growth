@@ -220,7 +220,7 @@ export const GoogleSyncCard: React.FC<GoogleSyncCardProps> = ({ onShowToast }) =
         </button>
         <button type="button" className="profile-drive-manage-link" onClick={() => navigate('/profile/google-drive')}>
           <span className="profile-drive-manage-icon"><Database size={17} /></span>
-          <span><strong>Quản lý dữ liệu Drive</strong><small>Xem backup, ảnh và video đã đồng bộ</small></span>
+          <span><strong>Quản lý dữ liệu</strong><small>Xem dữ liệu trên máy và Google Drive</small></span>
           <ChevronRight size={17} />
         </button>
       </div>

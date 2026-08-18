@@ -171,18 +171,26 @@ describe('localDb pending writes', () => {
 
   it('stores and removes media blobs without serializing them', async () => {
     vi.stubGlobal('indexedDB', undefined);
-    const { clearLocalMedia, getLocalMedia, removeLocalMedia, setLocalMedia } = await import('./localDb');
+    const { clearLocalMedia, getLocalMedia, listLocalMedia, removeLocalMedia, setLocalMedia } = await import('./localDb');
     const photo = new Blob(['photo-bytes'], { type: 'image/jpeg' });
     const video = new Blob(['video-bytes'], { type: 'video/mp4' });
 
     await setLocalMedia('photo-1', photo);
     await setLocalMedia('video-1', video);
     expect(await getLocalMedia('photo-1')).toBe(photo);
+    expect(await listLocalMedia()).toEqual([
+      { id: 'photo-1', blob: photo, size: photo.size, mimeType: 'image/jpeg' },
+      { id: 'video-1', blob: video, size: video.size, mimeType: 'video/mp4' },
+    ]);
 
     await removeLocalMedia('photo-1');
     expect(await getLocalMedia('photo-1')).toBeNull();
+    expect(await listLocalMedia()).toEqual([
+      { id: 'video-1', blob: video, size: video.size, mimeType: 'video/mp4' },
+    ]);
 
     await clearLocalMedia();
     expect(await getLocalMedia('video-1')).toBeNull();
+    expect(await listLocalMedia()).toEqual([]);
   });
 });
