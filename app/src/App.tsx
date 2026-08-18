@@ -16,6 +16,7 @@ import { useAppModals } from './hooks/useAppModals';
 import { useReminderLifecycle } from './hooks/useReminderLifecycle';
 import { useThemeColor } from './hooks/useThemeColor';
 import { runDataMigration } from './services/dataMigration';
+import { installGlobalDiagnosticLogging, logDiagnostic } from './services/diagnosticLog';
 import { useBabyStore } from './store/useBabyStore';
 import { OnboardingView } from './components/onboarding/OnboardingView';
 import { PullToRefresh } from './components/common/PullToRefresh';
@@ -29,6 +30,15 @@ export const AppContent: React.FC = () => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   useEffect(() => { void runDataMigration(); }, []);
+  useEffect(() => {
+    logDiagnostic('app', 'info', 'App started', {
+      version: import.meta.env.VITE_APP_VERSION,
+      build: import.meta.env.VITE_BUILD_SHA,
+      online: navigator.onLine,
+    });
+    return installGlobalDiagnosticLogging();
+  }, []);
+  useEffect(() => { logDiagnostic('navigation', 'info', 'Route changed', { path: location.pathname }); }, [location.pathname]);
   useAutoSyncLifecycle();
 
   const { toasts, addToast } = useToast();

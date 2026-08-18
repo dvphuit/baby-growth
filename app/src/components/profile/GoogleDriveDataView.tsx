@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Cloud, Database, HardDrive, Image as ImageIcon, Images, RefreshCw, ShieldCheck, Trash2, Video,
+  ArrowLeft, ChevronDown, ChevronUp, ClipboardCopy, Cloud, Database, HardDrive, Image as ImageIcon, Images,
+  RefreshCw, ShieldCheck, Terminal, Trash2, Video,
 } from 'lucide-react';
 import { AppBar } from '@/components/common/AppBar';
 import { HavenDialog } from '@/components/common/HavenDialog';
@@ -18,6 +19,14 @@ import {
   type DriveTimelineMediaFile,
 } from '@/services/googleDriveSync';
 import { removeLocalMedia, waitForLocalRecordWrites } from '@/services/localDb';
+import {
+  clearDiagnosticLogs,
+  formatDiagnosticLogs,
+  getDiagnosticLogs,
+  logDiagnostic,
+  subscribeDiagnosticLogs,
+  type DiagnosticLogEntry,
+} from '@/services/diagnosticLog';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import type { TimelineMediaItem } from '@/types';
 
@@ -39,6 +48,29 @@ function formatDate(value?: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return 'Chưa rõ thời gian';
   return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+}
+
+function formatLogTime(value: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).format(date);
+}
+
+async function copyText(value: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  textarea.remove();
 }
 
 function DriveMediaTile({
@@ -114,6 +146,10 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DriveTimelineMediaFile | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [logsOpen, setLogsOpen] = useState(false);
+  const [logs, setLogs] = useState<DiagnosticLogEntry[]>(getDiagnosticLogs);
+
+  useEffect(() => subscribeDiagnosticLogs(setLogs), []);
 
   const linkedMedia = useMemo(() => {
     const result = new Map<string, { title: string; media: TimelineMediaItem[] }>();
@@ -134,6 +170,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
   const videoCount = useMemo(() => files.filter((file) => file.mimeType.startsWith('video/')).length, [files]);
 
   const loadDriveData = useCallback(async () => {
+    logDiagnostic('drive-ui', 'info', 'Drive management refresh started');
     setLoading(true);
     setError(null);
     try {
@@ -146,7 +183,12 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
       setBackup(nextBackup);
       setLastSyncedAt(nextLastSyncedAt);
       setConnected(true);
+      logDiagnostic('drive-ui', 'info', 'Drive management refresh completed', {
+        mediaCount: nextFiles.length,
+        backupFound: nextBackup.found,
+      });
     } catch (loadError) {
+      logDiagnostic('drive-ui', 'error', 'Drive management refresh failed', loadError);
       setError(loadError instanceof Error ? loadError.message : 'Không thể đọc dữ liệu Google Drive.');
       setConnected(isGoogleConnected());
     } finally {
@@ -159,12 +201,14 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
   }, [connected, loadDriveData]);
 
   const connectGoogle = async () => {
+    logDiagnostic('drive-ui', 'info', 'Connect Google requested');
     setLoading(true);
     setError(null);
     try {
       await requestGoogleAccessToken();
       setConnected(true);
     } catch (connectError) {
+      logDiagnostic('drive-ui', 'error', 'Connect Google failed', connectError);
       setError(connectError instanceof Error ? connectError.message : 'Không thể kết nối Google Drive.');
       setLoading(false);
     }
@@ -174,6 +218,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
     const target = deleteTarget;
     if (!target) return;
     setDeleting(true);
+    logDiagnostic('drive-ui', 'info', 'Delete media requested', { fileId: target.id, name: target.name });
     setError(null);
     try {
       await deleteTimelineMediaFromDrive(target.id, { interactive: true });
@@ -198,9 +243,19 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
       setDeleteTarget(null);
       onShowToast?.('Đã xóa media khỏi Google Drive.', '✓');
     } catch (deleteError) {
+      logDiagnostic('drive-ui', 'error', 'Delete media failed', { fileId: target.id, error: deleteError });
       setError(deleteError instanceof Error ? deleteError.message : 'Không thể xóa media khỏi Google Drive.');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const copyLogs = async () => {
+    try {
+      await copyText(formatDiagnosticLogs(logs));
+      onShowToast?.('Đã sao chép logs chẩn đoán.', '✓');
+    } catch (copyError) {
+      setError(copyError instanceof Error ? copyError.message : 'Không thể sao chép logs.');
     }
   };
 
@@ -271,6 +326,35 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
       )}
 
       {error && <p className="drive-data-error" role="alert">{error}</p>}
+
+      <section className={`drive-log-panel ${logsOpen ? 'is-open' : ''}`} aria-labelledby="drive-log-title">
+        <button type="button" className="drive-log-toggle" onClick={() => setLogsOpen((current) => !current)} aria-expanded={logsOpen}>
+          <span className="drive-log-icon"><Terminal size={17} /></span>
+          <span><strong id="drive-log-title">Logs chẩn đoán</strong><small>{logs.length} sự kiện gần nhất · chỉ lưu trên thiết bị này</small></span>
+          {logsOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+        </button>
+        {logsOpen && (
+          <div className="drive-log-content">
+            <div className="drive-log-actions">
+              <button type="button" onClick={() => void copyLogs()} disabled={logs.length === 0}><ClipboardCopy size={14} /> Sao chép</button>
+              <button type="button" onClick={clearDiagnosticLogs} disabled={logs.length === 0}><Trash2 size={14} /> Xóa logs</button>
+            </div>
+            {logs.length === 0 ? (
+              <p className="drive-log-empty">Chưa có log. Hãy thử kết nối hoặc làm mới Google Drive.</p>
+            ) : (
+              <div className="drive-log-list" aria-label="Danh sách logs chẩn đoán">
+                {[...logs].reverse().map((entry) => (
+                  <article className={`drive-log-entry level-${entry.level}`} key={entry.id}>
+                    <header><time dateTime={entry.timestamp}>{formatLogTime(entry.timestamp)}</time><span>{entry.level}</span><strong>{entry.scope}</strong></header>
+                    <p>{entry.message}</p>
+                    {entry.details !== undefined && <pre>{JSON.stringify(entry.details, null, 2)}</pre>}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
 
       <HavenDialog
         open={deleteTarget !== null}

@@ -17,6 +17,7 @@ const drive = vi.hoisted(() => ({
 vi.mock('@/services/googleDriveSync', () => drive);
 describe('GoogleDriveDataView', () => {
   beforeEach(() => {
+    window.localStorage.clear();
     drive.isGoogleConnected.mockReturnValue(true);
     drive.listTimelineMediaFromDrive.mockResolvedValue([{
       id: 'drive-1', name: 'baby.jpg', mimeType: 'image/jpeg', size: 2048,
@@ -51,5 +52,19 @@ describe('GoogleDriveDataView', () => {
     await waitFor(() => expect(drive.deleteTimelineMediaFromDrive).toHaveBeenCalledWith('drive-1', { interactive: true }));
     await waitFor(() => expect(screen.queryByText('baby.jpg')).not.toBeInTheDocument());
     expect(useTimelineStore.getState().timelineItems[0].mediaItems).toEqual([]);
+  });
+
+  it('shows and copies production diagnostic logs', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    render(<MemoryRouter><GoogleDriveDataView onOpenLightbox={vi.fn()} onShowToast={vi.fn()} /></MemoryRouter>);
+
+    await screen.findByText('baby.jpg');
+    fireEvent.click(screen.getByRole('button', { name: /Logs chẩn đoán/i }));
+    expect(screen.getByText('Drive management refresh completed')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sao chép' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Drive management refresh completed')));
+    expect(writeText.mock.calls[0][0]).not.toContain('Bearer');
   });
 });

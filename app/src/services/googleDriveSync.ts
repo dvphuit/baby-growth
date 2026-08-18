@@ -5,6 +5,7 @@ import {
   setLocalRecord,
   subscribeLocalRecordChanges,
 } from './localDb';
+import { logDiagnostic } from './diagnosticLog';
 
 const SYNC_FILE_NAME = 'babygrowth-sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
@@ -245,45 +246,73 @@ export function isGoogleConnected(): boolean {
 }
 
 export async function requestGoogleAccessToken(): Promise<void> {
-  const clientId = getClientId();
-  if (!clientId) throw new Error('Thiếu VITE_GOOGLE_CLIENT_ID. Hãy cấu hình Google OAuth Client ID trước.');
-  await loadGoogleScript();
-  if (!window.google?.accounts?.oauth2) throw new Error('Google Identity Services chưa sẵn sàng.');
+  logDiagnostic('drive-auth', 'info', 'Requesting Google access');
+  try {
+    const clientId = getClientId();
+    if (!clientId) throw new Error('Thiếu VITE_GOOGLE_CLIENT_ID. Hãy cấu hình Google OAuth Client ID trước.');
+    await loadGoogleScript();
+    if (!window.google?.accounts?.oauth2) throw new Error('Google Identity Services chưa sẵn sàng.');
 
-  await new Promise<void>((resolve, reject) => {
-    const client = window.google!.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: DRIVE_SCOPE,
-      callback: (response) => {
-        if (response.error || !response.access_token) {
-          reject(new Error(response.error_description || response.error || 'Google không cấp quyền truy cập.'));
-          return;
-        }
-        accessToken = response.access_token;
-        accessTokenExpiresAt = Date.now() + Math.max((response.expires_in ?? 3600) - 60, 60) * 1000;
-        publishSyncState({ status: 'idle', error: null });
-        resolve();
-      },
-      error_callback: (error) => reject(new Error(error.message || 'Không thể mở cửa sổ cấp quyền Google.')),
+    await new Promise<void>((resolve, reject) => {
+      const client = window.google!.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: DRIVE_SCOPE,
+        callback: (response) => {
+          if (response.error || !response.access_token) {
+            reject(new Error(response.error_description || response.error || 'Google không cấp quyền truy cập.'));
+            return;
+          }
+          accessToken = response.access_token;
+          accessTokenExpiresAt = Date.now() + Math.max((response.expires_in ?? 3600) - 60, 60) * 1000;
+          publishSyncState({ status: 'idle', error: null });
+          resolve();
+        },
+        error_callback: (error) => reject(new Error(error.message || 'Không thể mở cửa sổ cấp quyền Google.')),
+      });
+      client.requestAccessToken({ prompt: '' });
     });
-    client.requestAccessToken({ prompt: '' });
-  });
+    logDiagnostic('drive-auth', 'info', 'Google access granted', { expiresAt: new Date(accessTokenExpiresAt).toISOString() });
+  } catch (error) {
+    logDiagnostic('drive-auth', 'error', 'Google access failed', error);
+    throw error;
+  }
 }
 
 async function ensureAccessToken(interactive: boolean): Promise<string> {
   if (isGoogleConnected()) return accessToken!;
   accessToken = null;
-  if (!interactive) throw new GoogleAuthRequiredError();
+  if (!interactive) {
+    logDiagnostic('drive-auth', 'warn', 'Google access token is unavailable', { interactive });
+    throw new GoogleAuthRequiredError();
+  }
   await requestGoogleAccessToken();
   if (!accessToken) throw new GoogleAuthRequiredError();
   return accessToken;
 }
 
+function driveRequestContext(url: string, method = 'GET'): Record<string, unknown> {
+  try {
+    const parsed = new URL(url);
+    return {
+      method,
+      path: parsed.pathname,
+      alt: parsed.searchParams.get('alt') ?? undefined,
+      uploadType: parsed.searchParams.get('uploadType') ?? undefined,
+      online: typeof navigator === 'undefined' ? undefined : navigator.onLine,
+    };
+  } catch {
+    return { method, path: url.split('?')[0] };
+  }
+}
+
 async function driveRequest<T>(url: string, init: RequestInit = {}, interactive = true): Promise<T> {
-  const token = await ensureAccessToken(interactive);
+  const context = driveRequestContext(url, init.method ?? 'GET');
+  const startedAt = Date.now();
+  logDiagnostic('drive-http', 'info', 'Drive request started', { ...context, interactive });
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
   try {
+    const token = await ensureAccessToken(interactive);
     const response = await fetch(url, {
       ...init,
       signal: init.signal ?? controller.signal,
@@ -299,8 +328,10 @@ async function driveRequest<T>(url: string, init: RequestInit = {}, interactive 
       const detail = await response.text().catch(() => '');
       throw new Error(`Google Drive trả về lỗi ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ''}`);
     }
+    logDiagnostic('drive-http', 'info', 'Drive request completed', { ...context, status: response.status, durationMs: Date.now() - startedAt });
     return response.json() as Promise<T>;
   } catch (error) {
+    logDiagnostic('drive-http', 'error', 'Drive request failed', { ...context, durationMs: Date.now() - startedAt, error });
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error('Google Drive không phản hồi kịp thời. Hãy kiểm tra kết nối rồi thử lại.');
     }
@@ -311,10 +342,13 @@ async function driveRequest<T>(url: string, init: RequestInit = {}, interactive 
 }
 
 async function driveBlobRequest(url: string, interactive = false): Promise<Blob> {
-  const token = await ensureAccessToken(interactive);
+  const context = driveRequestContext(url);
+  const startedAt = Date.now();
+  logDiagnostic('drive-media', 'info', 'Media download started', { ...context, interactive });
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
   try {
+    const token = await ensureAccessToken(interactive);
     const response = await fetch(url, {
       signal: controller.signal,
       headers: { Authorization: `Bearer ${token}` },
@@ -329,8 +363,17 @@ async function driveBlobRequest(url: string, interactive = false): Promise<Blob>
       const detail = await response.text().catch(() => '');
       throw new Error(`Không thể tải media từ Google Drive (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`);
     }
-    return response.blob();
+    const blob = await response.blob();
+    logDiagnostic('drive-media', 'info', 'Media download completed', {
+      ...context,
+      status: response.status,
+      durationMs: Date.now() - startedAt,
+      size: blob.size,
+      mimeType: blob.type,
+    });
+    return blob;
   } catch (error) {
+    logDiagnostic('drive-media', 'error', 'Media download failed', { ...context, durationMs: Date.now() - startedAt, error });
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error('Google Drive không phản hồi kịp thời khi tải media.');
     }
@@ -345,6 +388,13 @@ export async function uploadTimelineMediaToDrive(
   blob: Blob,
   options: { name?: string; interactive?: boolean } = {},
 ): Promise<string> {
+  logDiagnostic('drive-media', 'info', 'Media upload prepared', {
+    mediaId,
+    name: options.name,
+    size: blob.size,
+    mimeType: blob.type,
+    interactive: options.interactive !== false,
+  });
   const interactive = options.interactive !== false;
   const boundary = `babygrowth-media-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const metadata = {
@@ -364,6 +414,7 @@ export async function uploadTimelineMediaToDrive(
     { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body },
     interactive,
   );
+  logDiagnostic('drive-media', 'info', 'Media upload completed', { mediaId, driveFileId: file.id, size: blob.size });
   return file.id;
 }
 
@@ -395,6 +446,10 @@ export async function listTimelineMediaFromDrive(
     pageToken = result.nextPageToken;
   } while (pageToken);
 
+  logDiagnostic('drive-media', 'info', 'Media list loaded', {
+    count: files.length,
+    totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+  });
   return files;
 }
 
@@ -412,20 +467,28 @@ export async function deleteTimelineMediaFromDrive(
   fileId: string,
   options: { interactive?: boolean } = {},
 ): Promise<void> {
+  const startedAt = Date.now();
+  logDiagnostic('drive-media', 'info', 'Media delete started', { fileId, interactive: options.interactive === true });
   const interactive = options.interactive === true;
-  const token = await ensureAccessToken(interactive);
-  const response = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`,
-    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
-  );
-  if (response.status === 401) {
-    accessToken = null;
-    accessTokenExpiresAt = 0;
-    if (!interactive) throw new GoogleAuthRequiredError();
-  }
-  if (!response.ok && response.status !== 404) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Không thể xóa media trên Google Drive (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+  try {
+    const token = await ensureAccessToken(interactive);
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`,
+      { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (response.status === 401) {
+      accessToken = null;
+      accessTokenExpiresAt = 0;
+      if (!interactive) throw new GoogleAuthRequiredError();
+    }
+    if (!response.ok && response.status !== 404) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Không thể xóa media trên Google Drive (${response.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+    }
+    logDiagnostic('drive-media', 'info', 'Media delete completed', { fileId, status: response.status, durationMs: Date.now() - startedAt });
+  } catch (error) {
+    logDiagnostic('drive-media', 'error', 'Media delete failed', { fileId, durationMs: Date.now() - startedAt, error });
+    throw error;
   }
 }
 

@@ -1,5 +1,6 @@
 import { getLocalMedia, waitForLocalRecordWrites } from './localDb';
 import { uploadTimelineMediaToDrive } from './googleDriveSync';
+import { logDiagnostic } from './diagnosticLog';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
 
@@ -13,6 +14,7 @@ async function waitForTimelineHydration(): Promise<void> {
 export async function syncTimelineMediaToDrive(
   options: { interactive?: boolean } = {},
 ): Promise<number> {
+  logDiagnostic('drive-sync', 'info', 'Timeline media sync started', { interactive: options.interactive !== false });
   await waitForTimelineHydration();
   const timelineItems = useTimelineStore.getState().timelineItems;
   let uploadedCount = 0;
@@ -28,6 +30,7 @@ export async function syncTimelineMediaToDrive(
       }
       const blob = await getLocalMedia(media.blobId);
       if (!blob) {
+        logDiagnostic('drive-sync', 'warn', 'Local media blob is missing', { mediaId: media.id, blobId: media.blobId });
         nextMediaItems.push(media);
         continue;
       }
@@ -46,5 +49,6 @@ export async function syncTimelineMediaToDrive(
     useTimelineStore.setState({ timelineItems: nextTimelineItems });
     await waitForLocalRecordWrites([TIMELINE_STORAGE_KEY]);
   }
+  logDiagnostic('drive-sync', 'info', 'Timeline media sync completed', { uploadedCount, timelineItemCount: timelineItems.length });
   return uploadedCount;
 }
