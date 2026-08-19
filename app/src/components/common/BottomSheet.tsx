@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
-import { AnimatePresence, animate, motion, useDragControls, useMotionValue, type PanInfo } from 'motion/react';
+import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
 import {
   havenDialogTransition,
   havenOverlayTransition,
@@ -41,21 +41,19 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const dragControls = useDragControls();
-  const y = useMotionValue(0);
 
   useEffect(() => {
     if (!isOpen) return;
     previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
-    y.set(0);
 
     return () => {
       const previouslyFocused = previouslyFocusedRef.current;
       previouslyFocusedRef.current = null;
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
-  }, [isOpen, y]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -108,18 +106,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (!dismissible) {
-      void animate(y, 0, havenSnappySpring);
-      return;
-    }
-
+    if (!dismissible) return;
     const shouldDismiss = info.offset.y > 80 || (info.velocity.y > 450 && info.offset.y > 20);
-    if (shouldDismiss) {
-      onClose();
-      return;
-    }
-
-    void animate(y, 0, havenSnappySpring);
+    if (shouldDismiss) onClose();
   };
 
   return (
@@ -145,7 +134,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             aria-label={title ? undefined : 'Hộp thoại'}
             tabIndex={-1}
             className="bottom-sheet"
-            style={{ y }}
             variants={havenSheetVariants}
             initial="hidden"
             animate="visible"
