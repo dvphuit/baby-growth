@@ -239,7 +239,7 @@ export type BabyActivity =
       type: 'feeding';
       amountMl?: number;
       durationMinutes?: number;
-      method?: 'bottle' | 'breast' | 'other';
+      method?: 'formula' | 'breast_direct' | 'breast_bottle' | 'bottle' | 'breast' | 'other';
       side?: 'left' | 'right' | 'both';
     })
   | (ActivityBase & {
@@ -248,11 +248,17 @@ export type BabyActivity =
       startedAt?: string;
       endedAt?: string;
       durationMinutes: number;
+      sleepKind?: 'nap' | 'night';
+      sleepQuality?: 'restful' | 'normal' | 'restless';
+      wakeCount?: number;
     })
   | (ActivityBase & {
       owner: 'baby';
       type: 'diaper';
       diaperKind: 'wet' | 'dirty' | 'both';
+      stoolType?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+      stoolColor?: 'yellow' | 'brown' | 'green' | 'red' | 'black' | 'pale';
+      stoolFlags?: Array<'mucus' | 'blood'>;
     })
   | (ActivityBase & {
       owner: 'baby';
@@ -264,6 +270,8 @@ export type BabyActivity =
       owner: 'baby';
       type: 'temperature';
       temperatureC: number;
+      measurementSite?: 'rectal' | 'ear' | 'forehead' | 'oral' | 'axillary';
+      symptoms?: Array<'lethargy' | 'breathing' | 'seizure' | 'rash' | 'dehydration'>;
     })
   | (ActivityBase & {
       owner: 'baby';

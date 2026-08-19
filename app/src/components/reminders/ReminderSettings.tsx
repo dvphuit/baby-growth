@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Bell, BellOff, Trash2 } from 'lucide-react';
+import { HavenDatePicker } from '../common/HavenDatePicker';
+import { HavenDropdown } from '../common/HavenDropdown';
 import { getNotificationCapability, requestSystemNotificationPermission } from '@/services/notificationService';
 import { useReminderStore } from '@/store/useReminderStore';
 import type { ReminderMode, ReminderType } from '@/types/reminder';
@@ -120,9 +122,15 @@ export function ReminderSettings() {
         <div className="section-eyebrow">TẠO REMINDER</div>
         <div className="log-form-group">
           <label className="log-form-label">Loại</label>
-          <select className="log-input-control" value={type} onChange={(event) => handleTypeChange(event.target.value as ReminderType)}>
-            {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          <HavenDropdown
+            label="Loại reminder"
+            value={type}
+            onChange={(val) => handleTypeChange(val as ReminderType)}
+            options={Object.entries(TYPE_LABELS).map(([value, label]) => ({
+              value: value as ReminderType,
+              label,
+            }))}
+          />
         </div>
         <div className="log-form-group">
           <label className="log-form-label">Tiêu đề</label>
@@ -132,10 +140,15 @@ export function ReminderSettings() {
         {relativeAllowed && (
           <div className="log-form-group">
             <label className="log-form-label">Cách nhắc</label>
-            <select className="log-input-control" value={mode} onChange={(event) => setMode(event.target.value as ReminderMode)}>
-              <option value="relative">Sau lần ghi gần nhất</option>
-              <option value="fixed">Theo giờ cố định</option>
-            </select>
+            <HavenDropdown
+              label="Cách nhắc"
+              value={mode}
+              onChange={(val) => setMode(val as ReminderMode)}
+              options={[
+                { value: 'relative', label: 'Sau lần ghi gần nhất' },
+                { value: 'fixed', label: 'Theo giờ cố định' },
+              ]}
+            />
           </div>
         )}
 
@@ -149,14 +162,24 @@ export function ReminderSettings() {
           <>
             <div className="log-form-group">
               <label className="log-form-label">Thời điểm</label>
-              <input className="log-input-control" type="datetime-local" value={triggerAt} onChange={(event) => setTriggerAt(event.target.value)} required />
+              <HavenDatePicker
+                label="Thời điểm"
+                value={triggerAt}
+                showTime
+                onChange={setTriggerAt}
+              />
             </div>
             <div className="log-form-group">
               <label className="log-form-label">Lặp lại</label>
-              <select className="log-input-control" value={repeat} onChange={(event) => setRepeat(event.target.value as typeof repeat)}>
-                <option value="none">Không lặp</option>
-                <option value="daily">Mỗi ngày</option>
-              </select>
+              <HavenDropdown
+                label="Lặp lại"
+                value={repeat}
+                onChange={(val) => setRepeat(val as typeof repeat)}
+                options={[
+                  { value: 'none', label: 'Không lặp' },
+                  { value: 'daily', label: 'Mỗi ngày' },
+                ]}
+              />
             </div>
           </>
         )}

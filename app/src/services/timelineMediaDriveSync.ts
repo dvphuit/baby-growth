@@ -1,6 +1,7 @@
 import { getLocalMedia, waitForLocalRecordWrites } from './localDb';
 import { uploadTimelineMediaToDrive } from './googleDriveSync';
 import { logDiagnostic } from './diagnosticLog';
+import { publishTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
 
@@ -18,6 +19,7 @@ export async function syncTimelineMediaToDrive(
   await waitForTimelineHydration();
   const timelineItems = useTimelineStore.getState().timelineItems;
   let uploadedCount = 0;
+  let firstUploadError: unknown = null;
 
   const nextTimelineItems: TimelineItem[] = [];
   for (const item of timelineItems) {
@@ -28,19 +30,37 @@ export async function syncTimelineMediaToDrive(
         nextMediaItems.push(media);
         continue;
       }
+      const mediaId = media.id || media.blobId;
+      publishTimelineMediaSyncProgress(mediaId, { status: 'queued', progress: 0 });
       const blob = await getLocalMedia(media.blobId);
       if (!blob) {
         logDiagnostic('drive-sync', 'warn', 'Local media blob is missing', { mediaId: media.id, blobId: media.blobId });
+        publishTimelineMediaSyncProgress(mediaId, {
+          status: 'error',
+          progress: 0,
+          error: 'Không tìm thấy media trên thiết bị để đồng bộ.',
+        });
         nextMediaItems.push(media);
         continue;
       }
-      const driveFileId = await uploadTimelineMediaToDrive(media.id || media.blobId, blob, {
-        name: media.name,
-        interactive: options.interactive,
-      });
-      nextMediaItems.push({ ...media, driveFileId });
-      uploadedCount += 1;
-      itemChanged = true;
+      publishTimelineMediaSyncProgress(mediaId, { status: 'uploading', progress: 0 });
+      try {
+        const driveFileId = await uploadTimelineMediaToDrive(mediaId, blob, {
+          name: media.name,
+          interactive: options.interactive,
+          onProgress: (progress) => publishTimelineMediaSyncProgress(mediaId, { status: 'uploading', progress }),
+        });
+        publishTimelineMediaSyncProgress(mediaId, { status: 'synced', progress: 100 });
+        nextMediaItems.push({ ...media, driveFileId });
+        uploadedCount += 1;
+        itemChanged = true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Không thể tải media lên Google Drive.';
+        publishTimelineMediaSyncProgress(mediaId, { status: 'error', progress: 0, error: message });
+        logDiagnostic('drive-sync', 'error', 'Timeline media upload failed', { mediaId, error });
+        firstUploadError ??= error;
+        nextMediaItems.push(media);
+      }
     }
     nextTimelineItems.push(itemChanged ? { ...item, mediaItems: nextMediaItems } : item);
   }
@@ -49,6 +69,7 @@ export async function syncTimelineMediaToDrive(
     useTimelineStore.setState({ timelineItems: nextTimelineItems });
     await waitForLocalRecordWrites([TIMELINE_STORAGE_KEY]);
   }
+  if (firstUploadError) throw firstUploadError;
   logDiagnostic('drive-sync', 'info', 'Timeline media sync completed', { uploadedCount, timelineItemCount: timelineItems.length });
   return uploadedCount;
 }

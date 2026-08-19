@@ -11,6 +11,7 @@ type HavenCalendarProps = {
   className?: string;
   minDate?: string;
   maxDate?: string;
+  showFooter?: boolean;
 } & (
   | { mode: 'single'; value: string; onChange: (value: string) => void }
   | { mode: 'range'; value: HavenDateRange; onChange: (value: HavenDateRange) => void }
@@ -26,12 +27,15 @@ function toDateKey(date: Date): string {
 }
 
 function parseDateKey(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
+  if (!value) return new Date();
+  const [year, month, day] = value.split('T')[0].split('-').map(Number);
+  if (!year || !month || !day || Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return new Date();
   return new Date(year, month - 1, day, 12, 0, 0);
 }
 
 function initialMonth(props: HavenCalendarProps): Date {
-  return parseDateKey(props.mode === 'single' ? props.value : props.value.start);
+  const anchor = props.mode === 'single' ? props.value : props.value?.start;
+  return parseDateKey(anchor || '');
 }
 
 function monthLabel(date: Date): string {
@@ -218,15 +222,19 @@ export function HavenCalendar(props: HavenCalendarProps) {
         </div>
       </div>
 
-      <div className="haven-calendar-footer">
-        <span><CalendarDays size={14} />{props.mode === 'single' ? 'Chọn một ngày để xem nhật ký' : props.value.end ? 'Đã chọn đủ khoảng ngày' : 'Chọn ngày kết thúc'}</span>
-        <button type="button" disabled={isDisabled(todayKey)} onClick={() => {
-          const today = new Date();
-          setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1, 12));
-          if (props.mode === 'single') props.onChange(todayKey);
-          else props.onChange({ start: todayKey, end: todayKey });
-        }}>Hôm nay</button>
-      </div>
+      {props.showFooter !== false && (
+        <div className="haven-calendar-footer">
+          {props.mode === 'range' ? (
+            <span><CalendarDays size={14} />{props.value.end ? 'Đã chọn đủ khoảng ngày' : 'Chọn ngày kết thúc'}</span>
+          ) : <span />}
+          <button type="button" disabled={isDisabled(todayKey)} onClick={() => {
+            const today = new Date();
+            setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1, 12));
+            if (props.mode === 'single') props.onChange(todayKey);
+            else props.onChange({ start: todayKey, end: todayKey });
+          }}>Hôm nay</button>
+        </div>
+      )}
     </div>
   );
 }

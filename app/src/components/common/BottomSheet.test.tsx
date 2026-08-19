@@ -64,4 +64,21 @@ describe('BottomSheet accessibility and dismissal', () => {
     expect(onClose).not.toHaveBeenCalled();
     expect(dialog).not.toHaveClass('closing');
   });
+
+  it('renders fixed footer outside the scrollable content body', () => {
+    render(
+      <BottomSheet
+        isOpen
+        onClose={() => {}}
+        title="Footer test"
+        footer={<button type="button">Fixed Save</button>}
+      >
+        <p>Scrollable body content</p>
+      </BottomSheet>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Fixed Save' })).toBeInTheDocument();
+    const footerEl = screen.getByRole('button', { name: 'Fixed Save' }).parentElement;
+    expect(footerEl).toHaveClass('sheet-footer');
+  });
 });

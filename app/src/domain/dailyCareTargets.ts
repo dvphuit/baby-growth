@@ -62,3 +62,167 @@ export function getMilkTarget(birthDate: string, weightKg: number | null, now: D
 
   return { targetMl: null, label: 'Theo chế độ ăn', detail: 'Sau 12 tháng không đặt mục tiêu sữa theo ml tại đây.' };
 }
+
+export interface FeedingRecommendation {
+  minMl: number;
+  maxMl: number;
+  label: string;
+  ageText: string;
+}
+
+export function getFeedingRecommendation(
+  birthDate?: string | null,
+  weightKg?: number | null,
+  now = new Date(),
+): FeedingRecommendation {
+  if (!birthDate) {
+    return {
+      minMl: 90,
+      maxMl: 150,
+      label: 'Gợi ý: 90 – 150 ml / cữ',
+      ageText: 'Mức chuẩn tham khảo',
+    };
+  }
+
+  const birth = parseLocalDate(birthDate);
+  if (!birth) {
+    return {
+      minMl: 90,
+      maxMl: 150,
+      label: 'Gợi ý: 90 – 150 ml / cữ',
+      ageText: 'Mức chuẩn tham khảo',
+    };
+  }
+
+  const diffMs = now.getTime() - birth.getTime();
+  const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = getAgeInMonths(birthDate, now) ?? 0;
+
+  let minMl = 90;
+  let maxMl = 150;
+  let ageText = '';
+
+  if (diffDays <= 3) {
+    minMl = 30;
+    maxMl = 60;
+    ageText = `${Math.max(1, diffDays)} ngày tuổi`;
+  } else if (diffDays <= 14) {
+    minMl = 60;
+    maxMl = 90;
+    ageText = `${diffDays} ngày tuổi`;
+  } else if (diffWeeks < 4) {
+    minMl = 60;
+    maxMl = 90;
+    ageText = `${diffWeeks} tuần tuổi`;
+  } else if (diffMonths < 2) {
+    minMl = 90;
+    maxMl = 120;
+    ageText = '1–2 tháng tuổi';
+  } else if (diffMonths < 4) {
+    minMl = 120;
+    maxMl = 150;
+    ageText = '2–4 tháng tuổi';
+  } else if (diffMonths < 6) {
+    minMl = 150;
+    maxMl = 180;
+    ageText = '4–6 tháng tuổi';
+  } else if (diffMonths < 9) {
+    minMl = 180;
+    maxMl = 210;
+    ageText = '6–9 tháng tuổi';
+  } else if (diffMonths < 12) {
+    minMl = 180;
+    maxMl = 240;
+    ageText = '9–12 tháng tuổi';
+  } else {
+    minMl = 150;
+    maxMl = 240;
+    ageText = 'Trên 1 tuổi';
+  }
+
+  if (weightKg && weightKg > 0 && diffDays > 14 && diffMonths < 7) {
+    const weightMin = Math.round((weightKg * 20) / 5) * 5;
+    const weightMax = Math.round((weightKg * 28) / 5) * 5;
+    minMl = Math.max(30, Math.min(minMl, weightMin));
+    maxMl = Math.min(260, Math.max(maxMl, weightMax));
+    ageText += ` · ${weightKg} kg`;
+  }
+
+  return {
+    minMl,
+    maxMl,
+    label: `Gợi ý: ${minMl} – ${maxMl} ml / cữ`,
+    ageText,
+  };
+}
+
+export interface TemperatureStatus {
+  tier: 'hypothermia' | 'normal' | 'elevated' | 'fever' | 'high_fever' | 'very_high_fever';
+  label: string;
+  tone: 'cool' | 'sage' | 'amber' | 'coral' | 'crimson';
+  color: string;
+  badgeText: string;
+  advice: string;
+}
+
+export function getTemperatureStatus(tempC: number): TemperatureStatus {
+  if (tempC < 36.0) {
+    return {
+      tier: 'hypothermia',
+      label: 'Hạ thân nhiệt',
+      tone: 'cool',
+      color: '#3B82F6',
+      badgeText: '⚠️ Hạ thân nhiệt',
+      advice: 'Thân nhiệt thấp (< 36.0°C). Cần ủ ấm cho bé và đo lại sau 15–30 phút.',
+    };
+  }
+  if (tempC < 37.5) {
+    return {
+      tier: 'normal',
+      label: 'Bình thường',
+      tone: 'sage',
+      color: '#6F8B4A',
+      badgeText: '✓ Thân nhiệt tốt',
+      advice: 'Nhiệt độ đang trong khoảng tham khảo 36.0–37.4°C.',
+    };
+  }
+  if (tempC < 38) {
+    return {
+      tier: 'elevated',
+      label: 'Hơi cao',
+      tone: 'amber',
+      color: '#D97706',
+      badgeText: 'Theo dõi',
+      advice: 'Thân nhiệt hơi cao (37.5–37.9°C). Cho bé nghỉ, mặc thoáng và đo lại sau 15–30 phút.',
+    };
+  }
+  if (tempC < 39) {
+    return {
+      tier: 'fever',
+      label: 'Có sốt',
+      tone: 'coral',
+      color: '#EA580C',
+      badgeText: 'Sốt ≥ 38°C',
+      advice: 'Có sốt (38.0–38.9°C). Theo dõi triệu chứng và bảo đảm bé được bú/uống đủ.',
+    };
+  }
+  if (tempC < 40) {
+    return {
+      tier: 'high_fever',
+      label: 'Sốt cao',
+      tone: 'coral',
+      color: '#D9480F',
+      badgeText: 'Sốt cao',
+      advice: 'Sốt cao (39.0–39.9°C). Theo dõi sát và liên hệ bác sĩ nếu bé mệt hoặc sốt kéo dài.',
+    };
+  }
+  return {
+    tier: 'very_high_fever',
+    label: 'Sốt rất cao',
+    tone: 'crimson',
+    color: '#DC2626',
+    badgeText: '🚨 Nguy hiểm',
+    advice: 'Sốt từ 40°C. Cần liên hệ cơ sở y tế ngay và theo dõi sát tình trạng của bé.',
+  };
+}

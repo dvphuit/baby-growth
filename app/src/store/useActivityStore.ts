@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/services/localDb';
 import type { ActivityRecord, BabyActivity, MomActivity } from '@/types';
+import {
+  createDefaultMedicationCatalog,
+  mergeMedicationCatalog,
+  normalizeMedicationName,
+  type MedicationCatalogItem,
+  type MedicationKind,
+} from '@/domain/medicationCatalog';
 
 type WithoutGeneratedFields<T> = T extends unknown ? Omit<T, 'id' | 'createdAt'> : never;
 export type NewBabyActivity = WithoutGeneratedFields<BabyActivity>;
@@ -18,8 +25,11 @@ function nowIso(): string {
 export interface ActivityStoreState {
   babyActivities: BabyActivity[];
   momActivities: MomActivity[];
+  medicationCatalog: MedicationCatalogItem[];
   addBabyActivity: (input: NewBabyActivity) => BabyActivity;
   addMomActivity: (input: NewMomActivity) => MomActivity;
+  upsertMedication: (input: { name: string; dose?: string; kind?: MedicationKind; infoUrl?: string }) => MedicationCatalogItem;
+  deleteMedication: (id: string) => void;
   updateActivity: (id: string, patch: Partial<ActivityRecord>) => void;
   deleteActivity: (id: string) => void;
   resetTrackingData: () => void;
@@ -27,9 +37,10 @@ export interface ActivityStoreState {
 
 export const useActivityStore = create<ActivityStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       babyActivities: [],
       momActivities: [],
+      medicationCatalog: createDefaultMedicationCatalog(),
 
       addBabyActivity: (input) => {
         const record = { ...input, id: createId(), createdAt: nowIso() } as BabyActivity;
@@ -42,6 +53,40 @@ export const useActivityStore = create<ActivityStoreState>()(
         set((state) => ({ momActivities: [record, ...state.momActivities] }));
         return record;
       },
+
+      upsertMedication: ({ name, dose, kind = 'medicine', infoUrl }) => {
+        const trimmedName = name.trim().replace(/\s+/g, ' ');
+        const trimmedDose = dose?.trim() || undefined;
+        const trimmedInfoUrl = infoUrl?.trim() || undefined;
+        const existing = get().medicationCatalog.find(
+          (item) => normalizeMedicationName(item.name) === normalizeMedicationName(trimmedName),
+        );
+        const saved: MedicationCatalogItem = existing
+          ? {
+              ...existing,
+              lastDose: trimmedDose ?? existing.lastDose,
+              infoUrl: trimmedInfoUrl ?? existing.infoUrl,
+            }
+          : {
+              id: createId().replace('activity-', 'medication-'),
+              name: trimmedName,
+              detail: 'Đã thêm',
+              kind,
+              builtIn: false,
+              infoUrl: trimmedInfoUrl,
+              lastDose: trimmedDose,
+            };
+        set((state) => ({
+          medicationCatalog: existing
+            ? state.medicationCatalog.map((item) => item.id === existing.id ? saved : item)
+            : [...state.medicationCatalog, saved],
+        }));
+        return saved;
+      },
+
+      deleteMedication: (id) => set((state) => ({
+        medicationCatalog: state.medicationCatalog.filter((item) => item.id !== id || item.builtIn),
+      })),
 
       updateActivity: (id, patch) => {
         set((state) => ({
@@ -61,7 +106,11 @@ export const useActivityStore = create<ActivityStoreState>()(
         }));
       },
 
-      resetTrackingData: () => set({ babyActivities: [], momActivities: [] }),
+      resetTrackingData: () => set({
+        babyActivities: [],
+        momActivities: [],
+        medicationCatalog: createDefaultMedicationCatalog(),
+      }),
     }),
     {
       name: 'babygrowth_v3_activities',
@@ -69,7 +118,16 @@ export const useActivityStore = create<ActivityStoreState>()(
       partialize: (state) => ({
         babyActivities: state.babyActivities,
         momActivities: state.momActivities,
+        medicationCatalog: state.medicationCatalog,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<ActivityStoreState>;
+        return {
+          ...currentState,
+          ...persisted,
+          medicationCatalog: mergeMedicationCatalog(persisted.medicationCatalog),
+        };
+      },
     }
   )
 );

@@ -8,20 +8,92 @@ export interface DerivedTimelineEntry {
   title: string;
   detail: string;
   stats: string[];
+  signs?: string[];
 }
 
-function babyEntry(record: BabyActivity): DerivedTimelineEntry {
+export function buildBabyTimelineEntry(record: BabyActivity): DerivedTimelineEntry {
   switch (record.type) {
-    case 'feeding':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Cữ bú', detail: record.note ?? '', stats: [record.amountMl ? `${record.amountMl} ml` : '', record.durationMinutes ? `${record.durationMinutes} phút` : ''].filter(Boolean) };
+    case 'feeding': {
+      const methodLabel =
+        record.method === 'formula'
+          ? 'Sữa công thức'
+          : record.method === 'breast_direct'
+            ? 'Mẹ trực tiếp'
+            : record.method === 'breast_bottle'
+              ? 'Sữa mẹ (bình)'
+              : record.method === 'bottle'
+                ? 'Bình sữa'
+                : record.method === 'breast'
+                  ? 'Bú mẹ'
+                  : record.method === 'other'
+                    ? 'Khác'
+                    : '';
+      return {
+        id: record.id,
+        occurredAt: record.occurredAt,
+        owner: 'baby',
+        type: record.type,
+        title: 'Cữ bú',
+        detail: record.note ?? '',
+        stats: [record.amountMl ? `${record.amountMl} ml` : '', methodLabel].filter(Boolean),
+      };
+    }
     case 'sleep':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Giấc ngủ của bé', detail: record.note ?? '', stats: [`${record.durationMinutes} phút`] };
+      return {
+        id: record.id,
+        occurredAt: record.occurredAt,
+        owner: 'baby',
+        type: record.type,
+        title: 'Giấc ngủ của bé',
+        detail: record.note ?? '',
+        stats: [
+          `${record.durationMinutes} phút`,
+          record.sleepKind === 'night' ? 'Ngủ đêm' : record.sleepKind === 'nap' ? 'Ngủ ngày' : '',
+          record.sleepQuality === 'restful' ? 'Ngủ sâu' : record.sleepQuality === 'restless' ? 'Chập chờn' : '',
+          record.wakeCount ? `Thức ${record.wakeCount} lần` : '',
+        ].filter(Boolean),
+      };
     case 'diaper':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Thay tã', detail: record.note ?? '', stats: [record.diaperKind === 'wet' ? 'Ướt' : record.diaperKind === 'dirty' ? 'Bẩn' : 'Ướt + bẩn'] };
+      return {
+        id: record.id,
+        occurredAt: record.occurredAt,
+        owner: 'baby',
+        type: record.type,
+        title: 'Thay tã',
+        detail: record.note ?? '',
+        stats: [
+          record.diaperKind === 'wet' ? 'Ướt' : record.diaperKind === 'dirty' ? 'Bẩn' : 'Ướt + bẩn',
+          record.stoolType ? `Bristol ${record.stoolType}` : '',
+          record.stoolColor === 'yellow' ? 'Vàng' : record.stoolColor === 'brown' ? 'Nâu' : record.stoolColor === 'green' ? 'Xanh' : record.stoolColor === 'red' ? 'Đỏ' : record.stoolColor === 'black' ? 'Đen' : record.stoolColor === 'pale' ? 'Trắng/xám' : '',
+        ].filter(Boolean),
+        signs: (record.stoolFlags ?? []).map((flag) => flag === 'mucus' ? 'Có nhầy' : 'Nghi có máu'),
+      };
     case 'medicine':
       return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: record.name, detail: record.note ?? '', stats: record.dose ? [record.dose] : [] };
     case 'temperature':
-      return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Nhiệt độ', detail: record.note ?? '', stats: [`${record.temperatureC} °C`] };
+      return {
+        id: record.id,
+        occurredAt: record.occurredAt,
+        owner: 'baby',
+        type: record.type,
+        title: 'Nhiệt độ',
+        detail: record.note ?? '',
+        stats: [
+          `${record.temperatureC} °C`,
+          record.measurementSite === 'rectal' ? 'Hậu môn' : record.measurementSite === 'ear' ? 'Tai' : record.measurementSite === 'forehead' ? 'Trán' : record.measurementSite === 'oral' ? 'Miệng' : record.measurementSite === 'axillary' ? 'Nách' : '',
+        ].filter(Boolean),
+        signs: (record.symptoms ?? []).map((symptom) =>
+          symptom === 'lethargy'
+            ? 'Khó đánh thức'
+            : symptom === 'breathing'
+              ? 'Khó thở'
+              : symptom === 'seizure'
+                ? 'Co giật'
+                : symptom === 'rash'
+                  ? 'Ban tím/không mất màu'
+                  : 'Ít tiểu/khô môi',
+        ),
+      };
     default:
       return { id: record.id, occurredAt: record.occurredAt, owner: 'baby', type: record.type, title: 'Ghi chú sức khỏe', detail: record.note ?? '', stats: [] };
   }
@@ -69,7 +141,7 @@ export function buildTimelineEntries(input: {
   growthHistory?: GrowthHistoryRecord[];
 }): DerivedTimelineEntry[] {
   return [
-    ...input.babyActivities.map(babyEntry),
+    ...input.babyActivities.map(buildBabyTimelineEntry),
     ...input.momActivities.map(momEntry),
     ...(input.growthHistory ?? []).map(growthEntry).filter((entry): entry is DerivedTimelineEntry => entry !== null),
   ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());

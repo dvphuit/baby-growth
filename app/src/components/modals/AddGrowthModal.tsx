@@ -1,16 +1,18 @@
 import { useBabyStore } from '@/store/useBabyStore';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
+import { HavenDatePicker } from '../common/HavenDatePicker';
+import { HavenDropdown } from '../common/HavenDropdown';
 import {
   Calendar,
   Baby,
   Scale,
   Ruler,
   CircleDot,
-  Sparkles,
-  ArrowRight,
   Plus,
   Minus,
+  Sparkles,
+  ArrowRight,
   FileText,
 } from 'lucide-react';
 
@@ -25,6 +27,7 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
   onClose,
   onSuccessToast,
 }) => {
+  const formId = useId();
   const currentStageData = useBabyStore(s => s.currentStageData());
   const addGrowthMeasurement = useBabyStore(s => s.addGrowthMeasurement);
 
@@ -77,8 +80,18 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Nhập Chỉ Số Tăng Trưởng">
-      <form onSubmit={handleSubmit} className="growth-input-form-container">
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nhập Chỉ Số Tăng Trưởng"
+      footer={
+        <button type="submit" form={formId} className="log-btn-primary">
+          <span>Lưu Số Đo & Cập Nhật Biểu Đồ</span>
+          <ArrowRight size={14} />
+        </button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit} className="growth-input-form-container">
         {/* Date & Milestone Picker Row */}
         <div
           style={{
@@ -92,28 +105,27 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
             <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
               <Calendar size={12} /> Ngày đo:
             </label>
-            <input
-              type="date"
-              className="log-input-control"
+            <HavenDatePicker
+              label="Ngày đo"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={setDate}
+              maxDate={todayStr}
             />
           </div>
           <div className="log-form-group" style={{ marginBottom: 0 }}>
             <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
               <Baby size={12} /> Cột mốc tháng:
             </label>
-            <select
-              className="log-input-control"
+            <HavenDropdown
+              label="Cột mốc tháng"
               value={milestoneIdx}
-              onChange={(e) => setMilestoneIdx(parseInt(e.target.value, 10))}
-            >
-              {labels.map((lbl, idx) => (
-                <option key={idx} value={idx}>
-                  Mốc {lbl}
-                </option>
-              ))}
-            </select>
+              align="end"
+              onChange={(val) => setMilestoneIdx(Number(val))}
+              options={labels.map((lbl, idx) => ({
+                value: idx,
+                label: `Mốc ${lbl}`,
+              }))}
+            />
           </div>
         </div>
 
@@ -287,12 +299,6 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
             placeholder="Vd: Bé ăn dặm tốt, bú mẹ đủ cữ, lẫy thành thạo..."
           />
         </div>
-
-        {/* Submit Button */}
-        <button type="submit" className="log-btn-primary">
-          <span>Lưu Số Đo & Cập Nhật Biểu Đồ</span>
-          <ArrowRight size={14} />
-        </button>
       </form>
     </BottomSheet>
   );

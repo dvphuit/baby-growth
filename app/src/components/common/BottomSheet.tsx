@@ -7,6 +7,7 @@ interface BottomSheetProps {
   title?: string;
   dismissible?: boolean;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -31,6 +32,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   title,
   dismissible = true,
   children,
+  footer,
 }) => {
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isEntered, setIsEntered] = useState(false);
@@ -39,6 +41,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const [isDragging, setIsDragging] = useState(false);
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
   const startTimeRef = useRef(0);
@@ -150,7 +153,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   // Pointer / Touch Handlers for 1:1 Fluid Tracking
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!dismissible || isClosingRef.current) return;
-    const isAtTop = !sheetRef.current || sheetRef.current.scrollTop <= 0;
+    const isAtTop = !contentRef.current || contentRef.current.scrollTop <= 0;
     if (isAtTop) {
       startYRef.current = e.clientY;
       startTimeRef.current = Date.now();
@@ -175,7 +178,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     } else {
       // Pulling up: subtle rubber-band resistance
       setDragY(Math.max(-24, diffY * 0.15));
-      if (sheetRef.current && sheetRef.current.scrollTop > 0) {
+      if (contentRef.current && contentRef.current.scrollTop > 0) {
         isDraggingRef.current = false;
         setIsDragging(false);
       }
@@ -301,7 +304,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           )}
         </div>
 
-        <div className="sheet-content-body">{children}</div>
+        <div ref={contentRef} className="sheet-content-body">{children}</div>
+        {footer && <div className="sheet-footer">{footer}</div>}
       </div>
     </div>
   );

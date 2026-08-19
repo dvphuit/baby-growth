@@ -9,6 +9,7 @@ import {
   HavenPumpingIcon,
   HavenScaleIcon,
   HavenSleepIcon,
+  HavenTemperatureIcon,
   HavenWalletIcon,
 } from '../common/HavenIcons';
 
@@ -68,6 +69,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
             <Action type="feeding" label="Cữ bú" icon={<HavenFeedingIcon size={24} />} tone="sage" />
             <Action type="diaper" label="Thay tã" icon={<HavenDiaperIcon size={24} />} tone="amber" />
             <Action type="baby-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+            <Action type="temperature" label="Nhiệt độ" icon={<HavenTemperatureIcon size={24} />} tone="rose" />
             <Action type="medicine" label="Thuốc / vitamin" icon={<HavenMedicineIcon size={24} />} tone="blue" />
             <Action type="growth" label="Cân đo" icon={<HavenScaleIcon size={24} />} tone="meadow" />
             <Action type="smart-expense" label="Chi tiêu" icon={<HavenWalletIcon size={24} />} tone="clay" />

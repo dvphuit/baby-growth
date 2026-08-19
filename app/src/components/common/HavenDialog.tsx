@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
+import { havenLayoutTransition } from '@/components/motion/motionPresets';
 
 interface HavenDialogProps {
   open: boolean;
@@ -10,11 +12,12 @@ interface HavenDialogProps {
   children: ReactNode;
   footer?: ReactNode;
   modal?: boolean;
+  className?: string;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function HavenDialog({ open, onClose, title, description, children, footer, modal = true }: HavenDialogProps) {
+export function HavenDialog({ open, onClose, title, description, children, footer, modal = true, className = '' }: HavenDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -79,14 +82,16 @@ export function HavenDialog({ open, onClose, title, description, children, foote
         onClose();
       }}
     >
-      <div
+      <motion.div
+        layout
         ref={dialogRef}
-        className="haven-dialog"
+        className={`haven-dialog ${className}`.trim()}
         role="dialog"
         aria-modal={modal}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
+        transition={havenLayoutTransition}
       >
         <div className="haven-dialog-header">
           <div>
@@ -96,8 +101,8 @@ export function HavenDialog({ open, onClose, title, description, children, foote
           <button type="button" className="haven-dialog-close" aria-label="Đóng" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="haven-dialog-body">{children}</div>
-        {footer && <div className="haven-dialog-footer">{footer}</div>}
-      </div>
+        {footer && <motion.div layout="position" className="haven-dialog-footer" transition={havenLayoutTransition}>{footer}</motion.div>}
+      </motion.div>
     </div>,
     document.body,
   );

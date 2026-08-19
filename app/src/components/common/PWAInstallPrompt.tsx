@@ -220,8 +220,17 @@ export const PWAInstallPrompt: React.FC = () => {
         isOpen={showGuide}
         onClose={() => setShowGuide(false)}
         title="Hướng Dẫn Cài Đặt PWA"
+        footer={
+          <button
+            className="log-btn-primary"
+            onClick={() => setShowGuide(false)}
+          >
+            <span>Đã Hiểu</span>
+            <Check size={16} strokeWidth={2.4} />
+          </button>
+        }
       >
-        <div style={{ padding: '4px 0 12px 0' }}>
+        <div style={{ padding: '4px 0 8px 0' }}>
           <div
             style={{
               display: 'flex',
@@ -247,15 +256,6 @@ export const PWAInstallPrompt: React.FC = () => {
           </div>
 
           <div className="ios-install-steps">{renderGuideSteps()}</div>
-
-          <button
-            className="log-btn-primary"
-            style={{ marginTop: '16px' }}
-            onClick={() => setShowGuide(false)}
-          >
-            <span>Đã Hiểu</span>
-            <Check size={16} strokeWidth={2.4} />
-          </button>
         </div>
       </BottomSheet>
     </>

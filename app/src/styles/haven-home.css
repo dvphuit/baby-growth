@@ -529,8 +529,8 @@
 }
 
 .haven-home-notebook { margin-top: 2px; }
-.haven-home-notebook .journal-story-main { cursor: default; }
-.haven-home-notebook .journal-story-main:active { opacity: 1; }
+.haven-home-notebook .journal-story-main { cursor: pointer; border-radius: 12px; transition: opacity var(--transition-fast); }
+.haven-home-notebook .journal-story-main:active { opacity: 0.72; }
 .haven-home-notebook .journal-story-item:last-child .journal-story-content { padding-bottom: 8px; }
 
 .haven-sheet-heading {

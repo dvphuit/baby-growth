@@ -341,6 +341,66 @@ async function driveRequest<T>(url: string, init: RequestInit = {}, interactive 
   }
 }
 
+async function driveUploadRequest<T>(
+  url: string,
+  body: Blob,
+  contentType: string,
+  interactive: boolean,
+  onProgress: (progress: number) => void,
+): Promise<T> {
+  const context = driveRequestContext(url, 'POST');
+  const startedAt = Date.now();
+  const token = await ensureAccessToken(interactive);
+  logDiagnostic('drive-http', 'info', 'Drive upload started', { ...context, interactive, size: body.size });
+
+  return new Promise<T>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', url);
+    request.setRequestHeader('Authorization', `Bearer ${token}`);
+    request.setRequestHeader('Content-Type', contentType);
+    request.upload.onprogress = (event) => {
+      if (!event.lengthComputable || event.total <= 0) return;
+      onProgress(Math.max(1, Math.min(99, Math.round((event.loaded / event.total) * 100))));
+    };
+    request.onload = () => {
+      if (request.status === 401) {
+        accessToken = null;
+        accessTokenExpiresAt = 0;
+        reject(interactive
+          ? new Error('Phiên Google đã hết hạn. Hãy bấm đồng bộ lại để cấp quyền mới.')
+          : new GoogleAuthRequiredError());
+        return;
+      }
+      if (request.status < 200 || request.status >= 300) {
+        const detail = request.responseText?.slice(0, 180);
+        reject(new Error(`Google Drive trả về lỗi ${request.status}${detail ? `: ${detail}` : ''}`));
+        return;
+      }
+      try {
+        onProgress(100);
+        logDiagnostic('drive-http', 'info', 'Drive upload completed', {
+          ...context,
+          status: request.status,
+          durationMs: Date.now() - startedAt,
+        });
+        resolve(JSON.parse(request.responseText) as T);
+      } catch (error) {
+        reject(new Error(`Google Drive trả về dữ liệu upload không hợp lệ: ${error instanceof Error ? error.message : String(error)}`));
+      }
+    };
+    request.onerror = () => reject(new Error('Không thể kết nối Google Drive khi tải media.'));
+    request.onabort = () => reject(new Error('Đã dừng tải media lên Google Drive.'));
+    request.send(body);
+  }).catch((error) => {
+    logDiagnostic('drive-http', 'error', 'Drive upload failed', {
+      ...context,
+      durationMs: Date.now() - startedAt,
+      error,
+    });
+    throw error;
+  });
+}
+
 async function driveBlobRequest(url: string, interactive = false): Promise<Blob> {
   const context = driveRequestContext(url);
   const startedAt = Date.now();
@@ -386,7 +446,7 @@ async function driveBlobRequest(url: string, interactive = false): Promise<Blob>
 export async function uploadTimelineMediaToDrive(
   mediaId: string,
   blob: Blob,
-  options: { name?: string; interactive?: boolean } = {},
+  options: { name?: string; interactive?: boolean; onProgress?: (progress: number) => void } = {},
 ): Promise<string> {
   logDiagnostic('drive-media', 'info', 'Media upload prepared', {
     mediaId,
@@ -409,11 +469,11 @@ export async function uploadTimelineMediaToDrive(
     blob,
     `\r\n--${boundary}--\r\n`,
   ], { type: `multipart/related; boundary=${boundary}` });
-  const file = await driveRequest<DriveFile>(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
-    { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body },
-    interactive,
-  );
+  const url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name';
+  const contentType = `multipart/related; boundary=${boundary}`;
+  const file = options.onProgress
+    ? await driveUploadRequest<DriveFile>(url, body, contentType, interactive, options.onProgress)
+    : await driveRequest<DriveFile>(url, { method: 'POST', headers: { 'Content-Type': contentType }, body }, interactive);
   logDiagnostic('drive-media', 'info', 'Media upload completed', { mediaId, driveFileId: file.id, size: blob.size });
   return file.id;
 }

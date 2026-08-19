@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { LayoutGroup, MotionConfig } from 'motion/react';
 import './index.css';
 import App from './App.tsx';
 import { isMockDataEnabled, seedMockData } from './data/mockData';
@@ -61,7 +62,11 @@ void handleResetRequest().then((didReset) => {
     createRoot(document.getElementById('root')!).render(
       <StrictMode>
         <BrowserRouter>
-          <App />
+          <MotionConfig reducedMotion="user">
+            <LayoutGroup id="haven-app">
+              <App />
+            </LayoutGroup>
+          </MotionConfig>
         </BrowserRouter>
       </StrictMode>,
     );

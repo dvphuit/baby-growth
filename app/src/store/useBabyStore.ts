@@ -227,15 +227,33 @@ export const useBabyStore = create<BabyStoreState>()(
           const currentStage = prevState.currentStage;
           const stage = { ...prevState.stages[currentStage] };
           if (!stage || !stage.growthHistory) return prevState;
+          const removedRecord = stage.growthHistory.find((rec) => rec.id === id);
+          if (!removedRecord) return prevState;
           const updatedHistory = stage.growthHistory.filter((rec) => rec.id !== id);
           const latest = updatedHistory[0];
-          if (latest) {
-            stage.todayVitals = {
-              ...stage.todayVitals,
-              weight: latest.weight > 0 ? `${latest.weight} kg` : stage.todayVitals.weight,
-              height: latest.height > 0 ? `${latest.height} cm` : stage.todayVitals.height,
-              headCirc: latest.headCirc > 0 ? `${latest.headCirc} cm` : stage.todayVitals.headCirc,
-            };
+          stage.todayVitals = {
+            ...stage.todayVitals,
+            weight: latest?.weight && latest.weight > 0 ? `${latest.weight} kg` : '',
+            height: latest?.height && latest.height > 0 ? `${latest.height} cm` : '',
+            headCirc: latest?.headCirc && latest.headCirc > 0 ? `${latest.headCirc} cm` : '',
+          };
+          if (typeof removedRecord.labelIndex === 'number' && stage.growthChart?.labels) {
+            const index = removedRecord.labelIndex;
+            const fallback = updatedHistory.find((record) => record.labelIndex === index);
+            const heightValues = [...stage.growthChart.height.child];
+            const weightValues = [...stage.growthChart.weight.child];
+            const headValues = [...stage.growthChart.headCirc.child];
+            if (index >= 0 && index < stage.growthChart.labels.length) {
+              heightValues[index] = fallback?.height && fallback.height > 0 ? fallback.height : null;
+              weightValues[index] = fallback?.weight && fallback.weight > 0 ? fallback.weight : null;
+              headValues[index] = fallback?.headCirc && fallback.headCirc > 0 ? fallback.headCirc : null;
+              stage.growthChart = {
+                ...stage.growthChart,
+                height: { ...stage.growthChart.height, child: heightValues },
+                weight: { ...stage.growthChart.weight, child: weightValues },
+                headCirc: { ...stage.growthChart.headCirc, child: headValues },
+              };
+            }
           }
           stage.growthHistory = updatedHistory;
           return { ...prevState, stages: { ...prevState.stages, [currentStage]: stage } };

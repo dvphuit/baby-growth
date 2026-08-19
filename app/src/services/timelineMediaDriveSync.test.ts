@@ -16,6 +16,7 @@ vi.mock('./googleDriveSync', () => drive);
 
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { syncTimelineMediaToDrive } from './timelineMediaDriveSync';
+import { getTimelineMediaSyncProgress, resetTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
 
 describe('syncTimelineMediaToDrive', () => {
   beforeEach(async () => {
@@ -23,6 +24,7 @@ describe('syncTimelineMediaToDrive', () => {
     localDb.getLocalMedia.mockResolvedValue(new Blob(['image-bytes'], { type: 'image/jpeg' }));
     localDb.waitForLocalRecordWrites.mockResolvedValue(undefined);
     drive.uploadTimelineMediaToDrive.mockResolvedValue('drive-file-1');
+    resetTimelineMediaSyncProgress();
     await useTimelineStore.persist.rehydrate();
     useTimelineStore.getState().resetTrackingData();
   });
@@ -38,10 +40,29 @@ describe('syncTimelineMediaToDrive', () => {
     expect(drive.uploadTimelineMediaToDrive).toHaveBeenCalledWith(
       'media-1',
       expect.any(Blob),
-      { name: 'baby.jpg', interactive: false },
+      { name: 'baby.jpg', interactive: false, onProgress: expect.any(Function) },
     );
     expect(useTimelineStore.getState().timelineItems[0].mediaItems?.[0].driveFileId).toBe('drive-file-1');
+    expect(getTimelineMediaSyncProgress('media-1')).toEqual({ status: 'synced', progress: 100, error: undefined });
     expect(localDb.waitForLocalRecordWrites).toHaveBeenCalledWith(['babygrowth_v2_timeline']);
+  });
+
+  it('publishes upload progress and keeps an error status when Drive rejects a file', async () => {
+    drive.uploadTimelineMediaToDrive.mockImplementation(async (_id, _blob, options) => {
+      options.onProgress?.(47);
+      throw new Error('Drive đang bận');
+    });
+    useTimelineStore.getState().addTimelineItem({
+      title: 'Khoảnh khắc lỗi',
+      mediaItems: [{ id: 'media-error', blobId: 'media-error', type: 'video' }],
+    });
+
+    await expect(syncTimelineMediaToDrive()).rejects.toThrow('Drive đang bận');
+
+    expect(getTimelineMediaSyncProgress('media-error')).toEqual({
+      status: 'error', progress: 0, error: 'Drive đang bận',
+    });
+    expect(useTimelineStore.getState().timelineItems[0].mediaItems?.[0].driveFileId).toBeUndefined();
   });
 
   it('does not upload media that already has a Drive id', async () => {

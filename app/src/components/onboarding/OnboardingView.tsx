@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   AlertCircle,
-  Calendar,
   Check,
   Cloud,
   CloudDownload,
@@ -33,6 +32,8 @@ import {
   HavenRulerIcon,
   HavenScaleIcon,
 } from '../common/HavenIcons';
+import { HavenDatePicker } from '../common/HavenDatePicker';
+import { HavenDropdown } from '../common/HavenDropdown';
 
 interface OnboardingViewProps {
   onComplete?: () => void;
@@ -96,7 +97,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
   // Form states
   const [childName, setChildName] = useState('');
   const [childFullName, setChildFullName] = useState('');
-  const [birthDate, setBirthDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [birthDate, setBirthDate] = useState(() => todayStr);
   const [birthTime, setBirthTime] = useState('08:30');
   const [gender, setGender] = useState<'boy' | 'girl'>('boy');
   const [bloodType, setBloodType] = useState('O+');
@@ -446,20 +448,15 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
 
                 <div className="haven-field-row">
                   <div className="haven-field-group">
-                    <label htmlFor="inputBirthDate" className="haven-label">
+                    <label className="haven-label">
                       Ngày sinh <strong className="required-star">*</strong>
                     </label>
-                    <div className="haven-input-icon-box">
-                      <Calendar size={15} />
-                      <input
-                        id="inputBirthDate"
-                        type="date"
-                        className="haven-input"
-                        value={birthDate}
-                        onChange={(e) => setBirthDate(e.target.value)}
-                        required
-                      />
-                    </div>
+                    <HavenDatePicker
+                      label="Ngày sinh của Bé"
+                      value={birthDate}
+                      onChange={setBirthDate}
+                      maxDate={todayStr}
+                    />
                   </div>
 
                   <div className="haven-field-group">
@@ -498,23 +495,23 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   </div>
 
                   <div className="haven-field-group">
-                    <label htmlFor="selectBloodType" className="haven-label">
+                    <label className="haven-label">
                       <Droplet size={12} style={{ display: 'inline', marginRight: 4 }} />
                       Nhóm máu
                     </label>
-                    <select
-                      id="selectBloodType"
-                      className="haven-input haven-select"
+                    <HavenDropdown
+                      label="Nhóm máu"
                       value={bloodType}
-                      onChange={(e) => setBloodType(e.target.value)}
-                    >
-                      <option value="O+">O+</option>
-                      <option value="A+">A+</option>
-                      <option value="B+">B+</option>
-                      <option value="AB+">AB+</option>
-                      <option value="O-">O-</option>
-                      <option value="Chưa rõ">Chưa rõ</option>
-                    </select>
+                      onChange={setBloodType}
+                      options={[
+                        { value: 'O+', label: 'O+' },
+                        { value: 'A+', label: 'A+' },
+                        { value: 'B+', label: 'B+' },
+                        { value: 'AB+', label: 'AB+' },
+                        { value: 'O-', label: 'O-' },
+                        { value: 'Chưa rõ', label: 'Chưa rõ' },
+                      ]}
+                    />
                   </div>
                 </div>
 

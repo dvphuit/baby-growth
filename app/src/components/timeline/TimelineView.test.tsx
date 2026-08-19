@@ -91,9 +91,16 @@ describe('TimelineView', () => {
     });
     render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Cữ bú/ }));
+    const feedingTimelineButton = screen.getByRole('button', { name: /Cữ bú/ });
+    const feedingTimelineItem = feedingTimelineButton.closest('.journal-story-item');
+    expect(feedingTimelineItem?.querySelector('.journal-story-heading')).toHaveTextContent('Cữ bú');
+    expect(feedingTimelineItem?.querySelector('.journal-story-facts-value')).toHaveTextContent('90 ml · Bình sữa');
+    expect(feedingTimelineItem?.querySelector('.journal-story-detail')).toHaveTextContent('Bú sáng');
+
+    fireEvent.click(feedingTimelineButton);
     const feedingDetail = screen.getByRole('dialog', { name: 'Cữ bú' });
     expect(feedingDetail).toHaveAttribute('aria-modal', 'true');
+    expect(feedingDetail).toHaveClass('journal-activity-dialog', 'tone-apricot');
     expect(within(feedingDetail).getByText('Bú sáng')).toBeInTheDocument();
 
     const backdrop = document.querySelector('.haven-dialog-backdrop');
@@ -106,11 +113,24 @@ describe('TimelineView', () => {
     fireEvent.click(screen.getByRole('button', { name: /Thay tã/ }));
     const diaperDetail = screen.getByRole('dialog', { name: 'Thay tã' });
     expect(diaperDetail).toBeInTheDocument();
+    expect(diaperDetail).toHaveClass('journal-activity-dialog', 'tone-sage');
     expect(within(diaperDetail).getByText('Tã sáng')).toBeInTheDocument();
 
-    fireEvent.click(diaperDetail.querySelector('.haven-dialog-secondary')!);
+    fireEvent.click(within(diaperDetail).getByRole('button', { name: 'Đóng' }));
     fireEvent.click(screen.getByRole('button', { name: /Cữ bú/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
+    expect(screen.getByText('Loại sữa')).toBeInTheDocument();
+    expect(screen.getByText('Lượng sữa')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /Sữa công thức/i })).toHaveAttribute('aria-checked', 'true');
+    const amount120 = screen.getByRole('button', { name: '120 ml' });
+    const amount90 = screen.getByRole('button', { name: '90 ml' });
+    fireEvent.click(amount120);
+    expect(amount120).toHaveClass('is-active');
+    fireEvent.focus(amount120);
+    expect(amount120).toHaveClass('is-active');
+    fireEvent.click(amount90);
+    expect(amount90).toHaveClass('is-active');
+    expect(amount120).not.toHaveClass('is-active');
     fireEvent.change(screen.getByLabelText('Lượng sữa (ml)'), { target: { value: '120' } });
     fireEvent.change(screen.getByLabelText('Ghi chú'), { target: { value: 'Bú rất tốt' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
@@ -146,19 +166,184 @@ describe('TimelineView', () => {
     expect(useBabyStore.getState().currentStageData().todayVitals.weight).toBe('9.4 kg');
   });
 
+  it('deletes a timeline activity after confirmation', () => {
+    const diaper = useActivityStore.getState().addBabyActivity({
+      owner: 'baby', type: 'diaper', occurredAt: new Date(2026, 7, 18, 9, 0, 0).toISOString(),
+      diaperKind: 'wet', note: 'Tã cần xóa',
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Thay tã/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa' }));
+    expect(screen.getByRole('button', { name: 'Xóa ghi nhận' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa ghi nhận' }));
+
+    expect(useActivityStore.getState().babyActivities.some((item) => item.id === diaper.id)).toBe(false);
+    expect(screen.queryByRole('dialog', { name: 'Thay tã' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Tã cần xóa')).not.toBeInTheDocument();
+  });
+
+  it('deletes a growth entry and clears its derived vitals', () => {
+    const growthRecord: GrowthHistoryRecord = {
+      id: 'growth-delete-test', date: '2026-08-18', ageText: '8 tháng', weight: 9,
+      height: 72, headCirc: 44.5, percentileLabel: '', status: 'optimal', note: 'Số đo cần xóa',
+    };
+    const state = useBabyStore.getState();
+    useBabyStore.setState({
+      stages: {
+        ...state.stages,
+        [state.currentStage]: {
+          ...state.stages[state.currentStage],
+          growthHistory: [growthRecord],
+          todayVitals: {
+            ...state.stages[state.currentStage].todayVitals,
+            weight: '9 kg', height: '72 cm', headCirc: '44.5 cm',
+          },
+        },
+      },
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Cân đo tăng trưởng/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa ghi nhận' }));
+
+    expect(useBabyStore.getState().currentStageData().growthHistory).toHaveLength(0);
+    expect(useBabyStore.getState().currentStageData().todayVitals).toMatchObject({
+      weight: '', height: '', headCirc: '',
+    });
+  });
+
+  it('deletes a photo moment after confirmation', () => {
+    useTimelineStore.setState({ timelineItems: [createMoment()] });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Nụ cười buổi sáng, 09:15/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa ghi nhận' }));
+
+    expect(useTimelineStore.getState().timelineItems).toHaveLength(0);
+    expect(screen.queryByText('Nụ cười buổi sáng')).not.toBeInTheDocument();
+  });
+
+  it('edits baby sleep with start/end, quality and live status', () => {
+    const sleep = useActivityStore.getState().addBabyActivity({
+      owner: 'baby', type: 'sleep', occurredAt: new Date(2026, 7, 18, 10, 0, 0).toISOString(),
+      durationMinutes: 60, note: 'Ngủ trưa',
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Giấc ngủ của bé/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
+    expect(screen.getByLabelText('Bắt đầu')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kết thúc')).toBeInTheDocument();
+    expect(screen.getByText(/Đã ghi 1 giờ/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '2h' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Chập chờn' }));
+    fireEvent.click(screen.getByRole('radio', { name: '4+' }));
+    expect(screen.getByText(/Ngủ chưa yên/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+
+    expect(useActivityStore.getState().babyActivities.find((item) => item.id === sleep.id)).toMatchObject({
+      durationMinutes: 120,
+      sleepKind: 'nap',
+      sleepQuality: 'restless',
+      wakeCount: 4,
+    });
+  });
+
+  it('classifies dirty diapers with Bristol type, color and immediate warning', () => {
+    const diaper = useActivityStore.getState().addBabyActivity({
+      owner: 'baby', type: 'diaper', occurredAt: new Date(2026, 7, 18, 9, 0, 0).toISOString(),
+      diaperKind: 'dirty',
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Thay tã/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
+    fireEvent.click(screen.getByRole('radio', { name: /Loại 7: Toàn nước/ }));
+    expect(screen.getByText(/Phân toàn nước/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Đỏ' }));
+    expect(screen.getByText(/Có dấu hiệu máu trong phân/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+
+    expect(useActivityStore.getState().babyActivities.find((item) => item.id === diaper.id)).toMatchObject({
+      stoolType: 7,
+      stoolColor: 'red',
+    });
+  });
+
+  it('assesses temperature by age, measurement site and symptoms while editing', () => {
+    useBabyStore.getState().updateFamilyData({ birthDate: '2026-06-18' });
+    const temperature = useActivityStore.getState().addBabyActivity({
+      owner: 'baby', type: 'temperature', occurredAt: new Date(2026, 7, 18, 8, 0, 0).toISOString(),
+      temperatureC: 36.8,
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Nhiệt độ/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
+    fireEvent.change(screen.getByLabelText('Thân nhiệt (°C)'), { target: { value: '38' } });
+    expect(screen.getByText(/Bé dưới 3 tháng sốt từ 38°C/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Nách' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Khó thở' }));
+    expect(screen.getByText(/Có dấu hiệu cần cấp cứu/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+
+    expect(useActivityStore.getState().babyActivities.find((item) => item.id === temperature.id)).toMatchObject({
+      temperatureC: 38,
+      measurementSite: 'axillary',
+      symptoms: ['breathing'],
+    });
+  });
+
+  it('uses the reusable medication catalog while editing medicine records', () => {
+    const medicine = useActivityStore.getState().addBabyActivity({
+      owner: 'baby', type: 'medicine', occurredAt: new Date(2026, 7, 18, 8, 0, 0).toISOString(),
+      name: 'D3K2', dose: '1 giọt',
+    });
+    render(<TimelineView onOpenLightbox={vi.fn()} onOpenAddEntry={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /D3K2/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
+    expect(screen.getByRole('radio', { name: /D3K2/i })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('group', { name: 'Liều đã dùng' })).toHaveTextContent('1 giọt');
+
+    fireEvent.click(screen.getByRole('radio', { name: /BioGaia/i }));
+    for (let index = 0; index < 5; index += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Tăng lượng' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+
+    expect(useActivityStore.getState().babyActivities.find((item) => item.id === medicine.id)).toMatchObject({
+      type: 'medicine', name: 'BioGaia', dose: '5 giọt',
+    });
+    expect(useActivityStore.getState().medicationCatalog.find((item) => item.name === 'BioGaia')).toMatchObject({
+      lastDose: '5 giọt',
+    });
+  });
+
   it('renders a photo moment, opens media, and edits its story', () => {
     const onOpenLightbox = vi.fn();
     useTimelineStore.setState({ timelineItems: [createMoment()] });
     render(<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Mở ảnh Nụ cười buổi sáng' }));
-    expect(onOpenLightbox).toHaveBeenCalledWith('https://example.com/moment.jpg', false);
+    const preview = screen.getByRole('dialog', { name: 'Xem media Nụ cười buổi sáng' });
+    expect(within(preview).getByText('1 / 1')).toBeInTheDocument();
+    expect(within(preview).getByRole('img', { name: 'Nụ cười buổi sáng, ảnh 1' })).toBeInTheDocument();
+    expect(preview.querySelector('.moment-media-preview-frame')).not.toHaveAttribute('style');
+    expect(document.querySelectorAll('[data-layout-id="moment-timeline-moment-moment-test-legacy-moment-test"]')).toHaveLength(2);
+    expect(onOpenLightbox).not.toHaveBeenCalled();
+    fireEvent.click(within(preview).getByRole('button', { name: 'Đóng preview' }));
+    act(() => vi.advanceTimersByTime(350));
 
     fireEvent.click(screen.getByRole('button', { name: /Nụ cười buổi sáng, 09:15/ }));
     const detail = screen.getByRole('dialog', { name: 'Nụ cười buổi sáng' });
     expect(within(detail).getByText('Bé cười rất tươi khi vừa thức dậy.')).toBeInTheDocument();
     fireEvent.click(within(detail).getByRole('button', { name: 'Chỉnh sửa' }));
-    expect(detail.querySelector('.journal-edit-media-row')).toBeInTheDocument();
+    expect(detail.querySelector('.journal-moment-media-item')).toBeInTheDocument();
     expect(within(detail).getByLabelText('Chọn từ thư viện')).toHaveAttribute('multiple');
     expect(within(detail).getByLabelText('Chụp ảnh')).toHaveAttribute('capture', 'environment');
     fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Nụ cười đầu ngày' } });
@@ -188,8 +373,18 @@ describe('TimelineView', () => {
     expect(bento).toBeInTheDocument();
     expect(frames).toHaveLength(2);
     expect(frames[0].querySelector('img')).toHaveStyle({ objectPosition: '42% 31%' });
+    expect(within(bento as HTMLElement).queryByText('Ảnh')).not.toBeInTheDocument();
+    expect(within(bento as HTMLElement).queryByText('Video')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở video 2 của Nụ cười buổi sáng' }));
-    expect(onOpenLightbox).toHaveBeenCalledWith('https://example.com/two.mp4', true);
+    const preview = screen.getByRole('dialog', { name: 'Xem media Nụ cười buổi sáng' });
+    expect(within(preview).getByText('2 / 2')).toBeInTheDocument();
+    expect(within(preview).getByLabelText('Media 2 trên 2')).toBeInTheDocument();
+    expect(within(preview).getByRole('button', { name: 'Xem media 2' })).toHaveAttribute('aria-current', 'true');
+    fireEvent.click(within(preview).getByRole('button', { name: 'Xem media 1' }));
+    expect(within(preview).getByText('1 / 2')).toBeInTheDocument();
+    expect(onOpenLightbox).not.toHaveBeenCalled();
+    fireEvent.click(within(preview).getByRole('button', { name: 'Đóng preview' }));
+    act(() => vi.advanceTimersByTime(350));
 
     fireEvent.click(screen.getByRole('button', { name: /Nụ cười buổi sáng, 09:15/ }));
     expect(screen.getByRole('dialog', { name: 'Nụ cười buổi sáng' }).querySelectorAll('.journal-detail-media-item')).toHaveLength(2);
@@ -307,6 +502,9 @@ describe('TimelineView', () => {
     await act(async () => useUIStore.setState({ profileMode: 'mom' }));
     expect(screen.queryByRole('button', { name: /Nụ cười buổi sáng, 09:15/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở video Một phút của mẹ' }));
-    expect(onOpenLightbox).toHaveBeenCalledWith('https://example.com/mom.mp4', true);
+    const preview = screen.getByRole('dialog', { name: 'Xem media Một phút của mẹ' });
+    expect(within(preview).getByText('1 / 1')).toBeInTheDocument();
+    expect(preview.querySelector('video[controls]')).toBeInTheDocument();
+    expect(onOpenLightbox).not.toHaveBeenCalled();
   });
 });

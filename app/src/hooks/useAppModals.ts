@@ -64,7 +64,9 @@ export function useAppModals(addToast: AddToast): AppModalController {
       case 'mom-sleep':
       case 'mom-mood':
       case 'medicine':
-        setActivityLogMode(actionType);
+      case 'temperature':
+      case 'health':
+        setActivityLogMode(actionType === 'health' ? 'temperature' : actionType);
         break;
       case 'moment':
       case 'diary':

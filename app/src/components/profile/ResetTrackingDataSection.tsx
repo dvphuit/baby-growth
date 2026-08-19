@@ -68,6 +68,14 @@ export function ResetTrackingDataSection({ onShowToast }: ResetTrackingDataSecti
         onClose={closeConfirmation}
         title="Xác nhận đặt lại dữ liệu"
         dismissible={!isResetting}
+        footer={
+          <div className="profile-reset-actions">
+            <button type="button" className="profile-reset-cancel" onClick={closeConfirmation} disabled={isResetting}>Hủy</button>
+            <button type="button" className="profile-reset-confirm" onClick={handleConfirm} disabled={isResetting}>
+              {isResetting ? 'Đang đặt lại dữ liệu…' : 'Xác nhận đặt lại'}
+            </button>
+          </div>
+        }
       >
         <div className="profile-reset-confirmation" aria-busy={isResetting}>
           <p className="profile-reset-confirmation-intro">Thao tác này không thể hoàn tác.</p>
@@ -75,12 +83,6 @@ export function ResetTrackingDataSection({ onShowToast }: ResetTrackingDataSecti
           <p className="profile-reset-confirmation-copy">Hồ sơ của Bé và Mẹ cùng thông tin lúc sinh vẫn được giữ lại.</p>
           <p className="profile-reset-confirmation-copy">Sau khi đặt lại, bản sao lưu hiện có trên Google Drive sẽ được thay thế bằng dữ liệu mới.</p>
           {error && <p className="profile-reset-error" role="alert">{error}</p>}
-          <div className="profile-reset-actions">
-            <button type="button" className="profile-reset-cancel" onClick={closeConfirmation} disabled={isResetting}>Hủy</button>
-            <button type="button" className="profile-reset-confirm" onClick={handleConfirm} disabled={isResetting}>
-              {isResetting ? 'Đang đặt lại dữ liệu…' : 'Xác nhận đặt lại'}
-            </button>
-          </div>
         </div>
       </BottomSheet>
     </section>

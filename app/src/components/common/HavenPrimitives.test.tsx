@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { HavenCalendar, type HavenDateRange } from './HavenCalendar';
+import { HavenDatePicker } from './HavenDatePicker';
 import { HavenDialog } from './HavenDialog';
 import { HavenDropdown } from './HavenDropdown';
 
@@ -92,6 +93,86 @@ describe('Haven reusable primitives', () => {
     await user.click(screen.getByRole('option', { name: 'Của bé' }));
     expect(screen.getByRole('button', { name: 'Lọc người: Của bé' })).toBeInTheDocument();
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('supports numeric value options and disabled state in HavenDropdown', async () => {
+    const user = userEvent.setup();
+    function NumberDropdownHarness() {
+      const [val, setVal] = useState<number>(0);
+      return (
+        <>
+          <HavenDropdown<number>
+            label="Cột mốc"
+            value={val}
+            onChange={setVal}
+            options={[
+              { value: 0, label: 'Mốc sơ sinh', description: '0 tháng' },
+              { value: 2, label: 'Mốc 2 tháng', description: '2 tháng tuổi' },
+            ]}
+          />
+          <HavenDropdown
+            label="Khóa"
+            value="disabled"
+            disabled
+            onChange={() => {}}
+            options={[{ value: 'disabled', label: 'Không khả dụng' }]}
+          />
+        </>
+      );
+    }
+    render(<NumberDropdownHarness />);
+    const trigger = screen.getByRole('button', { name: 'Cột mốc: Mốc sơ sinh' });
+    await user.click(trigger);
+    expect(screen.getByRole('listbox', { name: 'Cột mốc' })).toBeInTheDocument();
+    expect(screen.getByText('2 tháng tuổi')).toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: /Mốc 2 tháng/i }));
+    expect(screen.getByRole('button', { name: 'Cột mốc: Mốc 2 tháng' })).toBeInTheDocument();
+
+    const disabledTrigger = screen.getByRole('button', { name: 'Khóa: Không khả dụng' });
+    expect(disabledTrigger).toBeDisabled();
+    await user.click(disabledTrigger);
+    expect(screen.queryByRole('listbox', { name: 'Khóa' })).not.toBeInTheDocument();
+  });
+
+  it('picks single dates and datetimes with HavenDatePicker', async () => {
+    const user = userEvent.setup();
+    function DatePickerHarness() {
+      const [date, setDate] = useState('2026-08-18');
+      const [dateTime, setDateTime] = useState('2026-08-18T10:30');
+      return (
+        <>
+          <HavenDatePicker label="Ngày đo" value={date} onChange={setDate} />
+          <HavenDatePicker label="Thời điểm" value={dateTime} showTime onChange={setDateTime} />
+        </>
+      );
+    }
+    render(<DatePickerHarness />);
+
+    // Test single date picker
+    const dateTrigger = screen.getByRole('button', { name: /Ngày đo: 18\/08\/2026/ });
+    await user.click(dateTrigger);
+    const day19 = screen.getByRole('gridcell', { name: /Thứ Tư, 19 tháng 8, 2026/i });
+    await user.click(day19);
+    expect(screen.getByRole('button', { name: /Ngày đo: 19\/08\/2026/ })).toBeInTheDocument();
+
+    // Test datetime picker
+    const dateTimeTrigger = screen.getByRole('button', { name: /Thời điểm: 18\/08\/2026 · 10:30/ });
+    await user.click(dateTimeTrigger);
+
+    // Switch to Time tab and adjust time
+    const timeTab = screen.getByRole('tab', { name: /10:30/ });
+    await user.click(timeTab);
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('30')).toBeInTheDocument();
+
+    const increaseHour = screen.getByRole('button', { name: 'Tăng 1 giờ' });
+    await user.click(increaseHour);
+    expect(screen.getByText('11')).toBeInTheDocument();
+
+    const doneBtn = screen.getByRole('button', { name: /Xong/ });
+    expect(doneBtn).toBeInTheDocument();
+    await user.click(doneBtn);
+    expect(screen.getByRole('button', { name: /Thời điểm: 18\/08\/2026 · 11:30/ })).toBeInTheDocument();
   });
 
   it('closes a custom dialog with Escape', async () => {

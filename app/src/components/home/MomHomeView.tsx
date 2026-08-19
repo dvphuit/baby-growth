@@ -5,6 +5,11 @@ import { useActivityStore } from '@/store/useActivityStore';
 import { SegmentClock } from './SegmentClock';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/domain/activitySelectors';
 import { NotebookStory } from '@/components/timeline/NotebookStory';
+import { HomeMomentStoryItem } from '@/components/timeline/HomeMomentStoryItem';
+import { MomentMediaPreview, type MomentMediaPreviewState } from '@/components/timeline/MomentMediaPreview';
+import { TimelineEntryDialog, type JournalTimelineEntry } from '@/components/timeline/TimelineEntryDialog';
+import { isTimelineMomentOnLocalDay, timelineMomentOccurredAt, timelineMomentOwner } from '@/domain/timelineMedia';
+import { useTimelineStore } from '@/store/useTimelineStore';
 import type { MomActivity } from '@/types';
 
 export interface MomHomeViewProps {
@@ -62,7 +67,14 @@ function activityDetail(record: MomActivity): string {
 
 export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
   const records = useActivityStore((state) => state.momActivities);
+  const timelineItems = useTimelineStore((state) => state.timelineItems);
   const [now, setNow] = useState(() => new Date());
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [selectedMomentId, setSelectedMomentId] = useState<string | null>(null);
+  const [momentPreview, setMomentPreview] = useState<MomentMediaPreviewState | null>(null);
+  const selectedRecord = selectedRecordId
+    ? records.find((item) => item.id === selectedRecordId) ?? null
+    : null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
@@ -71,7 +83,27 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
 
   const metrics = useMemo(() => selectMomTodayMetrics(records, now), [records, now]);
   const dayActivities = useMemo(() => getMomActivitiesForDay(records, now), [records, now]);
-  const timelineActivities = useMemo(() => [...dayActivities].reverse(), [dayActivities]);
+  const dayMoments = useMemo(
+    () => timelineItems.filter((item) => timelineMomentOwner(item) === 'mom' && isTimelineMomentOnLocalDay(item, now)),
+    [now, timelineItems],
+  );
+  const timelineEntries = useMemo(() => [
+    ...dayActivities.map((record) => ({ kind: 'activity' as const, occurredAt: record.occurredAt, record })),
+    ...dayMoments.map((item) => ({ kind: 'moment' as const, occurredAt: timelineMomentOccurredAt(item), item })),
+  ].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()), [dayActivities, dayMoments]);
+  const selectedMoment = selectedMomentId
+    ? timelineItems.find((item) => item.id === selectedMomentId) ?? null
+    : null;
+  const selectedMomentEntry: JournalTimelineEntry | null = selectedMoment ? {
+    id: `moment-${selectedMoment.id}`,
+    occurredAt: timelineMomentOccurredAt(selectedMoment),
+    owner: timelineMomentOwner(selectedMoment),
+    type: 'moment',
+    title: selectedMoment.title,
+    detail: selectedMoment.content,
+    stats: selectedMoment.stats ?? [],
+    moment: selectedMoment,
+  } : null;
   const latestMood = metrics.latestMood?.type === 'mood' ? metrics.latestMood.mood : undefined;
   const pumpingTotal = metrics.pumpingCount ? `${metrics.pumpingAmountMl} ml` : 'Chưa ghi nhận';
 
@@ -100,7 +132,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-daily-topline">
           <span className="haven-daily-date"><UserRound size={13} /> {formatDay(now)}</span>
-          <span className="haven-daily-count">{dayActivities.length} hoạt động</span>
+          <span className="haven-daily-count">{timelineEntries.length} hoạt động</span>
         </div>
 
         <div className="haven-clock-row">
@@ -133,7 +165,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
           <div><span className="haven-eyebrow">NHẬT KÝ TRONG NGÀY</span><h3 id="mom-recent-title">Dòng thời gian</h3></div>
           <button type="button" className="haven-text-action" onClick={onOpenPumping}><Plus size={12} /> Thêm</button>
         </div>
-        {dayActivities.length === 0 ? (
+        {timelineEntries.length === 0 ? (
           <div className="haven-empty-state haven-empty-state-mom">
             <span><Sparkles size={18} /></span>
             <strong>Mẹ chưa ghi hoạt động nào</strong>
@@ -141,10 +173,28 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
             <button type="button" className="haven-empty-action" onClick={onOpenPumping}>Ghi hoạt động đầu tiên</button>
           </div>
         ) : (
-          <NotebookStory entries={timelineActivities} owner="mom" className="haven-home-notebook">
+          <NotebookStory entries={timelineEntries} owner="mom" className="haven-home-notebook">
             <section className="journal-period">
               <div className="journal-period-items">
-                {timelineActivities.map((record) => {
+                {timelineEntries.map((timelineEntry) => {
+                  if (timelineEntry.kind === 'moment') {
+                    return (
+                      <HomeMomentStoryItem
+                        key={`moment-${timelineEntry.item.id}`}
+                        item={timelineEntry.item}
+                        occurredAt={timelineEntry.occurredAt}
+                        formattedTime={formatTime(timelineEntry.occurredAt)}
+                        onOpenEntry={() => {
+                          setSelectedRecordId(null);
+                          setSelectedMomentId(timelineEntry.item.id);
+                        }}
+                        onOpenMedia={(items, initialIndex, title, layoutId, originSrc, getLayoutId) => setMomentPreview({
+                          items, initialIndex, title, layoutId, originSrc, getLayoutId,
+                        })}
+                      />
+                    );
+                  }
+                  const record = timelineEntry.record;
                   const { label, tone, Icon } = activityPresentation(record.type);
                   const detail = activityDetail(record);
                   return (
@@ -152,13 +202,21 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
                       <time className="journal-story-time" dateTime={record.occurredAt}>{formatTime(record.occurredAt)}</time>
                       <span className="journal-story-icon" aria-hidden="true"><Icon size={16} /></span>
                       <div className="journal-story-content">
-                        <div className="journal-story-main">
+                        <button
+                          type="button"
+                          className="journal-story-main"
+                          onClick={() => {
+                            setSelectedMomentId(null);
+                            setSelectedRecordId(record.id);
+                          }}
+                          aria-label={`${label}, ${formatTime(record.occurredAt)}`}
+                        >
                           <span className="journal-story-heading">
                             <strong className="journal-story-title">{label}</strong>
                             {detail && <><span className="journal-story-separator" aria-hidden="true">·</span><span className="journal-story-summary">{detail}</span></>}
                           </span>
                           {record.note && <span className="journal-story-detail">{record.note}</span>}
-                        </div>
+                        </button>
                       </div>
                     </article>
                   );
@@ -168,6 +226,18 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
           </NotebookStory>
         )}
       </section>
+      <TimelineEntryDialog
+        open={selectedRecord !== null || selectedMomentEntry !== null}
+        entry={selectedMomentEntry ?? selectedRecord}
+        onClose={() => {
+          setSelectedRecordId(null);
+          setSelectedMomentId(null);
+        }}
+        onOpenMomentMedia={(items, initialIndex, title, layoutId, originSrc, getLayoutId) => setMomentPreview({
+          items, initialIndex, title, layoutId, originSrc, getLayoutId,
+        })}
+      />
+      <MomentMediaPreview preview={momentPreview} onClose={() => setMomentPreview(null)} />
     </div>
   );
 };

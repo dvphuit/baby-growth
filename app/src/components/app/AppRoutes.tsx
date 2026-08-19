@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { HomeView } from '@/components/home/HomeView';
+import { havenRouteTransition, havenRouteVariants } from '@/components/motion/motionPresets';
 import type { AddToast } from '@/hooks/useAppModals';
 
 const TimelineView = lazy(async () => ({ default: (await import('@/components/timeline/TimelineView')).TimelineView }));
@@ -34,17 +36,30 @@ export function AppRoutes({
   onOpenEditProfile,
   onOpenNotifications,
 }: AppRoutesProps) {
+  const location = useLocation();
   return (
-    <Suspense fallback={<RouteLoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<HomeView onOpenQuickLog={onOpenQuickLog} onOpenPumping={onOpenPumping} />} />
-        <Route path="/timeline" element={<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={onOpenAddTimelineEntry} />} />
-        <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
-        <Route path="/expenses" element={<ExpensesView onOpenAddExpense={onOpenAddExpense} onShowToast={onShowToast} />} />
-        <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onOpenNotifications={onOpenNotifications} onShowToast={onShowToast} />} />
-        <Route path="/profile/google-drive" element={<GoogleDriveDataView onOpenLightbox={onOpenLightbox} onShowToast={onShowToast} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        className="app-route-motion"
+        variants={havenRouteVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={havenRouteTransition}
+      >
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes location={location}>
+            <Route path="/" element={<HomeView onOpenQuickLog={onOpenQuickLog} onOpenPumping={onOpenPumping} />} />
+            <Route path="/timeline" element={<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={onOpenAddTimelineEntry} />} />
+            <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
+            <Route path="/expenses" element={<ExpensesView onOpenAddExpense={onOpenAddExpense} onShowToast={onShowToast} />} />
+            <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onOpenNotifications={onOpenNotifications} onShowToast={onShowToast} />} />
+            <Route path="/profile/google-drive" element={<GoogleDriveDataView onOpenLightbox={onOpenLightbox} onShowToast={onShowToast} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </motion.div>
+    </AnimatePresence>
   );
 }

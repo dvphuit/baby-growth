@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useId } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
+import { HavenDatePicker } from '../common/HavenDatePicker';
 import { useExpenseStore } from '@/store/useExpenseStore';
 import {
   EXPENSE_CATEGORIES,
@@ -136,13 +137,26 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     onClose();
   };
 
+  const formId = useId();
+
   return (
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
       title={editingExpense ? 'Sửa khoản chi' : 'Thêm chi tiêu'}
+      footer={
+        <button
+          type="submit"
+          form={formId}
+          className="log-btn-primary haven-expense-submit-btn"
+          disabled={finalVndAmount <= 0}
+        >
+          {editingExpense ? 'Lưu thay đổi' : 'Lưu khoản chi'}
+          {finalVndAmount > 0 ? ` • ${finalVndAmount.toLocaleString('vi-VN')} đ` : ''}
+        </button>
+      }
     >
-      <form onSubmit={handleSubmit} className="haven-expense-form">
+      <form id={formId} onSubmit={handleSubmit} className="haven-expense-form">
         {/* 1. Multi-Select Category Wrap Grid */}
         <div className="haven-form-section">
           <div className="haven-section-header-compact">
@@ -242,13 +256,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </div>
 
           {datePreset === 'custom' && (
-            <input
-              className="log-input-control haven-date-input"
-              type="datetime-local"
-              value={occurredAt}
-              onChange={(e) => setOccurredAt(e.target.value)}
-              required
-            />
+            <div style={{ marginTop: '8px' }}>
+              <HavenDatePicker
+                label="Thời điểm chi tiêu"
+                value={occurredAt}
+                showTime
+                onChange={(newVal) => {
+                  setOccurredAt(newVal);
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -269,16 +286,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             {error}
           </p>
         )}
-
-        {/* 6. Primary Submit Button */}
-        <button
-          type="submit"
-          className="log-btn-primary haven-expense-submit-btn"
-          disabled={finalVndAmount <= 0}
-        >
-          {editingExpense ? 'Lưu thay đổi' : 'Lưu khoản chi'}
-          {finalVndAmount > 0 ? ` • ${finalVndAmount.toLocaleString('vi-VN')} đ` : ''}
-        </button>
       </form>
     </BottomSheet>
   );

@@ -19,6 +19,7 @@ interface TimelineStoreState {
 
   addTimelineItem: (item: Partial<TimelineItem>) => void;
   updateTimelineItem: (id: string, patch: Partial<Pick<TimelineItem, 'date' | 'timeFormatted' | 'title' | 'content' | 'mediaItems' | 'mediaUrl' | 'mediaType' | 'tag' | 'tagType' | 'owner'>>) => void;
+  deleteTimelineItem: (id: string) => void;
   toggleLike: (id: string) => void;
   setSelectedCalendarDate: (date: string) => void;
   setCalendarMonth: (year: number, month: number) => void;
@@ -112,6 +113,10 @@ export const useTimelineStore = create<TimelineStoreState>()(
           }
           return next;
         }),
+      })),
+
+      deleteTimelineItem: (id) => set((state) => ({
+        timelineItems: state.timelineItems.filter((item) => item.id !== id),
       })),
 
       toggleLike: (id) => set((state) => ({

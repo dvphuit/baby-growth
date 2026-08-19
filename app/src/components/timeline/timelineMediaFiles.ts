@@ -12,6 +12,23 @@ interface FaceDetectorInstance {
 type FaceDetectorConstructor = new (options?: { fastMode?: boolean; maxDetectedFaces?: number }) => FaceDetectorInstance;
 
 const DEFAULT_FOCAL_POINT = { focalX: 50, focalY: 38 };
+const VIDEO_EXTENSIONS = new Set(['mp4', 'mov', 'm4v', 'webm', 'avi', 'mkv', '3gp', 'mpeg', 'mpg']);
+const PHOTO_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'bmp', 'tif', 'tiff']);
+
+export function detectTimelineMediaType(
+  source: string,
+  mimeType = '',
+): TimelineMediaItem['type'] | null {
+  const normalizedMime = mimeType.toLocaleLowerCase('en-US');
+  if (normalizedMime.startsWith('video/')) return 'video';
+  if (normalizedMime.startsWith('image/')) return 'photo';
+
+  const cleanSource = source.split(/[?#]/, 1)[0].toLocaleLowerCase('en-US');
+  const extension = cleanSource.match(/\.([a-z0-9]+)$/)?.[1] ?? '';
+  if (VIDEO_EXTENSIONS.has(extension)) return 'video';
+  if (PHOTO_EXTENSIONS.has(extension)) return 'photo';
+  return null;
+}
 
 async function detectPhotoFocalPoint(file: File): Promise<{ focalX: number; focalY: number }> {
   const FaceDetectorApi = (globalThis as typeof globalThis & { FaceDetector?: FaceDetectorConstructor }).FaceDetector;
@@ -42,13 +59,8 @@ async function detectPhotoFocalPoint(file: File): Promise<{ focalX: number; foca
 }
 
 async function readTimelineMediaFile(file: File): Promise<TimelineMediaItem> {
-  const type = file.type.startsWith('video/') ? 'video' : file.type.startsWith('image/') ? 'photo' : null;
+  const type = detectTimelineMediaType(file.name, file.type);
   if (!type) throw new Error('Chỉ hỗ trợ tệp ảnh hoặc video.');
-
-  const maxBytes = type === 'video' ? 15 * 1024 * 1024 : 6 * 1024 * 1024;
-  if (file.size > maxBytes) {
-    throw new Error(type === 'video' ? 'Video tối đa 15 MB.' : 'Ảnh tối đa 6 MB.');
-  }
 
   const id = `media-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const focalPoint = type === 'photo' ? await detectPhotoFocalPoint(file) : {};

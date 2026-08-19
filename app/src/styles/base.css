@@ -74,6 +74,12 @@ body {
   box-sizing: border-box;
 }
 
+.app-route-motion {
+  width: 100%;
+  min-height: 100%;
+  transform-origin: 50% 12%;
+}
+
 /* Safe Spacer above fixed floating bottom dock */
 .bottom-safe-spacer {
   display: block !important;

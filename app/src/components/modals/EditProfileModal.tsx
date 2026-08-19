@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useFamily } from '@/hooks/useFamily';
 import { BottomSheet } from '../common/BottomSheet';
+import { HavenDatePicker } from '../common/HavenDatePicker';
+import { HavenDropdown } from '../common/HavenDropdown';
 import {
   Camera,
   User,
@@ -102,10 +104,51 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
+  const formId = useId();
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Chỉnh sửa Hồ sơ Bé">
-      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Chỉnh sửa Hồ sơ Bé"
+      footer={
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', width: '100%' }}>
+          <button
+            type="button"
+            className="btn-secondary-pill"
+            onClick={onClose}
+            style={{
+              padding: '12px',
+              borderRadius: 'var(--radius-pill)',
+              border: '1px solid var(--color-border-subtle)',
+              background: 'var(--color-card-warm)',
+              fontFamily: 'var(--font-family-display)',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+            }}
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form={formId}
+            className="log-btn-primary"
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <Save size={15} />
+            <span>Lưu Hồ Sơ Bé</span>
+          </button>
+        </div>
+      }
+    >
+      <form id={formId} onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Avatar Selector */}
         <div className="log-form-group">
           <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -193,22 +236,22 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Droplet size={13} color="#E87A90" /> Nhóm máu
             </label>
-            <select
-              className="log-input-control"
+            <HavenDropdown
+              label="Nhóm máu"
               value={bloodType}
-              onChange={(e) => setBloodType(e.target.value)}
-              style={{ cursor: 'pointer' }}
-            >
-              <option value="O+">O+ (Phổ biến)</option>
-              <option value="A+">A+</option>
-              <option value="B+">B+</option>
-              <option value="AB+">AB+</option>
-              <option value="O-">O- (Hiếm)</option>
-              <option value="A-">A-</option>
-              <option value="B-">B-</option>
-              <option value="AB-">AB-</option>
-              <option value="Chưa xác định">Chưa xác định</option>
-            </select>
+              onChange={setBloodType}
+              options={[
+                { value: 'O+', label: 'O+ (Phổ biến)' },
+                { value: 'A+', label: 'A+' },
+                { value: 'B+', label: 'B+' },
+                { value: 'AB+', label: 'AB+' },
+                { value: 'O-', label: 'O- (Hiếm)' },
+                { value: 'A-', label: 'A-' },
+                { value: 'B-', label: 'B-' },
+                { value: 'AB-', label: 'AB-' },
+                { value: 'Chưa xác định', label: 'Chưa xác định' },
+              ]}
+            />
           </div>
         </div>
 
@@ -218,12 +261,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Calendar size={13} color="var(--color-sage-dark)" /> Ngày sinh *
             </label>
-            <input
-              type="date"
-              className="log-input-control"
-              required
+            <HavenDatePicker
+              label="Ngày sinh"
               value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
+              onChange={setBirthDate}
+              maxDate={new Date().toISOString().slice(0, 10)}
             />
           </div>
           <div className="log-form-group">
@@ -306,41 +348,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             onChange={(e) => setNotes(e.target.value)}
             placeholder="VD: Bé sinh đủ tháng, thích nghe nhạc êm dịu..."
           ></textarea>
-        </div>
-
-        {/* Submit & Cancel Buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', marginTop: '6px' }}>
-          <button
-            type="button"
-            className="btn-secondary-pill"
-            onClick={onClose}
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-pill)',
-              border: '1px solid var(--color-border-subtle)',
-              background: 'var(--color-card-warm)',
-              fontFamily: 'var(--font-family-display)',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            className="log-btn-primary"
-            style={{
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-            }}
-          >
-            <Save size={15} />
-            <span>Lưu Hồ Sơ Bé</span>
-          </button>
         </div>
       </form>
     </BottomSheet>

@@ -145,6 +145,38 @@ describe('explicit Google Drive reset operations', () => {
     await expect((init.body as Blob).text()).resolves.toContain('babygrowthMediaId');
   });
 
+  it('reports byte-level progress while uploading timeline media', async () => {
+    const onProgress = vi.fn();
+    let uploadedBody: Document | XMLHttpRequestBodyInit | null = null;
+    class UploadRequest {
+      status = 200;
+      responseText = JSON.stringify({ id: 'drive-media-progress', name: 'baby.mp4' });
+      upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null };
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      onabort: (() => void) | null = null;
+      open = vi.fn();
+      setRequestHeader = vi.fn();
+      send = vi.fn((body: Document | XMLHttpRequestBodyInit | null) => {
+        uploadedBody = body;
+        this.upload.onprogress?.({ lengthComputable: true, loaded: 52, total: 100 } as ProgressEvent);
+        this.onload?.();
+      });
+    }
+    vi.stubGlobal('XMLHttpRequest', UploadRequest);
+    const sync = await import('./googleDriveSync');
+    await sync.requestGoogleAccessToken();
+
+    await expect(sync.uploadTimelineMediaToDrive(
+      'media-progress',
+      new Blob(['video-bytes'], { type: 'video/mp4' }),
+      { name: 'baby.mp4', onProgress },
+    )).resolves.toBe('drive-media-progress');
+
+    expect(uploadedBody).toBeInstanceOf(Blob);
+    expect(onProgress.mock.calls.flat()).toEqual([52, 100]);
+  });
+
   it('downloads private timeline media with the current Google token', async () => {
     const media = new Blob(['image-bytes'], { type: 'image/jpeg' });
     const fetchMock = vi.fn().mockResolvedValue(blobResponse(media));

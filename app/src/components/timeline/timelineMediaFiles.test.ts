@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { readTimelineMediaFiles } from './timelineMediaFiles';
+import { detectTimelineMediaType, readTimelineMediaFiles } from './timelineMediaFiles';
 
 const localMedia = vi.hoisted(() => ({
   setLocalMedia: vi.fn(),
@@ -25,11 +25,20 @@ describe('timelineMediaFiles', () => {
     expect(media.url).toBeUndefined();
   });
 
-  it('rejects oversized media before writing it', async () => {
-    const file = new File([new Uint8Array(6 * 1024 * 1024 + 1)], 'large.jpg', { type: 'image/jpeg' });
+  it('stores large media without an application-level size cap', async () => {
+    const file = new File([new Uint8Array(16 * 1024 * 1024)], 'large.mp4', { type: 'video/mp4' });
     const files = { 0: file, length: 1, item: () => file, [Symbol.iterator]: function* iterator() { yield file; } } as unknown as FileList;
 
-    await expect(readTimelineMediaFiles(files)).rejects.toThrow('Ảnh tối đa 6 MB.');
-    expect(localMedia.setLocalMedia).not.toHaveBeenCalled();
+    const [media] = await readTimelineMediaFiles(files);
+
+    expect(localMedia.setLocalMedia).toHaveBeenCalledWith(media.blobId, file);
+    expect(media.type).toBe('video');
+  });
+
+  it('detects photo and video types from MIME values or file extensions', () => {
+    expect(detectTimelineMediaType('gallery-item', 'image/heic')).toBe('photo');
+    expect(detectTimelineMediaType('gallery-item', 'video/quicktime')).toBe('video');
+    expect(detectTimelineMediaType('https://example.com/photo.webp?size=large')).toBe('photo');
+    expect(detectTimelineMediaType('https://example.com/clip.MOV#preview')).toBe('video');
   });
 });

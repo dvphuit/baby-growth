@@ -41,4 +41,33 @@ describe('buildTimelineEntries', () => {
 
     expect(entries.map((item) => item.detail)).toEqual(['', '', '']);
   });
+
+  it('shows diaper warning signs instead of hiding them in the detail view', () => {
+    const occurredAt = new Date(2026, 7, 18, 9, 0, 0).toISOString();
+    const diaper: BabyActivity = {
+      id: 'diaper-signs', owner: 'baby', type: 'diaper', diaperKind: 'dirty',
+      stoolType: 6, stoolColor: 'green', stoolFlags: ['mucus', 'blood'],
+      occurredAt, createdAt: occurredAt,
+    };
+
+    const [result] = buildTimelineEntries({ babyActivities: [diaper], momActivities: [] });
+
+    expect(result.stats).toEqual(['Bẩn', 'Bristol 6', 'Xanh']);
+    expect(result.signs).toEqual(['Có nhầy', 'Nghi có máu']);
+  });
+
+  it('shows each temperature symptom instead of a generic symptom count', () => {
+    const occurredAt = new Date(2026, 7, 18, 9, 0, 0).toISOString();
+    const temperature: BabyActivity = {
+      id: 'temperature-signs', owner: 'baby', type: 'temperature', temperatureC: 38.2,
+      measurementSite: 'axillary', symptoms: ['breathing', 'dehydration'],
+      occurredAt, createdAt: occurredAt,
+    };
+
+    const [result] = buildTimelineEntries({ babyActivities: [temperature], momActivities: [] });
+
+    expect(result.stats).toEqual(['38.2 °C', 'Nách']);
+    expect(result.signs).toEqual(['Khó thở', 'Ít tiểu/khô môi']);
+    expect([...result.stats, ...(result.signs ?? [])]).not.toContain('2 triệu chứng');
+  });
 });

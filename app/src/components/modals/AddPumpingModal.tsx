@@ -1,6 +1,6 @@
 import { useMomStore } from '@/store/useMomStore';
 import { useActivityStore } from '@/store/useActivityStore';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { BottomSheet } from '../common/BottomSheet';
 import { Milk, ArrowRight } from 'lucide-react';
 
@@ -21,6 +21,7 @@ export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({ isOpen, onClos
   const addMomActivity = useActivityStore((state) => state.addMomActivity);
   const [amount, setAmount] = useState<string>('180');
   const [side, setSide] = useState<string>('2 bên');
+  const formId = useId();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -45,8 +46,18 @@ export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Ghi Nhận Cữ Hút Sữa Mẹ">
-      <form onSubmit={handleSubmit}>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Ghi Nhận Cữ Hút Sữa Mẹ"
+      footer={
+        <button type="submit" form={formId} className="log-btn-primary">
+          <span>Lưu Cữ Hút Sữa</span>
+          <ArrowRight size={14} />
+        </button>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit}>
         <div className="log-form-group">
           <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Milk size={13} color="var(--color-mom-rose)" /> Lượng sữa vắt / hút được (ml)
@@ -73,11 +84,6 @@ export const AddPumpingModal: React.FC<AddPumpingModalProps> = ({ isOpen, onClos
             ))}
           </div>
         </div>
-
-        <button type="submit" className="log-btn-primary">
-          <span>Lưu Cữ Hút Sữa</span>
-          <ArrowRight size={14} />
-        </button>
       </form>
     </BottomSheet>
   );
