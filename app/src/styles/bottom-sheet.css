@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MATERIAL MOTION 3 (M3) BOTTOM SHEET & GESTURES
+   MOTION-POWERED BOTTOM SHEET & GESTURES
    ========================================================================== */
 
 .bottom-sheet {
@@ -15,14 +15,9 @@
   overflow: hidden;
   overscroll-behavior-y: contain;
   box-shadow: 0 -12px 48px rgba(32, 26, 23, 0.26);
-  transform: translate3d(0, 100%, 0);
   will-change: transform;
   touch-action: pan-y;
-}
-
-.bottom-sheet.is-dragging {
-  user-select: none;
-  -webkit-user-select: none;
+  transform-origin: 50% 100%;
 }
 
 .sheet-drag-handle-area {
@@ -44,12 +39,12 @@
   margin: 0 auto 12px auto;
   cursor: pointer;
   touch-action: none;
-  transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1.0), background-color 0.2s ease;
+  transition: background-color 160ms ease;
+  transform-origin: center;
 }
 
 .sheet-handle-bar:hover {
   background: var(--color-border-hover, #D7CCC0);
-  transform: scaleX(1.15);
 }
 
 .sheet-header-row {
@@ -82,17 +77,12 @@
   color: var(--color-text-secondary, #846E62);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s cubic-bezier(0.1, 0.9, 0.2, 1.0);
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 .sheet-close-btn:hover {
   background: var(--color-card-warm, #F4ECE6);
   color: var(--color-primary-dark, #39261D);
-  transform: scale(1.08);
-}
-
-.sheet-close-btn:active {
-  transform: scale(0.92);
 }
 
 .sheet-content-body {
@@ -103,7 +93,6 @@
   padding: 0 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px;
 }
 
-/* When footer is present, move safe-area padding to footer */
 .bottom-sheet:has(.sheet-footer) .sheet-content-body {
   padding-bottom: 8px;
 }

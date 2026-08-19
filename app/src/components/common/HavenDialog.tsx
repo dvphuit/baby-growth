@@ -1,8 +1,15 @@
 import { X } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'motion/react';
-import { havenLayoutTransition } from '@/components/motion/motionPresets';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  havenDialogTransition,
+  havenDialogVariants,
+  havenLayoutTransition,
+  havenOverlayTransition,
+  havenOverlayVariants,
+  havenPressStrong,
+} from '@/components/motion/motionPresets';
 
 interface HavenDialogProps {
   open: boolean;
@@ -70,40 +77,67 @@ export function HavenDialog({ open, onClose, title, description, children, foote
     };
   }, [modal, onClose, open]);
 
-  if (!open) return null;
-
   return createPortal(
-    <div
-      className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'}`.trim()}
-      onClick={(event) => {
-        if (!modal || event.target !== event.currentTarget) return;
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-      }}
-    >
-      <motion.div
-        layout
-        ref={dialogRef}
-        className={`haven-dialog ${className}`.trim()}
-        role="dialog"
-        aria-modal={modal}
-        aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
-        tabIndex={-1}
-        transition={havenLayoutTransition}
-      >
-        <div className="haven-dialog-header">
-          <div>
-            <h2 id={titleId}>{title}</h2>
-            {description && <p id={descriptionId}>{description}</p>}
-          </div>
-          <button type="button" className="haven-dialog-close" aria-label="Đóng" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="haven-dialog-body">{children}</div>
-        {footer && <motion.div layout="position" className="haven-dialog-footer" transition={havenLayoutTransition}>{footer}</motion.div>}
-      </motion.div>
-    </div>,
+    <AnimatePresence initial={false}>
+      {open && (
+        <motion.div
+          key="haven-dialog-backdrop"
+          className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'}`.trim()}
+          variants={havenOverlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={havenOverlayTransition}
+          onClick={(event) => {
+            if (!modal || event.target !== event.currentTarget) return;
+            event.preventDefault();
+            event.stopPropagation();
+            onClose();
+          }}
+        >
+          <motion.div
+            layout
+            ref={dialogRef}
+            className={`haven-dialog ${className}`.trim()}
+            role="dialog"
+            aria-modal={modal}
+            aria-labelledby={titleId}
+            aria-describedby={description ? descriptionId : undefined}
+            tabIndex={-1}
+            variants={havenDialogVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={havenDialogTransition}
+          >
+            <div className="haven-dialog-header">
+              <div>
+                <h2 id={titleId}>{title}</h2>
+                {description && <p id={descriptionId}>{description}</p>}
+              </div>
+              <motion.button
+                type="button"
+                className="haven-dialog-close"
+                aria-label="Đóng"
+                onClick={onClose}
+                whileHover={{ scale: 1.06 }}
+                whileTap={havenPressStrong}
+              >
+                <X size={18} />
+              </motion.button>
+            </div>
+            <motion.div layout="position" className="haven-dialog-body" transition={havenLayoutTransition}>
+              {children}
+            </motion.div>
+            {footer && (
+              <motion.div layout="position" className="haven-dialog-footer" transition={havenLayoutTransition}>
+                {footer}
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body,
   );
 }
