@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { animate, motion, useMotionValue, useTransform } from 'motion/react';
+import { havenSnappySpring, havenSoftSpring } from '@/components/motion/motionPresets';
 import './PullToRefresh.css';
 
 const THRESHOLD = 64;
@@ -26,45 +28,53 @@ function getNearestScrollable(node: EventTarget | null, root: HTMLElement): HTML
 
 export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, children }) => {
   const rootRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const pulling = useRef(false);
   const distance = useRef(0);
-  const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const pullY = useMotionValue(0);
+  const indicatorOpacity = useTransform(pullY, [0, 12, THRESHOLD], [0, 0.45, 1]);
+  const pullRotation = useTransform(pullY, [0, THRESHOLD], [0, 270]);
+  const pullScale = useTransform(pullY, [0, THRESHOLD], [0.82, 1]);
 
   useEffect(() => {
     const root = rootRef.current;
-    const content = contentRef.current;
-    if (!root || !content) return;
+    if (!root) return;
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (refreshing || e.touches.length !== 1) return;
+    const reset = () => {
+      distance.current = 0;
+      void animate(pullY, 0, havenSoftSpring);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (refreshing || event.touches.length !== 1) return;
       if (window.scrollY > 0) return;
-      const scroller = getNearestScrollable(e.target, root);
+      const scroller = getNearestScrollable(event.target, root);
       if (scroller && scroller.scrollTop > 0) return;
-      startY.current = e.touches[0].clientY;
+      startY.current = event.touches[0].clientY;
       pulling.current = true;
       distance.current = 0;
     };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!pulling.current || refreshing || e.touches.length !== 1) return;
+    const onTouchMove = (event: TouchEvent) => {
+      if (!pulling.current || refreshing || event.touches.length !== 1) return;
       if (window.scrollY > 0) {
         pulling.current = false;
-        setPull(0);
+        reset();
         return;
       }
-      const dy = e.touches[0].clientY - startY.current;
+
+      const dy = event.touches[0].clientY - startY.current;
       if (dy <= 0) {
         pulling.current = false;
-        setPull(0);
+        reset();
         return;
       }
-      e.preventDefault();
-      const d = Math.min(dy * RESISTANCE, MAX_PULL);
-      distance.current = d;
-      setPull(d);
+
+      event.preventDefault();
+      const nextDistance = Math.min(dy * RESISTANCE, MAX_PULL);
+      distance.current = nextDistance;
+      pullY.set(nextDistance);
     };
 
     const finish = () => {
@@ -72,17 +82,17 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
       pulling.current = false;
       if (distance.current >= THRESHOLD) {
         setRefreshing(true);
-        setPull(THRESHOLD);
+        void animate(pullY, THRESHOLD, havenSnappySpring);
         onRefresh();
       } else {
-        setPull(0);
+        reset();
       }
     };
 
     const onTouchEnd = () => finish();
     const onTouchCancel = () => {
       pulling.current = false;
-      setPull(0);
+      reset();
     };
 
     root.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -96,37 +106,27 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
       root.removeEventListener('touchend', onTouchEnd);
       root.removeEventListener('touchcancel', onTouchCancel);
     };
-  }, [onRefresh, refreshing]);
-
-  const progress = Math.min(pull / THRESHOLD, 1);
+  }, [onRefresh, pullY, refreshing]);
 
   return (
     <div className="ptr-root" ref={rootRef}>
-      <div
+      <motion.div
         className="ptr-indicator"
-        style={{ height: MAX_PULL, opacity: pull > 0 || refreshing ? 1 : 0 }}
+        style={{ height: MAX_PULL, opacity: refreshing ? 1 : indicatorOpacity }}
         aria-hidden="true"
       >
-        <Loader2
-          className={`ptr-spinner${refreshing ? ' ptr-spinner--active' : ''}`}
-          style={{
-            transform: `rotate(${progress * 270}deg)`,
-            opacity: refreshing ? 1 : progress,
-          }}
-          size={26}
-          strokeWidth={2.5}
-        />
-      </div>
-      <div
-        className="ptr-content"
-        ref={contentRef}
-        style={{
-          transform: `translateY(${pull}px)`,
-          transition: pulling.current ? 'none' : 'transform 0.25s ease',
-        }}
-      >
+        <motion.div
+          animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
+          transition={refreshing ? { duration: 0.8, repeat: Infinity, ease: 'linear' } : havenSnappySpring}
+        >
+          <motion.div style={{ rotate: pullRotation, scale: pullScale }}>
+            <Loader2 className="ptr-spinner" size={26} strokeWidth={2.5} />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+      <motion.div className="ptr-content" style={{ y: pullY }}>
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 };
