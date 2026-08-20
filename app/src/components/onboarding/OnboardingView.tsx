@@ -15,7 +15,6 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useMomStore } from '@/store/useMomStore';
 import {
   checkDriveBackup,
   isGoogleConfigured,
@@ -82,7 +81,6 @@ function formatBackupDate(isoString?: string): string {
 
 export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) => {
   const initializeChildProfile = useBabyStore((s) => s.initializeChildProfile);
-  const updateMomData = useMomStore((s) => s.updateMomData);
 
   const [step, setStep] = useState<'auth' | 'backup_found' | 'profile'>(() => {
     return isGoogleConnected() ? 'profile' : 'auth';
@@ -196,10 +194,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
       },
       { weight: w, height: h, headCirc: hc },
     );
-
-    if (momName.trim()) {
-      updateMomData({ name: momName.trim() });
-    }
 
     // Trigger initial upload to Google Drive if connected
     if (googleConnected) {
