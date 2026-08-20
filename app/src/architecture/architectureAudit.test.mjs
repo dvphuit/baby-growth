@@ -16,6 +16,7 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['growthLiveAiFeedback', 'growth reference UI must not retain AI naming'],
   ['babygrowth_v2_', 'production persistence must use the current generation directly'],
   ['babygrowth_v3_', 'production persistence must use the current generation directly'],
+  ['babygrowth_v4_mom', 'removed Mom store must not reappear as a persistence key'],
 ];
 
 function productionFiles(directory) {
@@ -59,8 +60,12 @@ describe('architecture acceptance guard', () => {
     expect(existsSync(join(SRC, 'components', 'modals'))).toBe(false);
   });
 
-  it('uses a non-AI package identity', () => {
+  it('uses a non-AI package identity in package metadata and lockfile', () => {
     const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+    const packageLock = JSON.parse(readFileSync(join(ROOT, 'package-lock.json'), 'utf8'));
     expect(packageJson.name).toBe('babygrowth');
+    expect(packageLock.name).toBe('babygrowth');
+    expect(packageLock.packages?.['']?.name).toBe('babygrowth');
+    expect(JSON.stringify(packageLock)).not.toContain('babygrowth-ai');
   });
 });
