@@ -137,6 +137,10 @@ const replacements = new Map([
   ['./store/useExpenseStore', '@/features/expenses/store/useExpenseStore'],
   ['./store/useReminderStore', '@/features/reminders/store/useReminderStore'],
   ['./store/useTimelineStore', '@/features/timeline/store/useTimelineStore'],
+  ['./useActivityStore', '@/features/activities/store/useActivityStore'],
+  ['./useExpenseStore', '@/features/expenses/store/useExpenseStore'],
+  ['./useReminderStore', '@/features/reminders/store/useReminderStore'],
+  ['./useTimelineStore', '@/features/timeline/store/useTimelineStore'],
   ['./useUIStore', '@/store/useUIStore'],
   ['./useBabyStore', '@/store/useBabyStore'],
   ['./localDb', '@/data/localDb'],
@@ -198,6 +202,10 @@ const forbiddenImportTokens = [
   './store/useExpenseStore',
   './store/useReminderStore',
   './store/useTimelineStore',
+  './useActivityStore',
+  './useExpenseStore',
+  './useReminderStore',
+  './useTimelineStore',
 ];
 for (const file of sourceCodeFiles()) {
   const source = readFileSync(file, 'utf8');
