@@ -3,7 +3,6 @@ import { SYNC_KEYS } from '@/features/sync';
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useExpenseStore } from '@/store/useExpenseStore';
-import { useMomStore } from '@/store/useMomStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -50,7 +49,9 @@ function seedTrackingData(): void {
     birthWeight: '3.2 kg', birthHeight: '49 cm', headCircAtBirth: '34 cm', hospital: 'Từ Dũ',
   }, { weight: 3.2, height: 49, headCirc: 34 });
   useBabyStore.getState().addGrowthMeasurement({ weight: 5.1, height: 58, headCirc: 38, date: '2026-03-05' });
-  useMomStore.getState().addPumpingSession(90);
+  useActivityStore.getState().addMomActivity({
+    owner: 'mom', type: 'pumping', occurredAt: '2026-08-17T07:00:00.000Z', amountMl: 90, side: 'both',
+  });
   useActivityStore.getState().addBabyActivity({
     owner: 'baby', type: 'diaper', occurredAt: '2026-08-17T08:00:00.000Z', diaperKind: 'wet',
   });
@@ -74,7 +75,6 @@ function expectTrackingDataReset(): void {
   expect(baby.currentStageData().growthHistory[0]).toMatchObject({
     date: '2026-01-05', weight: 3.2, height: 49, headCirc: 34,
   });
-  expect(useMomStore.getState().momData.pumping).toMatchObject({ todayTotal: '0 ml', sessionsToday: 0, history: [] });
   expect(useActivityStore.getState()).toMatchObject({ babyActivities: [], momActivities: [] });
   expect(useExpenseStore.getState()).toMatchObject({ expenses: [], monthlyBudget: 5_000_000 });
   expect(useTimelineStore.getState().timelineItems).toEqual([]);
@@ -93,7 +93,6 @@ describe('resetTrackingData', () => {
       overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
     }));
     useBabyStore.getState().resetToDefaults();
-    useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
