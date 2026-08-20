@@ -24,7 +24,11 @@ vi.mock('@/features/timeline', () => ({
   AddPostModal: () => <span>Add Post marker</span>,
   TimelineView: () => null,
 }));
-vi.mock('@/components/modals/EditProfileModal', () => ({ EditProfileModal: () => <span>Edit Profile marker</span> }));
+vi.mock('@/features/profile', () => ({
+  EditProfileModal: () => <span>Edit Profile marker</span>,
+  GoogleDriveDataView: () => null,
+  ProfileView: () => null,
+}));
 vi.mock('@/features/reminders', () => ({
   NotificationModal: ({ onClose, onQuickLog }: { onClose: () => void; onQuickLog?: (action: string) => void }) => (
     <div><span>Notification marker</span><button onClick={onClose}>close notifications</button><button onClick={() => onQuickLog?.('feeding')}>notification quick log</button></div>
