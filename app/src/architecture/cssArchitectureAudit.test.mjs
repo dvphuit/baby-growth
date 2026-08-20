@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = process.cwd();
@@ -82,7 +82,44 @@ function buildReport() {
   return { summary, overlaps, overlappingSelectors };
 }
 
+function forbiddenStyleResidues() {
+  const forbiddenTokens = [
+    'ai-live-dot',
+    'ai-floating-speech-bubble',
+    'ai-chat',
+    'ai-doc-',
+    'ai-suggestions',
+    'header-ai-',
+    'chat-bubble',
+    'chat-input-field',
+    'chat-send-btn',
+    'Voice AI',
+    'AI CHAT',
+    'Freud.ai',
+  ];
+
+  return walk(SRC)
+    .filter((file) => file.endsWith('.css'))
+    .flatMap((file) => {
+      const content = readFileSync(file, 'utf8');
+      return forbiddenTokens
+        .filter((token) => content.includes(token))
+        .map((token) => `${relative(ROOT, file)}: ${token}`);
+    });
+}
+
 describe('stylesheet architecture audit', () => {
+  it('keeps removed AI and chat styles out of the stylesheet graph', () => {
+    expect(forbiddenStyleResidues()).toEqual([]);
+  });
+
+  it('keeps feature-owned growth styles out of global styles and removes the legacy timeline layer', () => {
+    expect(existsSync(join(STYLES, 'growth.css'))).toBe(false);
+    expect(existsSync(join(STYLES, 'timeline.css'))).toBe(false);
+    expect(importedStylesheets()).not.toContain('growth.css');
+    expect(importedStylesheets()).not.toContain('timeline.css');
+  });
+
   it('reports ownership overlap without changing runtime behavior', () => {
     const report = buildReport();
     console.info('[css-architecture-audit]', JSON.stringify({
