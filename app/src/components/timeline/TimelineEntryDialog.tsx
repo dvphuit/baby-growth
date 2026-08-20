@@ -1426,6 +1426,7 @@ export function TimelineEntryDialog({
   const deleteTimelineItem = useTimelineStore((state) => state.deleteTimelineItem);
 
   useEffect(() => {
+    if (!open) return;
     setEditing(initialEditing);
     setConfirmingDelete(false);
   }, [initialEditing, open, rawEntry?.id]);
@@ -1434,7 +1435,7 @@ export function TimelineEntryDialog({
   const entry = normalizedEntry;
   const source = explicitSource ?? normalizedSource;
 
-  if (!open || !entry) return null;
+  if (!entry) return null;
 
   const meta = entryMeta(entry);
   const Icon = meta.icon;
@@ -1467,10 +1468,7 @@ export function TimelineEntryDialog({
   return (
     <HavenDialog
       open={open}
-      onClose={() => {
-        setEditing(false);
-        onClose();
-      }}
+      onClose={onClose}
       title={titleOverride || entry.title || 'Chi tiết ghi nhận'}
       description={`${ownerLabel(entry.owner)} · ${formatFullDate(new Date(entry.occurredAt))}`}
       className={dialogClassName || undefined}
