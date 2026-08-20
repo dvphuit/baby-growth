@@ -1,13 +1,31 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MomHomeView } from './MomHomeView';
-import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type { MomActivity, TimelineItem } from '@/types';
+import type { MomActivity } from '@/types';
 
 let records: MomActivity[] = [];
 
 vi.mock('@/features/activities/store/useActivityStore', () => ({
   useActivityStore: (selector: (state: { momActivities: MomActivity[] }) => unknown) => selector({ momActivities: records }),
+}));
+
+vi.mock('./IdleHomeTimelinePreview', () => ({
+  IdleHomeTimelinePreview: ({
+    owner,
+    onAddActivity,
+  }: {
+    owner: 'baby' | 'mom';
+    onAddActivity: () => void;
+  }) => (
+    <button
+      type="button"
+      data-testid="idle-home-timeline"
+      data-owner={owner}
+      onClick={onAddActivity}
+    >
+      Deferred timeline
+    </button>
+  ),
 }));
 
 function renderView(onOpenPumping = vi.fn()) {
@@ -18,12 +36,12 @@ function renderView(onOpenPumping = vi.fn()) {
 describe('MomHomeView', () => {
   beforeEach(() => {
     records = [];
-    useTimelineStore.setState({ timelineItems: [] });
   });
 
   it('shows honest empty states instead of wellness demo values', () => {
     renderView();
     expect(screen.getAllByText('Chưa ghi nhận').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByText('0 hoạt động')).toBeInTheDocument();
     expect(screen.queryByText(/4.85 L|7.5h|Wellness|EPDS/)).not.toBeInTheDocument();
     expect(screen.queryByText(/hôm nay/i)).not.toBeInTheDocument();
   });
@@ -36,10 +54,13 @@ describe('MomHomeView', () => {
       { id: 's1', owner: 'mom', type: 'sleep', durationMinutes: 180, occurredAt: now, createdAt: now },
       { id: 'm1', owner: 'mom', type: 'mood', mood: 'good', occurredAt: now, createdAt: now },
     ];
+
     renderView();
+
     expect(screen.getByText('200 ml · 2 cữ')).toBeInTheDocument();
     expect(screen.getByText('3g 0p')).toBeInTheDocument();
     expect(screen.getByText('Tốt')).toBeInTheDocument();
+    expect(screen.getByText('4 hoạt động')).toBeInTheDocument();
   });
 
   it('keeps pumping as a primary action', () => {
@@ -48,7 +69,7 @@ describe('MomHomeView', () => {
     expect(onOpenPumping).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show previous-day records in today diary', () => {
+  it('counts only current-day activities before the timeline runtime loads', () => {
     const now = new Date();
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -59,61 +80,16 @@ describe('MomHomeView', () => {
 
     renderView();
 
-    expect(screen.getByRole('heading', { name: 'Dòng thời gian' })).toBeInTheDocument();
-    expect(screen.getAllByText('Tâm trạng').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('1 hoạt động')).toBeInTheDocument();
     expect(screen.queryByText(/Ghi chú hôm qua/i)).not.toBeInTheDocument();
   });
 
-  it('uses the shared notebook timeline for mom activities', () => {
-    const early = new Date();
-    early.setHours(7, 0, 0, 0);
-    const late = new Date();
-    late.setHours(18, 0, 0, 0);
-    records = [
-      { id: 'late-mood', owner: 'mom', type: 'mood', mood: 'good', occurredAt: late.toISOString(), createdAt: late.toISOString() },
-      { id: 'early-pump', owner: 'mom', type: 'pumping', amountMl: 90, side: 'both', occurredAt: early.toISOString(), createdAt: early.toISOString() },
-    ];
+  it('delegates the mom timeline to the shared idle boundary', () => {
+    const onOpenPumping = renderView();
+    const timelineBoundary = screen.getByTestId('idle-home-timeline');
 
-    const { container } = render(<MomHomeView onOpenPumping={vi.fn()} />);
-
-    expect(container.querySelector('.journal-story.owner-mom.haven-home-notebook')).toBeInTheDocument();
-    expect(container.querySelector('.haven-activity-list')).not.toBeInTheDocument();
-    expect([...container.querySelectorAll('.journal-story-time')].map((node) => node.textContent)).toEqual(['07:00', '18:00']);
-  });
-
-  it('shows only mom moments from today on the mom Home timeline', () => {
-    const now = new Date();
-    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const base: TimelineItem = {
-      id: 'mom-home-moment', owner: 'mom', date, timeFormatted: '16:20', time: `${date} • 16:20`,
-      author: 'Mẹ', authorAvatar: '/mom.jpg', title: 'Một phút thư giãn', content: 'Mẹ nghỉ một chút.',
-      mediaItems: [], mediaUrl: null, mediaType: null, stats: [], likes: 0, comments: 0, userLiked: false,
-      tag: 'Của mẹ', tagType: 'mom', type: 'mom',
-    };
-    useTimelineStore.setState({ timelineItems: [
-      base,
-      { ...base, id: 'baby-hidden', owner: 'baby', title: 'Khoảnh khắc của bé', tagType: 'general', type: 'daily' },
-    ] });
-
-    renderView();
-
-    expect(screen.getByRole('button', { name: 'Một phút thư giãn, 16:20' })).toBeInTheDocument();
-    expect(screen.queryByText('Khoảnh khắc của bé')).not.toBeInTheDocument();
-  });
-
-  it('allows clicking mom timeline items on Home to view detail and edit', async () => {
-    const now = new Date().toISOString();
-    records = [
-      { id: 'pump-test', owner: 'mom', type: 'pumping', amountMl: 120, side: 'both', occurredAt: now, createdAt: now },
-    ];
-    const { container } = render(<MomHomeView onOpenPumping={vi.fn()} />);
-
-    const itemButton = container.querySelector('.journal-story-main') as HTMLButtonElement;
-    expect(itemButton).toBeInTheDocument();
-    fireEvent.click(itemButton);
-
-    expect(await screen.findByRole('dialog', { name: /Hút sữa/i })).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole('button', { name: /Chỉnh sửa/i }));
-    expect(await screen.findByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
+    expect(timelineBoundary).toHaveAttribute('data-owner', 'mom');
+    fireEvent.click(timelineBoundary);
+    expect(onOpenPumping).toHaveBeenCalledTimes(1);
   });
 });
