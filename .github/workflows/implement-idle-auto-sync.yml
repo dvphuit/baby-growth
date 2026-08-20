@@ -94,6 +94,10 @@ jobs:
           writeFileSync(testPath, testSource);
           NODE
 
+      - name: Typecheck idle auto-sync changes
+        working-directory: app
+        run: npx tsc -b --pretty false
+
       - name: Run targeted idle auto-sync tests
         working-directory: app
         run: npm test -- src/shared/lib/idleTask.test.ts src/features/sync/hooks/useAutoSyncLifecycle.test.tsx src/features/sync/autoSyncPerformance.test.mjs
