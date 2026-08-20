@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/store/useUIStore';
-import { useMomStore } from '@/store/useMomStore';
 import { useFamily } from '@/hooks/useFamily';
 import { formatVietnameseDate } from '@/utils/date';
 import { Baby, Bell, Calendar, ChevronRight, Heart } from 'lucide-react';
@@ -26,10 +25,9 @@ function formatAge(birthDate: string): string {
 export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
   const navigate = useNavigate();
   const { profileMode, setProfileMode } = useUIStore();
-  const { momData } = useMomStore();
   const family = useFamily();
   const isMom = profileMode === 'mom';
-  const name = isMom ? momData.name : family.childName;
+  const name = isMom ? family.momName : family.childName;
   const avatar = isMom ? family.momAvatar : family.childAvatar;
   const todayFormatted = formatVietnameseDate(new Date());
   const ageText = !isMom ? formatAge(family.birthDate) : '';
