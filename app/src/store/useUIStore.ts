@@ -29,7 +29,7 @@ export const useUIStore = create<UIStoreState>()(
       resetTrackingData: () => set({ currentTab: 'home', currentSubView: null, searchQuery: '', profileMode: 'baby' }),
     }),
     {
-      name: 'babygrowth_v2_ui',
+      name: 'babygrowth_v4_ui',
       storage: createJSONStorage(() => indexedDbStorage),
       partialize: (state) => ({
         currentTab: state.currentTab,
