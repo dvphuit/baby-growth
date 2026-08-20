@@ -24,10 +24,10 @@ function jsonResponse(value: unknown): Response {
   });
 }
 
-function blobResponse(value: Blob): Response {
+function binaryResponse(value: string, contentType: string): Response {
   return new Response(value, {
     status: 200,
-    headers: { 'Content-Type': value.type || 'application/octet-stream' },
+    headers: { 'Content-Type': contentType },
   });
 }
 
@@ -130,13 +130,14 @@ describe('generation-2 Google Drive sync', () => {
   });
 
   it('downloads private timeline media with the current Google token', async () => {
-    const media = new Blob(['image-bytes'], { type: 'image/jpeg' });
-    const fetchMock = vi.fn().mockResolvedValue(blobResponse(media));
+    const fetchMock = vi.fn().mockResolvedValue(binaryResponse('image-bytes', 'image/jpeg'));
     vi.stubGlobal('fetch', fetchMock);
     const sync = await import('@/features/sync/googleDriveSync');
     await sync.requestGoogleAccessToken();
 
-    await expect(sync.downloadTimelineMediaFromDrive('drive-media-1')).resolves.toBe(media);
+    const downloaded = await sync.downloadTimelineMediaFromDrive('drive-media-1');
+    expect(downloaded.type).toBe('image/jpeg');
+    expect(await downloaded.text()).toBe('image-bytes');
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/drive/v3/files/drive-media-1?alt=media'),
       expect.objectContaining({ headers: { Authorization: 'Bearer token' } }),
