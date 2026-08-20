@@ -3,6 +3,7 @@ import {
   havenLayoutTransition,
   havenRouteTransition,
   havenRouteVariants,
+  havenSheetTransition,
   havenSheetVariants,
   havenToastVariants,
 } from './motionPresets';
@@ -19,11 +20,15 @@ describe('shared motion presets', () => {
     });
   });
 
-  it('keeps sheet movement on translation without scale animation', () => {
+  it('keeps sheet movement on translation with a bounded tween', () => {
     expect(havenSheetVariants).toEqual({
       hidden: { y: '100%' },
       visible: { y: 0 },
       exit: { y: '100%' },
+    });
+    expect(havenSheetTransition).toMatchObject({
+      type: 'tween',
+      duration: 0.18,
     });
   });
 
