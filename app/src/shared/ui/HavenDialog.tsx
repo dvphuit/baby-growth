@@ -28,9 +28,8 @@ const MOBILE_DIALOG_MEDIA = '(max-width: 480px)';
 const MOBILE_DIALOG_EXIT = {
   opacity: 0,
   y: '100%',
-  scale: 0.995,
   transition: {
-    duration: 0.24,
+    duration: 0.16,
     ease: [0.2, 0.75, 0.3, 1],
   },
 } as const;
@@ -125,7 +124,6 @@ export function HavenDialog({ open, onClose, title, description, children, foote
           }}
         >
           <motion.div
-            layout
             layoutId={surfaceLayoutId}
             ref={dialogRef}
             className={`haven-dialog ${className}`.trim()}

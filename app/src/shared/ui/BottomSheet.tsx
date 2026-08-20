@@ -2,10 +2,10 @@ import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
 import {
-  havenDialogTransition,
   havenOverlayTransition,
   havenOverlayVariants,
   havenPressStrong,
+  havenSheetTransition,
   havenSheetVariants,
   havenSnappySpring,
 } from '@/shared/motion/motionPresets';
@@ -129,7 +129,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           }}
         >
           <motion.div
-            layout
             layoutId={surfaceLayoutId}
             ref={sheetRef}
             role="dialog"
@@ -142,7 +141,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             initial="hidden"
             animate="visible"
             exit="exit"
-            transition={havenDialogTransition}
+            transition={havenSheetTransition}
             drag={dismissible ? 'y' : false}
             dragControls={dragControls}
             dragListener={false}
