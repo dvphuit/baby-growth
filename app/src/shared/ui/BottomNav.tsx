@@ -53,7 +53,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenQuickLog }) => {
           end={to === '/'}
           className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
           id={id}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           {({ isActive }) => <NavContent label={label} Icon={Icon} isActive={isActive} />}
         </NavLink>
@@ -79,7 +78,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenQuickLog }) => {
           to={to}
           className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
           id={id}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           {({ isActive }) => <NavContent label={label} Icon={Icon} isActive={isActive} />}
         </NavLink>

@@ -3,10 +3,10 @@ import {
   isTimelineMomentOnLocalDay,
   timelineMomentOccurredAt,
   timelineMomentOwner,
-  useTimelineStore,
-  type JournalTimelineEntry,
-  type MomentMediaPreviewState,
-} from '@/features/timeline';
+} from '@/features/timeline/domain/timelineMedia';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
+import type { JournalTimelineEntry } from '@/features/timeline/components/TimelineEntryDialog';
+import type { MomentMediaPreviewState } from '@/features/timeline/components/MomentMediaPreview';
 import type { ActivityRecord, ProfileMode, TimelineItem, TimelineMediaItem } from '@/types';
 
 type OwnerActivity<T extends ProfileMode> = Extract<ActivityRecord, { owner: T }>;

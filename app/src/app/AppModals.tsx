@@ -21,6 +21,7 @@ const NotificationModal = lazy(async () => ({ default: (await import('@/features
 
 const QUICK_LOG_SURFACE_ID = 'quick-log-surface';
 const MODAL_EXIT_RETENTION_MS = 280;
+const MODAL_PREFETCH_FALLBACK_MS = 220;
 
 const LazyModalFallback = () => (
   <div className="lazy-modal-loading" role="status" aria-live="polite">Đang mở…</div>
@@ -41,6 +42,24 @@ function useRetained(open: boolean, retentionMs = MODAL_EXIT_RETENTION_MS): bool
   }, [mounted, open, retentionMs]);
 
   return open || mounted;
+}
+
+function prefetchQuickLogDestinations(): void {
+  void Promise.all([
+    loadAddGrowthModal(),
+    loadAddExpenseModal(),
+    loadAddPostModal(),
+  ]);
+}
+
+function scheduleQuickLogPrefetch(): () => void {
+  if (typeof window.requestIdleCallback === 'function') {
+    const idleId = window.requestIdleCallback(prefetchQuickLogDestinations, { timeout: 800 });
+    return () => window.cancelIdleCallback(idleId);
+  }
+
+  const timeoutId = window.setTimeout(prefetchQuickLogDestinations, MODAL_PREFETCH_FALLBACK_MS);
+  return () => window.clearTimeout(timeoutId);
 }
 
 export interface AppModalsProps {
@@ -65,13 +84,7 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
 
   useEffect(() => {
     if (!modals.isQuickLogOpen) return;
-    void Promise.all([
-      loadActivityLogModal(),
-      loadAddGrowthModal(),
-      loadAddPumpingModal(),
-      loadAddExpenseModal(),
-      loadAddPostModal(),
-    ]);
+    return scheduleQuickLogPrefetch();
   }, [modals.isQuickLogOpen]);
 
   return (

@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
+import '../timeline-performance.css';
 
 export interface NotebookTimeEntry {
   occurredAt: string;
@@ -93,10 +94,15 @@ function timeGradient(entries: readonly NotebookTimeEntry[], anchorPercentages?:
 
 export function NotebookStory({ entries, owner, children, className = '' }: NotebookStoryProps) {
   const storyRef = useRef<HTMLDivElement>(null);
+  const initialGradient = useMemo(() => timeGradient(entries), [entries]);
 
   useLayoutEffect(() => {
     const story = storyRef.current;
     if (!story) return undefined;
+
+    let frameId: number | null = null;
+    let measuring = false;
+    let resizeObserver: ResizeObserver | null = null;
 
     const updateGradient = () => {
       const storyRect = story.getBoundingClientRect();
@@ -105,15 +111,49 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
       const anchors = icons.map((icon) => ((icon.getBoundingClientRect().top - storyRect.top) / storyRect.height) * 100);
       story.style.setProperty('--journal-time-gradient', timeGradient(entries, anchors));
     };
-
-    updateGradient();
-    window.addEventListener('resize', updateGradient);
-    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateGradient);
-    resizeObserver?.observe(story);
-    story.querySelectorAll<HTMLElement>('.journal-story-item').forEach((item) => resizeObserver?.observe(item));
-    return () => {
-      window.removeEventListener('resize', updateGradient);
+    const scheduleGradientUpdate = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        updateGradient();
+      });
+    };
+    const startMeasuring = () => {
+      if (measuring) return;
+      measuring = true;
+      updateGradient();
+      window.addEventListener('resize', scheduleGradientUpdate);
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(scheduleGradientUpdate);
+        resizeObserver.observe(story);
+      }
+    };
+    const stopMeasuring = () => {
+      if (!measuring) return;
+      measuring = false;
+      window.removeEventListener('resize', scheduleGradientUpdate);
       resizeObserver?.disconnect();
+      resizeObserver = null;
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      startMeasuring();
+      return stopMeasuring;
+    }
+
+    const visibilityObserver = new IntersectionObserver((observations) => {
+      if (observations.some((observation) => observation.isIntersecting)) startMeasuring();
+      else stopMeasuring();
+    }, { rootMargin: '600px 0px' });
+    visibilityObserver.observe(story);
+
+    return () => {
+      visibilityObserver.disconnect();
+      stopMeasuring();
     };
   }, [entries]);
 
@@ -121,7 +161,7 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
     <div
       ref={storyRef}
       className={`journal-story owner-${owner} ${className}`.trim()}
-      style={{ '--journal-time-gradient': timeGradient(entries) } as CSSProperties}
+      style={{ '--journal-time-gradient': initialGradient } as CSSProperties}
     >
       {children}
     </div>

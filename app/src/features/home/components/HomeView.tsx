@@ -1,6 +1,10 @@
+import { lazy, Suspense } from 'react';
 import { useUIStore } from '@/store/useUIStore';
 import { BabyHomeView } from './BabyHomeView';
-import { MomHomeView } from './MomHomeView';
+
+const MomHomeView = lazy(async () => ({
+  default: (await import('./MomHomeView')).MomHomeView,
+}));
 
 interface HomeViewProps {
   onOpenQuickLog: () => void;
@@ -11,7 +15,11 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenQuickLog, onOpenPumpin
   const profileMode = useUIStore((state) => state.profileMode);
 
   if (profileMode === 'mom') {
-    return <MomHomeView onOpenPumping={onOpenPumping} />;
+    return (
+      <Suspense fallback={<div className="route-loading-state" role="status">Đang mở trang của Mẹ…</div>}>
+        <MomHomeView onOpenPumping={onOpenPumping} />
+      </Suspense>
+    );
   }
 
   return <BabyHomeView onOpenQuickLog={onOpenQuickLog} />;

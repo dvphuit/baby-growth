@@ -21,6 +21,10 @@ function renderView(onOpenQuickLog = vi.fn()) {
   return onOpenQuickLog;
 }
 
+async function waitForTimeline() {
+  await screen.findByRole('heading', { name: 'Dòng thời gian' }, { timeout: 2500 });
+}
+
 function moment(overrides: Partial<TimelineItem> = {}): TimelineItem {
   const now = new Date();
   const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -39,10 +43,11 @@ describe('BabyHomeView', () => {
     useTimelineStore.setState({ timelineItems: [] });
   });
 
-  it('shows honest empty states when there are no records', () => {
+  it('shows honest empty states when there are no records', async () => {
     renderView();
     expect(screen.getByRole('progressbar', { name: 'Tiến độ lượng sữa' }).parentElement).toHaveTextContent('0 ml');
     expect(screen.getByRole('progressbar', { name: 'Tiến độ giấc ngủ' }).parentElement).toHaveTextContent('0 phút');
+    await waitForTimeline();
     expect(screen.getByText('Chưa có dữ liệu được ghi nhận.')).toBeInTheDocument();
     expect(screen.queryByText(/540 ml|12h 30p|Growth Score/)).not.toBeInTheDocument();
     expect(screen.queryByText(/hôm nay/i)).not.toBeInTheDocument();
@@ -69,7 +74,7 @@ describe('BabyHomeView', () => {
     expect(onOpenQuickLog).toHaveBeenCalledTimes(1);
   });
 
-  it('shows only today records in the home diary', () => {
+  it('shows only today records in the home diary', async () => {
     const now = new Date();
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -82,49 +87,53 @@ describe('BabyHomeView', () => {
     ];
 
     renderView();
+    await waitForTimeline();
 
     expect(screen.getByRole('heading', { name: 'Dòng thời gian' })).toBeInTheDocument();
     expect(screen.getByText('Cữ bú')).toBeInTheDocument();
     expect(screen.queryByText(/Nội dung của hôm qua/i)).not.toBeInTheDocument();
   });
 
-  it('uses the shared notebook timeline in chronological order', () => {
+  it('uses the shared notebook timeline in chronological order', async () => {
     records = [feeding('late-feeding', 60, 11), feeding('early-feeding', 90, 7)];
 
     const { container } = render(<BabyHomeView onOpenQuickLog={vi.fn()} />);
+    await waitForTimeline();
 
     expect(container.querySelector('.journal-story.owner-baby.haven-home-notebook')).toBeInTheDocument();
     expect(container.querySelector('.haven-activity-list')).not.toBeInTheDocument();
     expect([...container.querySelectorAll('.journal-story-time')].map((node) => node.textContent)).toEqual(['07:00', '11:00']);
   });
 
-  it('shows baby moments from today with media and opens their shared preview', () => {
+  it('shows baby moments from today with media and opens their shared preview', async () => {
     useTimelineStore.setState({ timelineItems: [moment()] });
     const { container } = render(<BabyHomeView onOpenQuickLog={vi.fn()} />);
+    await waitForTimeline();
 
     expect(screen.getByRole('button', { name: 'Nụ cười ở nhà, 08:30' })).toBeInTheDocument();
     expect(container.querySelector('.journal-story-item.is-moment .journal-story-media')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở ảnh Nụ cười ở nhà' }));
-    expect(screen.getByRole('dialog', { name: 'Xem media Nụ cười ở nhà' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Xem media Nụ cười ở nhà' })).toBeInTheDocument();
   });
 
-  it('allows clicking timeline items on Home to view detail and edit', () => {
+  it('allows clicking timeline items on Home to view detail and edit', async () => {
     records = [feeding('test-feed', 120, 9)];
     renderView();
+    await waitForTimeline();
 
     const itemButton = screen.getByRole('button', { name: /Cữ bú/i });
     expect(itemButton).toBeInTheDocument();
     fireEvent.click(itemButton);
 
-    expect(screen.getByRole('dialog', { name: /Cữ bú/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: /Cữ bú/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Đóng' }).length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(screen.getByRole('button', { name: /Chỉnh sửa/i }));
-    expect(screen.getByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
   });
 
-  it('shows associated diaper and temperature signs in timeline items and previews', () => {
+  it('shows associated diaper and temperature signs in timeline items and previews', async () => {
     const now = new Date();
     records = [
       {
@@ -138,6 +147,7 @@ describe('BabyHomeView', () => {
       },
     ];
     renderView();
+    await waitForTimeline();
 
     const diaperItem = screen.getByRole('button', { name: /Thay tã/i }).closest('.journal-story-item');
     expect(diaperItem?.querySelector('.journal-story-facts-value')).toHaveTextContent('Bẩn');
@@ -155,13 +165,13 @@ describe('BabyHomeView', () => {
     expect(signsRow!.compareDocumentPosition(noteRow!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     fireEvent.click(temperatureButton);
-    const dialog = screen.getByRole('dialog', { name: 'Đo nhiệt độ' });
+    const dialog = await screen.findByRole('dialog', { name: 'Đo nhiệt độ' });
     expect(dialog).toHaveTextContent('Khó thở');
     expect(dialog).toHaveTextContent('Ít tiểu/khô môi');
     expect(dialog).not.toHaveTextContent('2 triệu chứng');
   });
 
-  it('places feeding, sleep and medicine facts on the second row above notes', () => {
+  it('places feeding, sleep and medicine facts on the second row above notes', async () => {
     const now = new Date();
     records = [
       {
@@ -178,6 +188,7 @@ describe('BabyHomeView', () => {
       },
     ];
     renderView();
+    await waitForTimeline();
 
     const feedingItem = screen.getByRole('button', { name: /Cữ bú/i }).closest('.journal-story-item');
     const feedingFacts = feedingItem?.querySelector('.journal-story-facts-value');

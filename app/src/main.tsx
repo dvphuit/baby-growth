@@ -3,10 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { LayoutGroup, MotionConfig } from 'motion/react';
 import App from './app/App';
-import { isMockDataEnabled, seedMockData } from './data/mockData';
-import { SYNC_KEYS } from './features/sync';
 import './index.css';
-import { removeLocalRecord } from '@/data/localDb';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
@@ -14,26 +11,20 @@ import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
-const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses', 'babygrowth_v4_sync_meta'];
-
-/** Wipes the current local persistence generation and reloads without reset. */
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);
   if (!params.has('reset')) return false;
-
-  await Promise.all(STORE_KEYS.map((key) => removeLocalRecord(key)));
-  window.localStorage.removeItem('babygrowth_v4_device_id');
-
-  params.delete('reset');
-  const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-  window.location.replace(next);
-  return true;
+  const resetModule = await import('@/app/lifecycle/resetRequest');
+  return resetModule.handleResetRequest();
 }
 
 let mockBootstrapRan = false;
 
 async function bootstrapMockData(): Promise<void> {
-  if (mockBootstrapRan || !isMockDataEnabled()) return;
+  if (mockBootstrapRan || !import.meta.env.DEV) return;
+
+  const { isMockDataEnabled, seedMockData } = await import('./data/mockData');
+  if (!isMockDataEnabled()) return;
   mockBootstrapRan = true;
 
   try {

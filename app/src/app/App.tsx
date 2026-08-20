@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AppVersionBadge } from '@/shared/ui/AppVersionBadge';
 import { BottomNav } from '@/shared/ui/BottomNav';
@@ -7,7 +7,6 @@ import { Lightbox } from '@/shared/ui/Lightbox';
 import { PullToRefresh } from '@/shared/ui/PullToRefresh';
 import { PWAInstallPrompt } from '@/shared/ui/PWAInstallPrompt';
 import { ToastContainer } from '@/shared/ui/Toast';
-import { OnboardingView } from '@/app/onboarding/OnboardingView';
 import { useAppModals } from '@/app/hooks/useAppModals';
 import { useAutoSyncLifecycle } from '@/features/sync/hooks/useAutoSyncLifecycle';
 import { useReminderLifecycle } from '@/features/reminders/hooks/useReminderLifecycle';
@@ -18,6 +17,10 @@ import { installGlobalDiagnosticLogging, logDiagnostic } from '@/app/diagnostics
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { AppModals } from './AppModals';
 import { AppRoutes } from './AppRoutes';
+
+const OnboardingView = lazy(async () => ({
+  default: (await import('@/app/onboarding/OnboardingView')).OnboardingView,
+}));
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
@@ -49,7 +52,9 @@ export const AppContent: React.FC = () => {
     return (
       <div className="app-container" id="appContainer">
         <ToastContainer toasts={toasts} />
-        <OnboardingView onComplete={() => addToast('Chào mừng Ba Mẹ đến với Haven! Hồ sơ của Bé đã sẵn sàng.')} />
+        <Suspense fallback={<div className="route-loading-state" role="status">Đang chuẩn bị hồ sơ…</div>}>
+          <OnboardingView onComplete={() => addToast('Chào mừng Ba Mẹ đến với Haven! Hồ sơ của Bé đã sẵn sàng.')} />
+        </Suspense>
         <PWABadge />
       </div>
     );

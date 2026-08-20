@@ -23,6 +23,5 @@
 
 .ptr-content {
   width: 100%;
-  will-change: transform;
   min-height: 100%;
 }

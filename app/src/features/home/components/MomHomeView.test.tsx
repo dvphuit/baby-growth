@@ -101,7 +101,7 @@ describe('MomHomeView', () => {
     expect(screen.queryByText('Khoảnh khắc của bé')).not.toBeInTheDocument();
   });
 
-  it('allows clicking mom timeline items on Home to view detail and edit', () => {
+  it('allows clicking mom timeline items on Home to view detail and edit', async () => {
     const now = new Date().toISOString();
     records = [
       { id: 'pump-test', owner: 'mom', type: 'pumping', amountMl: 120, side: 'both', occurredAt: now, createdAt: now },
@@ -112,10 +112,8 @@ describe('MomHomeView', () => {
     expect(itemButton).toBeInTheDocument();
     fireEvent.click(itemButton);
 
-    expect(screen.getByRole('dialog', { name: /Hút sữa/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Chỉnh sửa/i }));
-    expect(screen.getByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: /Hút sữa/i })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /Chỉnh sửa/i }));
+    expect(await screen.findByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import { Image as ImageIcon } from 'lucide-react';
 import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
+import { TimelineMediaButton } from '@/features/timeline/components/TimelineMediaButton';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
-import { TimelineMediaButton } from './TimelineEntryDialog';
 
 interface HomeMomentStoryItemProps {
   item: TimelineItem;

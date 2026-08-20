@@ -1,21 +1,15 @@
 import { useMemo } from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { Clock3, HeartPulse, Layers, Milk, Moon, Pill, Plus, Sparkles, Thermometer } from 'lucide-react';
+import { Clock3, Layers, Milk, Moon, Plus } from 'lucide-react';
+import { selectBabyTodayMetrics } from '@/features/activities/domain/activitySelectors';
+import { getMilkTarget, getSleepTarget } from '@/features/activities/domain/dailyCareTargets';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { SegmentClock } from './SegmentClock';
+import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
-import { getBabyActivitiesForDay, selectBabyTodayMetrics } from '@/features/activities/domain/activitySelectors';
-import { getMilkTarget, getSleepTarget } from '@/features/activities/domain/dailyCareTargets';
-import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
-import { buildBabyTimelineEntry } from '@/features/timeline/domain/timelineSelectors';
-import { NotebookStory } from '@/features/timeline';
-import { HomeMomentStoryItem } from '@/features/timeline';
-import { MomentMediaPreview, TimelineEntryDialog } from '@/features/timeline';
-import { useHomeTimeline } from '../hooks/useHomeTimeline';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';
 import { formatClockTime, formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
-import type { BabyActivity } from '@/types';
+import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
+import { SegmentClock } from './SegmentClock';
 
 export interface BabyHomeViewProps {
   onOpenQuickLog: () => void;
@@ -26,46 +20,12 @@ function progressPercent(value: number, target: number | null): number {
   return Math.min(100, Math.round((value / target) * 100));
 }
 
-type ActivityPresentation = { label: string; tone: string; Icon: LucideIcon };
-
-function activityPresentation(type: BabyActivity['type']): ActivityPresentation {
-  const values: Record<BabyActivity['type'], ActivityPresentation> = {
-    feeding: { label: 'Cữ bú', tone: 'apricot', Icon: Milk },
-    sleep: { label: 'Giấc ngủ', tone: 'lavender', Icon: Moon },
-    diaper: { label: 'Thay tã', tone: 'sage', Icon: Layers },
-    medicine: { label: 'Thuốc / vitamin', tone: 'rose', Icon: Pill },
-    temperature: { label: 'Nhiệt độ', tone: 'coral', Icon: Thermometer },
-    health_note: { label: 'Ghi chú sức khỏe', tone: 'blue', Icon: HeartPulse },
-  };
-  return values[type];
-}
-
-function activityDisplay(record: BabyActivity): { summary: string; signs: string } {
-  const entry = buildBabyTimelineEntry(record);
-  const summary = record.type === 'medicine'
-    ? [entry.title, ...entry.stats].join(' · ')
-    : entry.stats.join(' · ');
-  return { summary, signs: entry.signs?.join(' · ') ?? '' };
-}
-
 export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) => {
   const records = useActivityStore((state) => state.babyActivities);
   const currentStageData = useGrowthStore((state) => state.currentStageData());
   const family = useFamily();
   const now = useLiveNow();
   const metrics = useMemo(() => selectBabyTodayMetrics(records, now), [records, now]);
-  const dayActivities = useMemo(() => getBabyActivitiesForDay(records, now), [records, now]);
-  const {
-    timelineEntries,
-    selectedRecord,
-    selectedMomentEntry,
-    momentPreview,
-    openRecord,
-    openMoment,
-    openMomentMedia,
-    closeEntry,
-    closeMomentPreview,
-  } = useHomeTimeline({ owner: 'baby', records, dayActivities, now });
   const latestGrowth = useMemo(
     () => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null,
     [currentStageData.growthHistory],
@@ -147,78 +107,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
         </p>
       </section>
 
-      <section className="haven-activity-surface" aria-labelledby="baby-recent-title">
-        <div className="haven-sheet-heading">
-          <div><span className="haven-eyebrow">NHẬT KÝ TRONG NGÀY</span><h3 id="baby-recent-title">Dòng thời gian</h3></div>
-          <button type="button" className="haven-text-action" onClick={onOpenQuickLog}><Plus size={12} /> Thêm</button>
-        </div>
-        {timelineEntries.length === 0 ? (
-          <div className="haven-empty-state">
-            <span><Sparkles size={18} /></span>
-            <strong>Chưa có hoạt động nào được ghi</strong>
-            <span className="haven-sr-only">Chưa có dữ liệu được ghi nhận.</span>
-            <p>Ghi một hoạt động nhỏ để bắt đầu quan sát nhịp sinh hoạt của Bé.</p>
-            <button type="button" className="haven-empty-action" onClick={onOpenQuickLog}>Ghi hoạt động đầu tiên</button>
-          </div>
-        ) : (
-          <NotebookStory entries={timelineEntries} owner="baby" className="haven-home-notebook">
-            <section className="journal-period">
-              <div className="journal-period-items">
-                {timelineEntries.map((timelineEntry) => {
-                  if (timelineEntry.kind === 'moment') {
-                    return (
-                      <HomeMomentStoryItem
-                        key={`moment-${timelineEntry.item.id}`}
-                        item={timelineEntry.item}
-                        occurredAt={timelineEntry.occurredAt}
-                        formattedTime={formatTimeOfDay(timelineEntry.occurredAt)}
-                        onOpenEntry={() => openMoment(timelineEntry.item.id)}
-                        onOpenMedia={openMomentMedia}
-                      />
-                    );
-                  }
-                  const record = timelineEntry.record;
-                  const { label, tone, Icon } = activityPresentation(record.type);
-                  const { summary, signs } = activityDisplay(record);
-                  return (
-                    <article key={record.id} className={`journal-story-item tone-${tone}`}>
-                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTimeOfDay(record.occurredAt)}</time>
-                      <span className="journal-story-icon" aria-hidden="true"><Icon size={16} /></span>
-                      <div className="journal-story-content">
-                        <button
-                          type="button"
-                          className="journal-story-main"
-                          onClick={() => openRecord(record.id)}
-                          aria-label={`${label}, ${formatTimeOfDay(record.occurredAt)}`}
-                        >
-                          <span className="journal-story-heading">
-                            <strong className="journal-story-title">{label}</strong>
-                          </span>
-                          {(summary || signs) && (
-                            <span className="journal-story-facts">
-                              {summary && <span className="journal-story-facts-value">{summary}</span>}
-                              {signs && <span className="journal-story-signs"><strong>Dấu hiệu:</strong> {signs}</span>}
-                            </span>
-                          )}
-                          {record.note && <span className="journal-story-detail">{record.note}</span>}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          </NotebookStory>
-        )}
-      </section>
-
-      <TimelineEntryDialog
-        open={selectedRecord !== null || selectedMomentEntry !== null}
-        entry={selectedMomentEntry ?? selectedRecord}
-        onClose={closeEntry}
-        onOpenMomentMedia={openMomentMedia}
-      />
-      <MomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
+      <IdleHomeTimelinePreview owner="baby" onAddActivity={onOpenQuickLog} />
     </div>
   );
 };
