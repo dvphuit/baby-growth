@@ -70,6 +70,12 @@ export const havenDialogTransition: Transition = {
   stiffness: 480,
   damping: 38,
   mass: 0.72,
+  layout: {
+    type: 'spring',
+    stiffness: 430,
+    damping: 38,
+    mass: 0.78,
+  },
 };
 
 export const havenToastVariants: Variants = {
