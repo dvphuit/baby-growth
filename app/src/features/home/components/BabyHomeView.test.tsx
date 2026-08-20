@@ -98,17 +98,17 @@ describe('BabyHomeView', () => {
     expect([...container.querySelectorAll('.journal-story-time')].map((node) => node.textContent)).toEqual(['07:00', '11:00']);
   });
 
-  it('shows baby moments from today with media and opens their shared preview', () => {
+  it('shows baby moments from today with media and opens their shared preview', async () => {
     useTimelineStore.setState({ timelineItems: [moment()] });
     const { container } = render(<BabyHomeView onOpenQuickLog={vi.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Nụ cười ở nhà, 08:30' })).toBeInTheDocument();
     expect(container.querySelector('.journal-story-item.is-moment .journal-story-media')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở ảnh Nụ cười ở nhà' }));
-    expect(screen.getByRole('dialog', { name: 'Xem media Nụ cười ở nhà' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Xem media Nụ cười ở nhà' })).toBeInTheDocument();
   });
 
-  it('allows clicking timeline items on Home to view detail and edit', () => {
+  it('allows clicking timeline items on Home to view detail and edit', async () => {
     records = [feeding('test-feed', 120, 9)];
     renderView();
 
@@ -116,15 +116,15 @@ describe('BabyHomeView', () => {
     expect(itemButton).toBeInTheDocument();
     fireEvent.click(itemButton);
 
-    expect(screen.getByRole('dialog', { name: /Cữ bú/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: /Cữ bú/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Đóng' }).length).toBeGreaterThanOrEqual(1);
 
     fireEvent.click(screen.getByRole('button', { name: /Chỉnh sửa/i }));
-    expect(screen.getByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
   });
 
-  it('shows associated diaper and temperature signs in timeline items and previews', () => {
+  it('shows associated diaper and temperature signs in timeline items and previews', async () => {
     const now = new Date();
     records = [
       {
@@ -155,7 +155,7 @@ describe('BabyHomeView', () => {
     expect(signsRow!.compareDocumentPosition(noteRow!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     fireEvent.click(temperatureButton);
-    const dialog = screen.getByRole('dialog', { name: 'Đo nhiệt độ' });
+    const dialog = await screen.findByRole('dialog', { name: 'Đo nhiệt độ' });
     expect(dialog).toHaveTextContent('Khó thở');
     expect(dialog).toHaveTextContent('Ít tiểu/khô môi');
     expect(dialog).not.toHaveTextContent('2 triệu chứng');
