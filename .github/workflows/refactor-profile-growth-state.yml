@@ -30,6 +30,7 @@ jobs:
         run: |
           set +e
           (
+            set -e
             cd app
             npm ci
             node scripts/refactor-profile-growth-state.mjs
