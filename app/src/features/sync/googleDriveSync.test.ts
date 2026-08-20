@@ -85,8 +85,8 @@ describe('generation-2 Google Drive sync', () => {
   it('patches the existing Drive backup with the current semantic snapshot', async () => {
     initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'remote-1', name: 'babygrowth-sync.json' }] }))
-      .mockResolvedValueOnce(jsonResponse({ id: 'remote-1', name: 'babygrowth-sync.json' }));
+      .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'remote-1', name: 'babygrowth-sync-v2.json' }] }))
+      .mockResolvedValueOnce(jsonResponse({ id: 'remote-1', name: 'babygrowth-sync-v2.json' }));
     vi.stubGlobal('fetch', fetchMock);
     const sync = await import('@/features/sync/googleDriveSync');
 
@@ -103,15 +103,38 @@ describe('generation-2 Google Drive sync', () => {
     );
   });
 
-  it('rejects schema-1 backups instead of importing legacy Zustand keys', async () => {
+  it('ignores schema-1 backups instead of failing Google login', async () => {
     const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
       .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'legacy', name: 'babygrowth-sync.json' }] }))
       .mockResolvedValueOnce(jsonResponse({ schemaVersion: 1, records: { babygrowth_v2_baby: '{}' } }));
     vi.stubGlobal('fetch', fetchMock);
     const sync = await import('@/features/sync/googleDriveSync');
     await sync.requestGoogleAccessToken();
 
-    await expect(sync.checkDriveBackup()).rejects.toThrow(/generation/i);
+    await expect(sync.checkDriveBackup()).resolves.toEqual({ found: false });
+    expect(fetchMock.mock.calls[0][0]).toContain('babygrowth-sync-v2.json');
+    expect(fetchMock.mock.calls[1][0]).toContain('babygrowth-sync.json');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('adopts a generation-2 backup that still uses the legacy filename', async () => {
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    const sync = await import('@/features/sync/googleDriveSync');
+    const legacyNamedSnapshot = sync.createSyncSnapshot();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ files: [] }))
+      .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'legacy-v2', name: 'babygrowth-sync.json' }] }))
+      .mockResolvedValueOnce(jsonResponse(legacyNamedSnapshot))
+      .mockResolvedValueOnce(jsonResponse({ id: 'legacy-v2', name: 'babygrowth-sync-v2.json' }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const snapshot = await sync.overwriteDriveBackupWithLocalData();
+
+    expect(snapshot.data.profile.familyData.childName).toBe('Bé Bơ');
+    expect(fetchMock.mock.calls[3][0]).toContain('/upload/drive/v3/files/legacy-v2?uploadType=multipart');
+    expect(fetchMock.mock.calls[3][1]).toMatchObject({ method: 'PATCH' });
+    expect(String(fetchMock.mock.calls[3][1]?.body)).toContain('babygrowth-sync-v2.json');
   });
 
   it('uploads private timeline media without Base64 conversion', async () => {

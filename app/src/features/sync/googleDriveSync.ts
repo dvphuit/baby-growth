@@ -2,7 +2,8 @@ import { exportAppSnapshot, parseAppSnapshot, applyAppSnapshot, subscribeAppSnap
 import { getLocalRecord, setLocalRecord } from '@/data/localDb';
 import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 
-const SYNC_FILE_NAME = 'babygrowth-sync.json';
+const SYNC_FILE_NAME = 'babygrowth-sync-v2.json';
+const LEGACY_SYNC_FILE_NAME = 'babygrowth-sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const SYNC_META_KEY = 'babygrowth_v4_sync_meta';
 const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
@@ -480,14 +481,44 @@ async function syncPendingTimelineMedia(interactive: boolean): Promise<void> {
   await runWithAutoSyncSuppressed(() => syncTimelineMediaToDrive({ interactive }));
 }
 
-async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
-  const query = encodeURIComponent(`'appDataFolder' in parents and name = '${SYNC_FILE_NAME}' and trashed = false`);
+async function findSyncFileByName(fileName: string, interactive: boolean): Promise<DriveFile | null> {
+  const query = encodeURIComponent(`'appDataFolder' in parents and name = '${fileName}' and trashed = false`);
   const result = await driveRequest<DriveFileList>(
     `https://www.googleapis.com/drive/v3/files?q=${query}&spaces=appDataFolder&orderBy=modifiedTime desc&pageSize=1&fields=files(id,name,modifiedTime)`,
     {},
     interactive,
   );
   return result.files?.[0] ?? null;
+}
+
+function getSyncSnapshotSchemaVersion(value: unknown): number | null {
+  if (typeof value !== 'object' || value === null || !('schemaVersion' in value)) return null;
+  const schemaVersion = value.schemaVersion;
+  return typeof schemaVersion === 'number' ? schemaVersion : null;
+}
+
+async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
+  const currentFile = await findSyncFileByName(SYNC_FILE_NAME, interactive);
+  if (currentFile) return currentFile;
+
+  const legacyFile = await findSyncFileByName(LEGACY_SYNC_FILE_NAME, interactive);
+  if (!legacyFile) return null;
+
+  const legacyPayload = await driveRequest<unknown>(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(legacyFile.id)}?alt=media`,
+    {},
+    interactive,
+  );
+  if (getSyncSnapshotSchemaVersion(legacyPayload) === 1) {
+    logDiagnostic('drive-sync', 'info', 'Ignoring legacy Google Drive backup', {
+      fileId: legacyFile.id,
+      schemaVersion: 1,
+    });
+    return null;
+  }
+
+  parseSyncSnapshot(legacyPayload);
+  return legacyFile;
 }
 
 function parseSyncSnapshot(value: unknown): SyncSnapshot {
