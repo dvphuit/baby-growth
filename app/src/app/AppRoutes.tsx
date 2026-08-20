@@ -8,8 +8,8 @@ import type { AddToast } from '@/hooks/useAppModals';
 const TimelineView = lazy(async () => ({ default: (await import('@/components/timeline/TimelineView')).TimelineView }));
 const GrowthView = lazy(async () => ({ default: (await import('@/components/growth/GrowthView')).GrowthView }));
 const ExpensesView = lazy(async () => ({ default: (await import('@/features/expenses')).ExpensesView }));
-const ProfileView = lazy(async () => ({ default: (await import('@/components/profile/ProfileView')).ProfileView }));
-const GoogleDriveDataView = lazy(async () => ({ default: (await import('@/components/profile/GoogleDriveDataView')).GoogleDriveDataView }));
+const ProfileView = lazy(async () => ({ default: (await import('@/features/profile')).ProfileView }));
+const GoogleDriveDataView = lazy(async () => ({ default: (await import('@/features/profile')).GoogleDriveDataView }));
 
 const RouteLoadingFallback = () => <div className="route-loading-state" role="status" aria-live="polite">Đang mở trang…</div>;
 

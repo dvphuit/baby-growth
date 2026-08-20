@@ -24,12 +24,12 @@ vi.mock('@/features/expenses', () => ({
     <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div>
   ),
 }));
-vi.mock('@/components/profile/ProfileView', () => ({
+vi.mock('@/features/profile', () => ({
   ProfileView: ({ onOpenEditProfile, onOpenNotifications }: { onOpenEditProfile: () => void; onOpenNotifications: () => void }) => (
     <div><span>Profile marker</span><button onClick={onOpenEditProfile}>edit profile</button><button onClick={onOpenNotifications}>profile reminders</button></div>
   ),
+  GoogleDriveDataView: () => <div>Drive data marker</div>,
 }));
-vi.mock('@/components/profile/GoogleDriveDataView', () => ({ GoogleDriveDataView: () => <div>Drive data marker</div> }));
 
 function createProps(overrides: Partial<AppRoutesProps> = {}): AppRoutesProps {
   return {
