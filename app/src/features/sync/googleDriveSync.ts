@@ -1,13 +1,15 @@
 import { exportAppSnapshot, parseAppSnapshot, applyAppSnapshot, subscribeAppSnapshotChanges, type AppSnapshot } from './appSnapshot';
 import { getLocalRecord, setLocalRecord } from '@/data/localDb';
 import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
+import { scheduleIdleTask } from '@/shared/lib/idleTask';
 
 const SYNC_FILE_NAME = 'babygrowth-sync-v2.json';
 const LEGACY_SYNC_FILE_NAME = 'babygrowth-sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const SYNC_META_KEY = 'babygrowth_v4_sync_meta';
 const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
-const AUTO_SYNC_DEBOUNCE_MS = 1200;
+const AUTO_SYNC_DEBOUNCE_MS = 3_500;
+const AUTO_SYNC_IDLE_TIMEOUT_MS = 3_000;
 
 /** Local persistence keys are exposed only for the storage diagnostics screen.
  * Google Drive synchronization never reads or writes them. */
@@ -127,6 +129,7 @@ let autoSyncStop: (() => void) | null = null;
 let autoSyncStartPromise: Promise<() => void> | null = null;
 let autoSyncTimer: number | null = null;
 let autoSyncDebounceTimer: number | null = null;
+let cancelAutoSyncIdle: (() => void) | null = null;
 let autoSyncInFlight: Promise<void> | null = null;
 let suppressAutoSync = false;
 let autoSyncSuppressionDepth = 0;
@@ -596,6 +599,8 @@ function clearPendingAutoSync(): void {
     window.clearTimeout(autoSyncDebounceTimer);
     autoSyncDebounceTimer = null;
   }
+  cancelAutoSyncIdle?.();
+  cancelAutoSyncIdle = null;
 }
 
 function beginAutoSyncSuppression(): void {
@@ -817,10 +822,13 @@ export async function setAutoSyncEnabled(enabled: boolean): Promise<void> {
 
 function scheduleAutoSync(delay = AUTO_SYNC_DEBOUNCE_MS): void {
   if (suppressAutoSync) return;
-  if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
+  clearPendingAutoSync();
   autoSyncDebounceTimer = window.setTimeout(() => {
     autoSyncDebounceTimer = null;
-    void runAutoSync();
+    cancelAutoSyncIdle = scheduleIdleTask(() => {
+      cancelAutoSyncIdle = null;
+      void runAutoSync();
+    }, { timeoutMs: AUTO_SYNC_IDLE_TIMEOUT_MS });
   }, delay);
 }
 
@@ -876,9 +884,8 @@ export async function startAutoSync(): Promise<() => void> {
       window.removeEventListener('offline', onOffline);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       if (autoSyncTimer !== null) window.clearInterval(autoSyncTimer);
-      if (autoSyncDebounceTimer !== null) window.clearTimeout(autoSyncDebounceTimer);
+      clearPendingAutoSync();
       autoSyncTimer = null;
-      autoSyncDebounceTimer = null;
       autoSyncStop = null;
     };
 
