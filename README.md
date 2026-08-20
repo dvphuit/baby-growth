@@ -1,204 +1,152 @@
-# BabyGrowth AI
+# BabyGrowth
 
-BabyGrowth AI is a web application that helps families track a baby’s development and support the mother’s well-being in one place. The application provides an overview dashboard, daily logs, growth tracking, expense management, family profiles, and care-support interactions.
+BabyGrowth is a local-first React application for tracking a baby's growth, daily care, family timeline, reminders, expenses, and the mother's postpartum routines.
 
-> **Current status:** This is a frontend-only, local-first web app built with React and TypeScript. User data is stored in the browser's IndexedDB and can be synchronized to the user's Google Drive `appDataFolder` without a dedicated application backend.
+The app stores data in IndexedDB and can back up one application snapshot to the user's private Google Drive `appDataFolder`. It has no application backend.
 
-## Key Features
+## Features
 
-| Area | Description |
-| --- | --- |
-| Dashboard | Summarizes the baby’s and mother’s status, daily habits, quick metrics, and logging actions. |
-| Timeline and journal | Records events, emotions, care activities, and family content by date. |
-| Growth tracking | Manages weight, height, head circumference, measurement history, and WHO-style growth charts. |
-| Mother care | Tracks postpartum well-being, mood, and pumping sessions. |
-| Family expenses | Tracks budgets, category-based expenses, spending charts, and baby-related costs. |
-| Baby profile | Displays personal information, current measurements, vaccinations, milestones, and family details. |
-| AI support | Provides a chat interface and suggested care questions based on the current sample knowledge base. |
-| PWA | Can be installed as an application on supported devices and uses caching/offline mechanisms for precached assets. |
-| Local data | Zustand persistence backed by IndexedDB, with lazy migration from the previous localStorage keys. |
-| Google sync | Google Identity Services token model + Google Drive API `appDataFolder`; synchronization is initiated from the browser. |
+- Baby and mother activity logging
+- Daily home summaries
+- Timeline and journal with private media
+- Growth measurements and WHO reference charts
+- Pumping and postpartum tracking
+- Family expenses and budgets
+- Reminders and notifications
+- Family profile and onboarding
+- Google Drive backup and restore
+- Installable PWA
 
-## Technology Stack
+## Stack
 
-| Component | Technology |
-| --- | --- |
-| UI | React 19, TypeScript |
-| Build tool | Vite 7 |
-| Routing | React Router 7 |
-| State management | Zustand 5 |
-| Charts | Chart.js |
-| Icons and effects | Lucide React, canvas-confetti |
-| PWA | vite-plugin-pwa, Workbox |
-| Code quality | ESLint, TypeScript |
-| Planned hosting | Firebase Hosting |
+- React 19
+- TypeScript
+- Vite 7
+- React Router 7
+- Zustand 5
+- Motion
+- IndexedDB
+- Chart.js
+- vite-plugin-pwa and Workbox
 
-## System Requirements
+## Architecture
 
-Install the following tools before getting started:
+The source tree is moving to feature ownership. New code belongs in a feature unless it is application composition or reusable code with no domain behavior.
 
-- Node.js 20 or later; Node.js 22 is recommended.
-- npm, which is included with Node.js.
-- Git if you want to clone the repository from GitHub.
-
-You can check your installed versions with:
-
-```bash
-node --version
-npm --version
-git --version
+```text
+app/src/
+├── app/                  # Application composition and lifecycle
+├── features/
+│   ├── activities/
+│   ├── home/
+│   ├── timeline/
+│   ├── growth/
+│   ├── expenses/
+│   ├── reminders/
+│   ├── profile/
+│   └── sync/
+├── shared/
+│   ├── ui/
+│   ├── motion/
+│   ├── hooks/
+│   ├── lib/
+│   └── styles/
+└── data/
 ```
 
-## Installation and Development
+`features/home` and `features/sync` already use these boundaries. Remaining feature moves are tracked in the architecture refactor PR.
 
-The frontend application is located in the `app/` directory. Run the following commands from the repository root:
+### Ownership rules
+
+- `app/` composes routes, providers, and global lifecycle code.
+- `features/*` owns domain components, selectors, stores, feature hooks, and feature styles.
+- `shared/` contains reusable code with no feature-specific business rules.
+- Feature code does not depend on another feature's private files. Import its public entry point instead.
+- Persist raw domain data. Calculate totals and other derived values with selectors.
+
+See `ARCHITECTURE.md` for the current data and persistence contracts.
+
+## Persistence
+
+Zustand uses `app/src/services/localDb.ts` as its IndexedDB storage adapter. The current storage namespace is generation 4. The adapter does not read or migrate historical v2 or v3 store keys.
+
+Google Drive does not copy Zustand persistence keys. `app/src/features/sync/appSnapshot.ts` exports a semantic application snapshot with generation 2 sections for profile, activities, growth, timeline, expenses, and reminders.
+
+The Drive backup envelope uses sync schema version 2:
+
+```text
+Feature stores
+    ↓
+AppSnapshot generation 2
+    ↓
+SyncSnapshot schema 2
+    ↓
+Google Drive appDataFolder
+```
+
+A schema-1 Drive backup is rejected. This is intentional for the current persistence generation.
+
+Private timeline media is stored as blobs in IndexedDB and uploaded as separate files in `appDataFolder`. Snapshot JSON contains media references, not Base64 media payloads.
+
+## Development
+
+From the repository root:
 
 ```bash
-git clone https://github.com/dvphuit/baby-growth.git
-cd baby-growth/app
+cd app
 npm install
 npm run dev
 ```
 
-After Vite starts, the terminal will display the local address. Because the project enables the SSL plugin for development, the usual address is `https://localhost:5173`. Your browser may display a warning for the self-signed local certificate; this is expected during development.
+The development server normally runs at `https://localhost:5173` with a local SSL certificate.
 
-## Available npm Scripts
+## Validation
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Starts the Vite development server with hot module replacement. |
-| `npm run build` | Type-checks the project and creates a production build in `app/dist/`. |
-| `npm run lint` | Runs ESLint against the project source. |
-| `npm run preview` | Serves the production build locally after `npm run build` has completed. |
-
-Example validation workflow before opening a pull request:
+Run the same checks used by CI:
 
 ```bash
 cd app
+npm test
 npm run lint
 npm run build
-npm run preview
 ```
 
-## Project Structure
+CI uses Node.js 22.
 
-```text
-baby-growth/
-├── app/
-│   ├── public/              # Static assets and PWA icons
-│   ├── src/
-│   │   ├── components/      # Components grouped by feature area
-│   │   ├── data/            # Current seed/mock data
-│   │   ├── hooks/           # Shared React hooks
-│   │   ├── services/        # Data and API service layer
-│   │   ├── store/           # Zustand stores
-│   │   ├── styles/           # Component styles and design tokens
-│   │   ├── types/            # TypeScript domain types
-│   │   ├── App.tsx           # Main application composition and routes
-│   │   └── main.tsx          # React entry point
-│   ├── firebase.json         # Firebase Hosting configuration
-│   ├── package.json          # Scripts and dependencies
-│   └── vite.config.ts        # Vite, PWA, alias, and local SSL configuration
-├── DESIGN.md                # Design direction and design tokens
-└── README.md                # Project documentation
-```
+## Google Drive setup
 
-## Data and Backend
+Create an OAuth 2.0 Web application client in Google Cloud Console. Enable the Google Drive API and add each development or production origin to Authorized JavaScript origins.
 
-BabyGrowth is intentionally **local-first** and does not require an application server. The persisted Zustand stores use IndexedDB through `app/src/services/localDb.ts`. Existing values from the old `localStorage` keys are migrated lazily when each store is first opened, so the architecture change does not discard current browser data.
-
-The optional Google integration is implemented in `app/src/services/googleDriveSync.ts`. After the user grants permission, the browser obtains a short-lived access token through Google Identity Services and stores one JSON snapshot in the application's private Drive space, `appDataFolder`. The app does not store a Google refresh token or require a server-side credential. This is device-to-Drive backup/synchronization, not real-time multi-user collaboration.
-
-The `app/src/services/api.ts` module still returns seed data for the read-only demo knowledge and reference content. User-generated state is persisted locally and included in the sync snapshot. The seed data is intended only for development and demonstration; it must not be treated as real medical or financial data, and the application does not replace advice from a doctor or qualified healthcare professional.
-
-## Configure Google Drive Sync
-
-Create an OAuth 2.0 **Web application** client in Google Cloud Console, configure the OAuth consent screen, enable the Google Drive API, and add each development or production origin to the client's Authorized JavaScript origins. The app requests the narrow `https://www.googleapis.com/auth/drive.appdata` scope, which is intended for application-specific data.
-
-Copy `app/.env.example` to `app/.env.local` and replace the placeholder value:
+Copy the environment example and set the browser client ID:
 
 ```bash
 cd app
 cp .env.example .env.local
-# Edit .env.local and set VITE_GOOGLE_CLIENT_ID
-npm run dev
 ```
 
-Open the profile page, select **Kết nối Google & đồng bộ**, and approve the Google consent dialog. In the same card, select **Bật tự động đồng bộ** to make local IndexedDB changes upload automatically after a short debounce, when the browser is online, and at a periodic five-minute check. The app also checks again when the tab becomes visible or the connection returns. Google access tokens are kept in memory and are not treated as permanent credentials; after a token expires, a user gesture is required to connect again.
-
-On later devices using the same Google Account, the app compares the local IndexedDB snapshot with the Drive snapshot. If only one side changed, it automatically downloads or uploads the changed version. If both sides changed, the profile page presents an explicit choice between keeping the local data and using the Drive data. While offline, all changes remain in IndexedDB and the app waits until connectivity returns.
-
-Never commit `.env.local` or OAuth client secrets. The browser client ID is not a secret, but the authorized origins and requested scopes must be configured deliberately.
-
-## Test Deployment to Firebase Hosting
-
-A test deployment script is available at `app/scripts/deploy-test.sh`. It runs linting and a production build, then deploys a Firebase Hosting preview channel named `test` for seven days. The script includes the public Google OAuth Client ID supplied for BabyGrowth and supports overrides through environment variables.
-
-Install and authenticate the Firebase CLI once:
-
-```bash
-npm install --global firebase-tools
-firebase login
-```
-
-Run the test deployment from the application directory:
-
-```bash
-cd app
-npm run deploy:test
-```
-
-The script defaults to Firebase project `baby-growth-dvphu` and uses the preview channel `test`. To override either value:
-
-```bash
-FIREBASE_PROJECT_ID=baby-growth-dvphu \\
-FIREBASE_CHANNEL_ID=qa \\
-npm run deploy:test
-```
-
-Firebase prints a preview URL after deployment. Add the exact preview origin, containing only the scheme and hostname, to **Google Auth Platform → Clients → Authorized JavaScript origins** before testing OAuth. Preview URLs may contain a generated host, so do not add `/profile` or other paths as origins. The preview channel expires after seven days.
-
-## Continuous Deployment with GitHub Actions
-
-The project includes a GitHub Actions workflow at `.github/workflows/firebase-hosting-merge.yml` that automatically deploys to Firebase Hosting whenever code is pushed to the `master` branch. To enable this, you must configure the following **GitHub Secrets** in your repository settings (**Settings → Secrets and variables → Actions**):
-
-| Secret Name | Description |
-| --- | --- |
-| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Web Client ID. |
-| `FIREBASE_SERVICE_ACCOUNT_BABY_GROWTH_DVPHU` | The JSON key of a Google Cloud Service Account with Firebase Hosting Admin permissions. |
-
-### How to get the Firebase Service Account Key
-
-1.  Go to the [Google Cloud Console Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) page.
-2.  Select your Firebase project (`baby-growth-dvphu`).
-3.  Click **Create Service Account**, name it `github-actions-deploy`, and grant it the **Firebase Hosting Admin** role.
-4.  After creating, click on the service account, go to the **Keys** tab, and click **Add Key → Create new key → JSON**.
-5.  Download the JSON file, copy its entire content, and paste it as the value for the `FIREBASE_SERVICE_ACCOUNT_BABY_GROWTH_DVPHU` secret in GitHub.
-
-## Build and Deploy to Firebase Hosting
-
-Firebase Hosting configuration is stored in `app/firebase.json`. The deployment directory is `app/dist/`, and all routes are rewritten to `index.html` to support SPA routing.
-
-After installing the Firebase CLI and signing in with an account that has access to the Firebase project, deploy the current production bundle with:
-
-```bash
-cd app
-npm install
-npm run deploy:production
-```
-
-The production deployment script builds with the configured Google Client ID and deploys project `baby-growth-dvphu`. The OAuth client must contain this exact Authorized JavaScript origin:
+Set:
 
 ```text
-https://baby-growth-dvphu.web.app
+VITE_GOOGLE_CLIENT_ID=<your web OAuth client ID>
 ```
 
-Confirm that the active Firebase account has access to the project before deploying. Never commit credentials or secrets to Git. When integrating a backend, use a local `.env` file for development and an appropriate secret-management solution for deployed environments.
+The app requests `https://www.googleapis.com/auth/drive.appdata`. Google access tokens remain in memory. The app does not store a refresh token.
+
+## Deployment
+
+Firebase Hosting serves `app/dist/`. Production and preview deployment scripts live in `app/package.json` and `app/scripts/`.
+
+Never commit `.env.local`, service account JSON, access tokens, or other credentials.
 
 ## Contributing
 
-When developing a new feature, create a dedicated branch, keep the change focused, and run `npm run lint` and `npm run build` before opening a pull request. New components should be placed in the relevant feature group under `app/src/components/`, while shared state logic should be organized under `app/src/store/`.
+Create a feature branch from `master`. Keep feature business logic inside its feature directory and move shared code into `shared/` only when more than one feature has a real use for it.
 
-## License
+Before opening or updating a pull request, run:
 
-The repository currently does not include a `LICENSE` file. Contact the repository owner to confirm the terms of use before distributing or reusing the source code in another product.
+```bash
+cd app
+npm test
+npm run lint
+npm run build
+```
