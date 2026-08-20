@@ -1,0 +1,51 @@
+name: Performance CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance regression tests
+        run: npm test
+
+      - name: Check motion source regressions
+        working-directory: .
+        run: |
+          if grep -R "filter:\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
+            echo "Motion must not animate filter/backdrop-filter"
+            exit 1
+          fi
+
+          if grep -R "layout=" app/src --include='*.tsx' | grep -v "layout=\"position\""; then
+            echo "Unexpected layout animation usage detected"
+            exit 1
+          fi
+
+          if grep -R "will-change" app/src --include='*.tsx' --include='*.ts' | grep -E "transform|opacity"; then
+            echo "Avoid permanent will-change hints in React components"
+            exit 1
+          fi
+
+      - name: Build performance budget check
+        run: npm run build
+        env:
+          VITE_PERFORMANCE_CHECK: true
