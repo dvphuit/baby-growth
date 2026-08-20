@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SYNC_KEYS } from './googleDriveSync';
+import { SYNC_KEYS } from '@/features/sync';
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useChatStore } from '@/store/useChatStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
+
+const TRACKING_STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses'];
 
 const persistence = vi.hoisted(() => ({
   getAllLocalRecords: vi.fn(),
@@ -30,8 +32,8 @@ const drive = vi.hoisted(() => ({
 }));
 
 vi.mock('./localDb', () => persistence);
-vi.mock('./googleDriveSync', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('./googleDriveSync')>()),
+vi.mock('@/features/sync', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/sync')>()),
   deleteTimelineMediaFromDrive: drive.deleteTimelineMediaFromDrive,
   overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
   runWithAutoSyncPaused: drive.runWithAutoSyncPaused,
@@ -52,8 +54,11 @@ function seedTrackingData(): void {
   useActivityStore.getState().addBabyActivity({
     owner: 'baby', type: 'diaper', occurredAt: '2026-08-17T08:00:00.000Z', diaperKind: 'wet',
   });
+  useExpenseStore.getState().addExpense({
+    amount: 120_000, category: 'Tã bỉm & vệ sinh', occurredAt: '2026-08-17T08:30:00.000Z',
+  });
+  useExpenseStore.getState().setMonthlyBudget(7_000_000);
   useTimelineStore.getState().addTimelineItem({ title: 'Tracked timeline item' });
-  useChatStore.getState().addChatMessage('user', 'Tracked chat message');
   useReminderStore.getState().createReminder({
     type: 'medicine', title: 'Vitamin D', mode: 'fixed', triggerAt: '08:00', enabled: true,
   });
@@ -71,8 +76,8 @@ function expectTrackingDataReset(): void {
   });
   expect(useMomStore.getState().momData.pumping).toMatchObject({ todayTotal: '0 ml', sessionsToday: 0, history: [] });
   expect(useActivityStore.getState()).toMatchObject({ babyActivities: [], momActivities: [] });
+  expect(useExpenseStore.getState()).toMatchObject({ expenses: [], monthlyBudget: 5_000_000 });
   expect(useTimelineStore.getState().timelineItems).toEqual([]);
-  expect(useChatStore.getState().chatMessages).toEqual([]);
   expect(useReminderStore.getState()).toMatchObject({ reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false });
   expect(useUIStore.getState()).toMatchObject({ currentTab: 'home', currentSubView: null, searchQuery: '', profileMode: 'baby' });
 }
@@ -90,26 +95,26 @@ describe('resetTrackingData', () => {
     useBabyStore.getState().resetToDefaults();
     useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
-    useChatStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
     useUIStore.getState().resetTrackingData();
   });
 
   afterEach(() => {
     useBabyStore.getState().resetToDefaults();
+    useExpenseStore.getState().resetTrackingData();
   });
 
   it('resets every local store and persists it before overwriting the Drive backup', async () => {
     seedTrackingData();
     drive.overwriteDriveBackupWithLocalData.mockImplementation(async () => {
-      expect(persistence.waitForLocalRecordWrites).toHaveBeenCalledWith(SYNC_KEYS);
+      expect(persistence.waitForLocalRecordWrites).toHaveBeenCalledWith(TRACKING_STORE_KEYS);
       expect(persistence.clearLocalMedia).toHaveBeenCalledOnce();
       expectTrackingDataReset();
     });
 
     const { resetTrackingData } = await import('./trackingDataReset');
-
     await expect(resetTrackingData()).resolves.toEqual({ status: 'synced' });
   });
 

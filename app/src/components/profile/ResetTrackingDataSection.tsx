@@ -79,7 +79,7 @@ export function ResetTrackingDataSection({ onShowToast }: ResetTrackingDataSecti
       >
         <div className="profile-reset-confirmation" aria-busy={isResetting}>
           <p className="profile-reset-confirmation-intro">Thao tác này không thể hoàn tác.</p>
-          <p className="profile-reset-confirmation-copy">Dữ liệu theo dõi của Bé và Mẹ sẽ bị xóa, bao gồm cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký, chi phí, nhắc nhở và trò chuyện với AI.</p>
+          <p className="profile-reset-confirmation-copy">Dữ liệu theo dõi của Bé và Mẹ sẽ bị xóa, bao gồm cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký, chi phí và nhắc nhở.</p>
           <p className="profile-reset-confirmation-copy">Hồ sơ của Bé và Mẹ cùng thông tin lúc sinh vẫn được giữ lại.</p>
           <p className="profile-reset-confirmation-copy">Sau khi đặt lại, bản sao lưu hiện có trên Google Drive sẽ được thay thế bằng dữ liệu mới.</p>
           {error && <p className="profile-reset-error" role="alert">{error}</p>}

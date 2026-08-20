@@ -1,31 +1,32 @@
-import { clearLocalMedia, waitForLocalRecordWrites } from './localDb';
 import {
   deleteTimelineMediaFromDrive,
   runWithAutoSyncPaused,
   SYNC_KEYS,
-} from './googleDriveSync';
+} from '@/features/sync';
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useChatStore } from '@/store/useChatStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { useMomStore } from '@/store/useMomStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
+import { clearLocalMedia, waitForLocalRecordWrites } from './localDb';
+
+const TRACKING_STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses'] as const;
 
 export type TrackingDataResetResult =
   | { status: 'synced' }
   | { status: 'local-only'; error: string };
 
-function waitForStoreHydration(store: {
+type PersistedStore = {
   persist: {
     hasHydrated: () => boolean;
     rehydrate: () => Promise<void> | void;
   };
-}): Promise<void> {
-  if (store.persist.hasHydrated()) return Promise.resolve();
+};
 
-  // Zustand resolves rehydrate even when storage hydration fails, while
-  // onFinishHydration is only called for successful hydration.
+function waitForStoreHydration(store: PersistedStore): Promise<void> {
+  if (store.persist.hasHydrated()) return Promise.resolve();
   return Promise.resolve(store.persist.rehydrate());
 }
 
@@ -34,8 +35,8 @@ async function waitForTrackingStoresHydrated(): Promise<void> {
     waitForStoreHydration(useBabyStore),
     waitForStoreHydration(useMomStore),
     waitForStoreHydration(useActivityStore),
+    waitForStoreHydration(useExpenseStore),
     waitForStoreHydration(useTimelineStore),
-    waitForStoreHydration(useChatStore),
     waitForStoreHydration(useReminderStore),
     waitForStoreHydration(useUIStore),
   ]);
@@ -46,15 +47,16 @@ export async function resetTrackingData(): Promise<TrackingDataResetResult> {
     await waitForTrackingStoresHydrated();
     const driveMediaIds = useTimelineStore.getState().timelineItems.flatMap((item) =>
       (item.mediaItems ?? []).flatMap((media) => media.driveFileId ? [media.driveFileId] : []));
+
     useBabyStore.getState().resetTrackingData();
     useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
-    useChatStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
     useUIStore.getState().resetTrackingData();
 
-    await waitForLocalRecordWrites(SYNC_KEYS);
+    await waitForLocalRecordWrites(TRACKING_STORE_KEYS);
     await clearLocalMedia();
 
     try {

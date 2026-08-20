@@ -9,11 +9,12 @@ import './index.css';
 import { removeLocalRecord } from './services/localDb';
 import { useActivityStore } from './store/useActivityStore';
 import { useBabyStore } from './store/useBabyStore';
+import { useExpenseStore } from './store/useExpenseStore';
 import { useMomStore } from './store/useMomStore';
 import { useReminderStore } from './store/useReminderStore';
 import { useTimelineStore } from './store/useTimelineStore';
 
-const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_sync_meta'];
+const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses', 'babygrowth_v4_sync_meta'];
 
 /** Wipes the current local persistence generation and reloads without reset. */
 async function handleResetRequest(): Promise<boolean> {
@@ -42,6 +43,7 @@ async function bootstrapMockData(): Promise<void> {
       useTimelineStore.persist.rehydrate(),
       useReminderStore.persist.rehydrate(),
       useActivityStore.persist.rehydrate(),
+      useExpenseStore.persist.rehydrate(),
     ]);
 
     const family = useBabyStore.getState().familyData;

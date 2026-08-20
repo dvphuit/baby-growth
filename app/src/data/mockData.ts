@@ -1,18 +1,15 @@
-import type {
-  FamilyData,
-  GrowthHistoryRecord,
-  TimelineItem,
-} from '@/types';
+import type { FamilyData, GrowthHistoryRecord, TimelineItem } from '@/types';
 import type { MomData } from '@/types';
+import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder } from '@/types/reminder';
-import { useBabyStore } from '@/store/useBabyStore';
-import { useMomStore } from '@/store/useMomStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useActivityStore } from '@/store/useActivityStore';
-import type { NewBabyActivity, NewMomActivity } from '@/store/useActivityStore';
-import { setLocalRecord } from '@/services/localDb';
 import { isGoogleConfigured } from '@/features/sync';
+import { setLocalRecord } from '@/services/localDb';
+import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/store/useActivityStore';
+import { useBabyStore } from '@/store/useBabyStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
+import { useMomStore } from '@/store/useMomStore';
+import { useReminderStore } from '@/store/useReminderStore';
+import { useTimelineStore } from '@/store/useTimelineStore';
 
 function isoDate(yearsAgo = 0, monthsAgo = 0, daysAgo = 0): string {
   const date = new Date();
@@ -122,7 +119,7 @@ const TIMELINE_ITEMS: TimelineItem[] = [
   timelineItem('tl_mock_3', isoDate(0, 0, 5), 'Mẹ hồi phục sau sinh', 'Vết khâu đã đỡ đau, Mẹ tập đi lại nhẹ nhàng và hợp tác cho con bú 💕', 'Tâm trạng Mẹ', 'mom', 'daily'),
 ];
 
-const EXPENSES: Array<Pick<import('@/types/expense').ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>> = [
+const EXPENSES: Array<Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>> = [
   { amount: 850000, category: 'Sữa & ăn dặm', occurredAt: isoDate(0, 0, 4), note: 'Sữa công thức + bột ăn dặm' },
   { amount: 420000, category: 'Tã bỉm & vệ sinh', occurredAt: isoDate(0, 0, 6), note: 'Tã Merries size M' },
   { amount: 600000, category: 'Y tế & tiêm chủng', occurredAt: isoDate(0, 1, 2), note: 'Tiêm 6in1 mũi 2' },
@@ -237,9 +234,9 @@ export function seedMockData(): void {
       });
     }
   });
-  useBabyStore.getState().setMonthlyExpenseBudget(8_000_000);
-  EXPENSES.forEach((entry) => useBabyStore.getState().addExpenseRecord(entry));
 
+  useExpenseStore.getState().setMonthlyBudget(8_000_000);
+  EXPENSES.forEach((entry) => useExpenseStore.getState().addExpense(entry));
   useMomStore.getState().updateMomData(MOCK_MOM);
 
   TIMELINE_ITEMS.forEach((item) =>

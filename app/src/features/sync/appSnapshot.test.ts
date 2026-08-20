@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -10,6 +11,7 @@ describe('appSnapshot', () => {
   beforeEach(() => {
     useBabyStore.getState().resetToDefaults();
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
     useTimelineStore.setState({ timelineItems: [] });
     useUIStore.setState({ profileMode: 'baby' });
@@ -25,6 +27,12 @@ describe('appSnapshot', () => {
       side: 'both',
       occurredAt: '2026-08-20T08:00:00.000Z',
     });
+    useExpenseStore.getState().addExpense({
+      amount: 120_000,
+      category: 'Tã bỉm & vệ sinh',
+      occurredAt: '2026-08-20T08:30:00.000Z',
+      note: 'Tã',
+    });
 
     const snapshot = exportAppSnapshot(new Date('2026-08-20T09:00:00.000Z'));
 
@@ -33,8 +41,9 @@ describe('appSnapshot', () => {
     expect(snapshot.profile.familyData.childName).toBe('Bé Bơ');
     expect(snapshot.profile.profileMode).toBe('mom');
     expect(snapshot.activities.mom).toHaveLength(1);
+    expect(snapshot.expenses.records).toHaveLength(1);
     expect(snapshot).not.toHaveProperty('records');
-    expect(JSON.stringify(snapshot)).not.toContain('babygrowth_v2_');
+    expect(JSON.stringify(snapshot)).not.toContain('babygrowth_v');
     expect(JSON.stringify(snapshot).toLowerCase()).not.toContain('chat');
   });
 
@@ -46,15 +55,24 @@ describe('appSnapshot', () => {
       diaperKind: 'wet',
       occurredAt: '2026-08-20T07:00:00.000Z',
     });
+    useExpenseStore.getState().setMonthlyBudget(7_000_000);
+    useExpenseStore.getState().addExpense({
+      amount: 85_000,
+      category: 'Khác',
+      occurredAt: '2026-08-20T07:30:00.000Z',
+    });
     const snapshot = exportAppSnapshot(new Date('2026-08-20T09:00:00.000Z'));
 
     useBabyStore.getState().resetToDefaults();
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     applyAppSnapshot(snapshot);
 
     expect(useBabyStore.getState().familyData.childName).toBe('Bé Bơ');
     expect(useActivityStore.getState().babyActivities).toHaveLength(1);
     expect(useActivityStore.getState().babyActivities[0]?.type).toBe('diaper');
+    expect(useExpenseStore.getState().monthlyBudget).toBe(7_000_000);
+    expect(useExpenseStore.getState().expenses).toHaveLength(1);
   });
 
   it('rejects legacy or malformed snapshots at the boundary', () => {

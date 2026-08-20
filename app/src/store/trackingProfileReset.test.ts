@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useBabyStore } from './useBabyStore';
+import { useExpenseStore } from './useExpenseStore';
 import { useMomStore } from './useMomStore';
 
 describe('tracking profile reset', () => {
   beforeEach(() => {
     useBabyStore.getState().resetToDefaults();
+    useExpenseStore.getState().resetTrackingData();
   });
 
   it('keeps the onboarding profile and exactly one birth measurement', () => {
@@ -14,17 +16,17 @@ describe('tracking profile reset', () => {
       birthWeight: '3.2 kg', birthHeight: '49 cm', headCircAtBirth: '34 cm', hospital: 'Từ Dũ',
     }, { weight: 3.2, height: 49, headCirc: 34 });
     useBabyStore.getState().addGrowthMeasurement({ weight: 5.1, height: 58, headCirc: 38, date: '2026-03-05' });
-    useBabyStore.getState().addExpenseRecord({ amount: 120000, category: 'Sữa', occurredAt: '2026-03-06', note: '' });
-    useBabyStore.getState().setMonthlyExpenseBudget(9_000_000);
+    useExpenseStore.getState().addExpense({ amount: 120000, category: 'Sữa', occurredAt: '2026-03-06', note: '' });
+    useExpenseStore.getState().setMonthlyBudget(9_000_000);
 
     useBabyStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
 
     const state = useBabyStore.getState();
     expect(state.familyData).toMatchObject({ childName: 'Bơ', childFullName: 'Nguyễn An', momName: 'Mai', isInitialized: true });
     expect(state.currentStageData().growthHistory).toHaveLength(1);
     expect(state.currentStageData().growthHistory[0]).toMatchObject({ date: '2026-01-05', weight: 3.2, height: 49, headCirc: 34 });
-    expect(state.expenseRecords).toEqual([]);
-    expect(state.monthlyExpenseBudget).toBe(5_000_000);
+    expect(useExpenseStore.getState()).toMatchObject({ expenses: [], monthlyBudget: 5_000_000 });
     expect(state.currentStageData().todayVitals).toMatchObject({ temperature: '', sleepTotal: '', milkTotal: '', diaperCount: 0, weight: '3.2 kg' });
     expect(state.currentStageData().motorMilestones.items.every((item) => item.status === 'upcoming')).toBe(true);
   });
@@ -56,7 +58,10 @@ describe('tracking profile reset', () => {
     });
     const beforeReset = useBabyStore.getState();
     const stage = beforeReset.stages[beforeReset.currentStage];
-    const existingBirth = stage.growthHistory.find((record) => record.id.startsWith('gh_birth'))!;
+    const existingBirth = stage.growthHistory.find((record) => record.id.startsWith('gh_birth'));
+    expect(existingBirth).toBeDefined();
+    if (!existingBirth) return;
+
     useBabyStore.setState({
       stages: {
         ...beforeReset.stages,

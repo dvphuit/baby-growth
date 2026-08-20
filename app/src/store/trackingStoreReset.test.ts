@@ -10,7 +10,7 @@ vi.mock('@/services/localDb', () => ({
 }));
 
 import { useActivityStore } from './useActivityStore';
-import { useChatStore } from './useChatStore';
+import { useExpenseStore } from './useExpenseStore';
 import { useReminderStore } from './useReminderStore';
 import { useTimelineStore } from './useTimelineStore';
 import { useUIStore } from './useUIStore';
@@ -18,7 +18,7 @@ import { useUIStore } from './useUIStore';
 describe('tracking auxiliary-store reset', () => {
   beforeEach(() => {
     useActivityStore.setState({ babyActivities: [], momActivities: [] });
-    useChatStore.setState({ chatMessages: [] });
+    useExpenseStore.setState({ expenses: [], monthlyBudget: 5_000_000 });
     useReminderStore.setState({ reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false });
     useTimelineStore.setState({
       timelineItems: [],
@@ -39,13 +39,16 @@ describe('tracking auxiliary-store reset', () => {
     useActivityStore.getState().addMomActivity({
       owner: 'mom', type: 'mood', occurredAt: '2026-08-17T08:00:00.000Z', mood: 'neutral',
     });
+    useExpenseStore.getState().addExpense({
+      amount: 120_000, category: 'Tã bỉm & vệ sinh', occurredAt: '2026-08-17T08:30:00.000Z',
+    });
+    useExpenseStore.getState().setMonthlyBudget(9_000_000);
     useTimelineStore.getState().addTimelineItem({ title: 'New timeline record' });
     useTimelineStore.getState().setSelectedCalendarDate('2026-08-01');
     useTimelineStore.getState().setCalendarMonth(2025, 11);
     useTimelineStore.getState().setCalendarViewMode('expanded');
     useTimelineStore.getState().setTimelineFilter('health');
     useTimelineStore.getState().setCurrentTimelineSubTab('mood-history');
-    useChatStore.getState().addChatMessage('user', 'New chat message');
     const reminder = useReminderStore.getState().createReminder({
       type: 'medicine', title: 'Vitamin D', mode: 'fixed', triggerAt: '08:00', enabled: true,
     });
@@ -63,12 +66,13 @@ describe('tracking auxiliary-store reset', () => {
     useUIStore.getState().setProfileMode('mom');
 
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
-    useChatStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
     useUIStore.getState().resetTrackingData();
 
     expect(useActivityStore.getState()).toMatchObject({ babyActivities: [], momActivities: [] });
+    expect(useExpenseStore.getState()).toMatchObject({ expenses: [], monthlyBudget: 5_000_000 });
     expect(useTimelineStore.getState()).toMatchObject({
       timelineItems: [],
       selectedCalendarDate: todayStr(),
@@ -78,7 +82,6 @@ describe('tracking auxiliary-store reset', () => {
       timelineFilter: 'all',
       currentTimelineSubTab: 'feed',
     });
-    expect(useChatStore.getState().chatMessages).toEqual([]);
     expect(useReminderStore.getState()).toMatchObject({
       reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false,
     });

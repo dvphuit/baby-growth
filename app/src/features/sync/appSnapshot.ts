@@ -1,9 +1,10 @@
+import type { MedicationCatalogItem } from '@/domain/medicationCatalog';
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import type { MedicationCatalogItem } from '@/domain/medicationCatalog';
 import type {
   BabyActivity,
   DailyHabit,
@@ -53,6 +54,7 @@ export interface AppSnapshot {
 export function exportAppSnapshot(now = new Date()): AppSnapshot {
   const baby = useBabyStore.getState();
   const activities = useActivityStore.getState();
+  const expenses = useExpenseStore.getState();
   const timeline = useTimelineStore.getState();
   const reminders = useReminderStore.getState();
   const ui = useUIStore.getState();
@@ -78,8 +80,8 @@ export function exportAppSnapshot(now = new Date()): AppSnapshot {
       items: structuredClone(timeline.timelineItems),
     },
     expenses: {
-      records: structuredClone(baby.expenseRecords),
-      monthlyBudget: baby.monthlyExpenseBudget,
+      records: structuredClone(expenses.expenses),
+      monthlyBudget: expenses.monthlyBudget,
     },
     reminders: {
       items: structuredClone(reminders.reminders),
@@ -141,14 +143,16 @@ export function applyAppSnapshot(snapshot: AppSnapshot): void {
     currentStage: parsed.growth.currentStage,
     stages: structuredClone(parsed.growth.stages),
     dailyHabits: structuredClone(parsed.growth.dailyHabits),
-    expenseRecords: structuredClone(parsed.expenses.records),
-    monthlyExpenseBudget: parsed.expenses.monthlyBudget,
   });
   useUIStore.setState({ profileMode: parsed.profile.profileMode });
   useActivityStore.setState({
     babyActivities: structuredClone(parsed.activities.baby),
     momActivities: structuredClone(parsed.activities.mom),
     medicationCatalog: structuredClone(parsed.activities.medicationCatalog),
+  });
+  useExpenseStore.setState({
+    expenses: structuredClone(parsed.expenses.records),
+    monthlyBudget: parsed.expenses.monthlyBudget,
   });
   useTimelineStore.setState({ timelineItems: structuredClone(parsed.timeline.items) });
   useReminderStore.setState({
@@ -163,6 +167,7 @@ export function subscribeAppSnapshotChanges(listener: () => void): () => void {
     useBabyStore.subscribe(listener),
     useUIStore.subscribe(listener),
     useActivityStore.subscribe(listener),
+    useExpenseStore.subscribe(listener),
     useTimelineStore.subscribe(listener),
     useReminderStore.subscribe(listener),
   ];
