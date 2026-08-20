@@ -1,7 +1,7 @@
 import { FileText, Trash2 } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
-import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '../common/HavenIcons';
+import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/components/common/HavenIcons';
 
 interface GrowthHistoryProps {
   onOpenAddMeasurement: () => void;
@@ -92,7 +92,6 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
                 )}
               </div>
 
-
               {record.note && (
                 <p className="haven-growth-history-note">
                   <FileText size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4, color: 'var(--color-sage-dark)' }} />
@@ -106,5 +105,3 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
     </section>
   );
 };
-
-

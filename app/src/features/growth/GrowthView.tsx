@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { buildRealGrowthChart, getRealGrowthHistory } from '@/domain/growthSelectors';
+import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/components/common/HavenIcons';
+import type { GrowthMetric } from '@/types';
 import { WHOChart } from './WHOChart';
 import { MilestoneRoadmap } from './MilestoneRoadmap';
 import { GrowthHistory } from './GrowthHistory';
-import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '../common/HavenIcons';
-import type { GrowthMetric } from '@/types';
-
 
 interface GrowthViewProps {
   onOpenAddMeasurement: () => void;
@@ -43,7 +42,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
   const heightDelta = latest && previous ? formatDelta(latest.height, previous.height, 'cm') : null;
   const headDelta = latest && previous ? formatDelta(latest.headCirc, previous.headCirc, 'cm') : null;
 
-  // WHO Reference baseline for latest index
   const whoChart = currentStageData.growthChart;
   const refIndex = latest?.labelIndex ?? Math.max(0, (whoChart?.labels?.length ?? 1) - 3);
   const whoRefWeight = whoChart?.weight?.whoP50?.[refIndex] ?? 8.6;
@@ -59,7 +57,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
 
   return (
     <div className="haven-growth">
-      {/* 1. Haven Growth Hero Banner */}
       <section className="haven-growth-hero" aria-labelledby="growth-hero-title">
         <div className="haven-growth-hero-copy">
           <span className="haven-eyebrow">NHỊP TĂNG TRƯỞNG</span>
@@ -86,7 +83,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         </button>
       </section>
 
-      {/* 2. Growth Vitals & Delta Cards */}
       <section className="haven-growth-vitals-sheet" aria-labelledby="growth-vitals-title">
         <div className="haven-sheet-heading">
           <div>
@@ -100,7 +96,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
 
         {latest ? (
           <div className="haven-growth-vitals-grid">
-            {/* Weight Card */}
             <article className="haven-vital-card weight-card">
               <div className="haven-vital-top">
                 <span className="haven-vital-icon">
@@ -113,7 +108,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
               <span className="haven-vital-ref">WHO P50: {whoRefWeight} kg</span>
             </article>
 
-            {/* Height Card */}
             <article className="haven-vital-card height-card">
               <div className="haven-vital-top">
                 <span className="haven-vital-icon">
@@ -126,7 +120,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
               <span className="haven-vital-ref">WHO P50: {whoRefHeight} cm</span>
             </article>
 
-            {/* Head Circumference Card */}
             <article className="haven-vital-card head-card">
               <div className="haven-vital-top">
                 <span className="haven-vital-icon">
@@ -153,7 +146,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         )}
       </section>
 
-      {/* 3. Interactive WHO Standard Chart Sheet */}
       <section className="haven-growth-chart-sheet" aria-labelledby="growth-chart-title">
         <div className="haven-sheet-heading">
           <div>
@@ -189,7 +181,6 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
           </button>
         </div>
 
-
         <WHOChart chartData={realChart} metric={growthMetric} />
 
         <div className="haven-chart-info-note">
@@ -200,12 +191,8 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         </div>
       </section>
 
-      {/* 4. Developmental Milestones Section */}
       <MilestoneRoadmap />
-
-      {/* 5. Measurement History Section */}
       <GrowthHistory onOpenAddMeasurement={onOpenAddMeasurement} />
     </div>
   );
 };
-
