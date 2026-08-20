@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import {
@@ -24,12 +24,33 @@ interface HavenDialogProps {
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const MOBILE_DIALOG_MEDIA = '(max-width: 480px)';
+const MOBILE_DIALOG_EXIT = {
+  opacity: 0,
+  y: '100%',
+  scale: 0.995,
+  transition: {
+    duration: 0.24,
+    ease: [0.2, 0.75, 0.3, 1],
+  },
+} as const;
 
 export function HavenDialog({ open, onClose, title, description, children, footer, modal = true, className = '' }: HavenDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
   const surfaceLayoutId = useModalSurfaceLayoutId();
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia(MOBILE_DIALOG_MEDIA).matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_DIALOG_MEDIA);
+    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(media.matches);
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -111,7 +132,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
             variants={havenDialogVariants}
             initial="hidden"
             animate="visible"
-            exit="exit"
+            exit={isMobile ? MOBILE_DIALOG_EXIT : 'exit'}
             transition={havenDialogTransition}
             style={{ animation: 'none' }}
           >
