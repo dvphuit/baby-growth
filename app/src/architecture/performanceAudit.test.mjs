@@ -119,4 +119,18 @@ describe('interaction performance audit', () => {
     expect(lazyDialog).toContain('DIALOG_EXIT_RETENTION_MS = 280');
     expect(lazyPreview).toContain('PREVIEW_EXIT_RETENTION_MS = 280');
   });
+  it('keeps large public images out of precache and optimizes Home decor delivery', () => {
+    const viteConfig = appFile('vite.config.ts');
+    const serviceWorker = source('sw.ts');
+    const babyHome = source('features/home/components/BabyHomeView.tsx');
+
+    expect(viteConfig).not.toContain("'**/*.{js,css,html,svg,png,ico}'");
+    expect(viteConfig).toContain("'pwa-*.png'");
+    expect(serviceWorker).toContain("new CacheFirst({ cacheName: 'babygrowth-runtime-images' })");
+    expect(babyHome).toContain('/assets/decor/care-milk.webp');
+    expect(babyHome).toContain('/assets/decor/care-sleep.webp');
+    expect(babyHome).not.toContain('/assets/decor/care-milk.png');
+    expect((babyHome.match(/decoding="async"/g) ?? [])).toHaveLength(4);
+  });
+
 });
