@@ -1,5 +1,6 @@
 name: Refactor profile and growth state
 
+# Validation trigger after aligning the onboarding sync mock with the public API.
 on:
   push:
     branches:
