@@ -79,6 +79,7 @@ function MomentMediaSlideItem({
         {isVideo ? (
           <motion.video
             layoutId={isActive ? layoutId : undefined}
+            data-layout-id={isActive ? layoutId : undefined}
             className="moment-media-preview-asset"
             src={src || undefined}
             controls={isActive}
@@ -89,6 +90,7 @@ function MomentMediaSlideItem({
         ) : (
           <motion.img
             layoutId={isActive ? layoutId : undefined}
+            data-layout-id={isActive ? layoutId : undefined}
             className="moment-media-preview-asset"
             src={src || undefined}
             alt={`${title}, ảnh ${index + 1}`}

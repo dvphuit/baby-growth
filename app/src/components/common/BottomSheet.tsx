@@ -160,6 +160,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             >
               <motion.div
                 className="sheet-handle-bar"
+                tabIndex={-1}
                 title={dismissible ? 'Kéo xuống hoặc chạm để đóng' : undefined}
                 whileHover={dismissible ? { scaleX: 1.12 } : undefined}
                 whileTap={dismissible ? { scaleX: 0.94 } : undefined}

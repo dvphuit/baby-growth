@@ -176,6 +176,6 @@ describe('Haven reusable primitives', () => {
     render(<DialogHarness />);
     expect(screen.getByRole('dialog', { name: 'Chi tiết' })).toHaveAttribute('aria-modal', 'true');
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
