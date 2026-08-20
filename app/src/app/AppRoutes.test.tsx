@@ -19,7 +19,7 @@ vi.mock('@/components/growth/GrowthView', () => ({
     <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div>
   ),
 }));
-vi.mock('@/components/expenses/ExpensesView', () => ({
+vi.mock('@/features/expenses', () => ({
   ExpensesView: ({ onOpenAddExpense }: { onOpenAddExpense: () => void }) => (
     <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div>
   ),

@@ -20,7 +20,7 @@ vi.mock('@/components/modals/AddGrowthModal', () => ({
   ),
 }));
 vi.mock('@/components/modals/AddPumpingModal', () => ({ AddPumpingModal: () => <span>Add Pumping marker</span> }));
-vi.mock('@/components/modals/AddExpenseModal', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
+vi.mock('@/features/expenses', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
 vi.mock('@/components/modals/AddPostModal', () => ({ AddPostModal: () => <span>Add Post marker</span> }));
 vi.mock('@/components/modals/EditProfileModal', () => ({ EditProfileModal: () => <span>Edit Profile marker</span> }));
 vi.mock('@/components/modals/NotificationModal', () => ({
