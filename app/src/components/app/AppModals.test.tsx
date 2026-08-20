@@ -31,6 +31,7 @@ vi.mock('@/components/modals/NotificationModal', () => ({
 
 function createController(overrides: Partial<AppModalController> = {}): AppModalController {
   return {
+    isAnyModalOpen: false,
     isNotificationOpen: false,
     isQuickLogOpen: false,
     isAddGrowthOpen: false,
@@ -70,7 +71,7 @@ describe('AppModals', () => {
 
   it('renders Quick Log and forwards callbacks', async () => {
     const user = userEvent.setup();
-    const modals = createController({ isQuickLogOpen: true });
+    const modals = createController({ isQuickLogOpen: true, isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={vi.fn()} />);
     await user.click(await screen.findByRole('button', { name: 'close quick log' }));
     await user.click(screen.getByRole('button', { name: 'select growth' }));
@@ -81,7 +82,7 @@ describe('AppModals', () => {
   it('renders a real activity modal and forwards success', async () => {
     const user = userEvent.setup();
     const onSuccessToast = vi.fn();
-    const modals = createController({ activityLogMode: 'feeding' });
+    const modals = createController({ activityLogMode: 'feeding', isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={onSuccessToast} />);
     expect(await screen.findByText('Activity marker feeding')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'save activity' }));
@@ -89,13 +90,13 @@ describe('AppModals', () => {
   });
 
   it('renders the moment composer when opened from Home', async () => {
-    render(<AppModals modals={createController({ isAddPostOpen: true })} onSuccessToast={vi.fn()} />);
+    render(<AppModals modals={createController({ isAddPostOpen: true, isAnyModalOpen: true })} onSuccessToast={vi.fn()} />);
     expect(await screen.findByText('Add Post marker')).toBeInTheDocument();
   });
 
   it('routes reminder quick log actions back through the controller', async () => {
     const user = userEvent.setup();
-    const modals = createController({ isNotificationOpen: true });
+    const modals = createController({ isNotificationOpen: true, isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={vi.fn()} />);
     await user.click(await screen.findByRole('button', { name: 'notification quick log' }));
     expect(modals.handleQuickAction).toHaveBeenCalledWith('feeding');

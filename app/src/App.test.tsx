@@ -10,6 +10,7 @@ const useReminderLifecycleMock = vi.fn();
 const runDataMigrationMock = vi.fn().mockResolvedValue({ migrated: false, version: 1 });
 
 const modalController: AppModalController = {
+  isAnyModalOpen: false,
   isNotificationOpen: false,
   isQuickLogOpen: false,
   isAddGrowthOpen: false,
