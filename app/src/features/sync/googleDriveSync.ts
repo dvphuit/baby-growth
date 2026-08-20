@@ -12,7 +12,6 @@ const AUTO_SYNC_DEBOUNCE_MS = 1200;
  * Google Drive synchronization never reads or writes them. */
 export const SYNC_KEYS = [
   'babygrowth_v4_baby',
-  'babygrowth_v4_mom',
   'babygrowth_v4_timeline',
   'babygrowth_v4_ui',
   'babygrowth_v4_activities',
