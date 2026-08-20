@@ -112,7 +112,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   return (
-    <AnimatePresence initial={false}>
+    <AnimatePresence>
       {isOpen && (
         <motion.div
           key="haven-bottom-sheet"
