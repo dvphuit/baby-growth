@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { preloadTimelineMedia } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import { TimelineMediaAsset } from './TimelineMediaAsset';
 
 const localMedia = vi.hoisted(() => ({ getLocalMedia: vi.fn() }));
@@ -36,5 +37,19 @@ describe('TimelineMediaAsset', () => {
 
     await waitFor(() => expect(screen.getByRole('img', { name: 'Bé' })).toHaveAttribute('src', 'blob:drive-photo'));
     expect(driveMedia.downloadTimelineMediaFromDrive).toHaveBeenCalledWith('drive-1', { interactive: false });
+  });
+
+  it('releases an object URL after a preloaded media consumer unmounts', async () => {
+    const createObjectURL = vi.fn(() => 'blob:preloaded-photo');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
+    const media = { blobId: 'photo-preloaded', type: 'photo' as const };
+
+    await expect(preloadTimelineMedia(media)).resolves.toBe('blob:preloaded-photo');
+    const view = render(<TimelineMediaAsset media={media} alt="Ảnh preload" />);
+
+    await waitFor(() => expect(screen.getByRole('img', { name: 'Ảnh preload' })).toHaveAttribute('src', 'blob:preloaded-photo'));
+    view.unmount();
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:preloaded-photo');
   });
 });
