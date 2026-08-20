@@ -5,7 +5,7 @@ import { havenRouteTransition, havenRouteVariants } from '@/components/motion/mo
 import { HomeView } from '@/features/home';
 import type { AddToast } from '@/hooks/useAppModals';
 
-const TimelineView = lazy(async () => ({ default: (await import('@/components/timeline/TimelineView')).TimelineView }));
+const TimelineView = lazy(async () => ({ default: (await import('@/features/timeline')).TimelineView }));
 const GrowthView = lazy(async () => ({ default: (await import('@/features/growth')).GrowthView }));
 const ExpensesView = lazy(async () => ({ default: (await import('@/features/expenses')).ExpensesView }));
 const ProfileView = lazy(async () => ({ default: (await import('@/features/profile')).ProfileView }));

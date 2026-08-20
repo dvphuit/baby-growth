@@ -9,7 +9,7 @@ vi.mock('@/features/home', () => ({
     <div><span>Home marker</span><button onClick={onOpenQuickLog}>open quick log</button></div>
   ),
 }));
-vi.mock('@/components/timeline/TimelineView', () => ({
+vi.mock('@/features/timeline', () => ({
   TimelineView: ({ onOpenLightbox, onOpenAddEntry }: { onOpenLightbox: (src: string, isVideo?: boolean) => void; onOpenAddEntry: () => void }) => (
     <div><span>Timeline marker</span><button onClick={() => onOpenLightbox('/media.jpg', true)}>open lightbox</button><button onClick={onOpenAddEntry}>add timeline</button></div>
   ),
