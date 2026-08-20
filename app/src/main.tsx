@@ -6,24 +6,22 @@ import './index.css';
 import App from './App.tsx';
 import { isMockDataEnabled, seedMockData } from './data/mockData';
 import { removeLocalRecord } from './services/localDb';
-import { SYNC_KEYS } from './services/googleDriveSync';
+import { SYNC_KEYS } from './features/sync';
 import { useBabyStore } from './store/useBabyStore';
 import { useMomStore } from './store/useMomStore';
 import { useTimelineStore } from './store/useTimelineStore';
 import { useReminderStore } from './store/useReminderStore';
-import { useChatStore } from './store/useChatStore';
 import { useActivityStore } from './store/useActivityStore';
 
-const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v2_sync_meta'];
+const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_sync_meta'];
 
-/** Wipes all local data and reloads without the `reset` flag so the mock
- * bootstrap can re-seed from a clean state. Handy on devices without DevTools. */
+/** Wipes the current local persistence generation and reloads without reset. */
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);
   if (!params.has('reset')) return false;
 
   await Promise.all(STORE_KEYS.map((key) => removeLocalRecord(key)));
-  window.localStorage.removeItem('babygrowth_v2_device_id');
+  window.localStorage.removeItem('babygrowth_v4_device_id');
 
   params.delete('reset');
   const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
@@ -43,7 +41,6 @@ async function bootstrapMockData(): Promise<void> {
       useMomStore.persist.rehydrate(),
       useTimelineStore.persist.rehydrate(),
       useReminderStore.persist.rehydrate(),
-      useChatStore.persist.rehydrate(),
       useActivityStore.persist.rehydrate(),
     ]);
 
@@ -59,7 +56,9 @@ async function bootstrapMockData(): Promise<void> {
 void handleResetRequest().then((didReset) => {
   if (didReset) return;
   void bootstrapMockData().finally(() => {
-    createRoot(document.getElementById('root')!).render(
+    const root = document.getElementById('root');
+    if (!root) throw new Error('Missing #root application element.');
+    createRoot(root).render(
       <StrictMode>
         <BrowserRouter>
           <MotionConfig reducedMotion="user">
