@@ -34,7 +34,11 @@ jobs:
       - name: Apply idle auto-sync migration
         run: node scripts/implement-idle-auto-sync.mjs
 
-      - name: Test
+      - name: Run targeted idle auto-sync tests
+        working-directory: app
+        run: npm test -- src/shared/lib/idleTask.test.ts src/features/sync/hooks/useAutoSyncLifecycle.test.tsx src/features/sync/autoSyncPerformance.test.mjs
+
+      - name: Run full test suite
         working-directory: app
         run: npm test
 
