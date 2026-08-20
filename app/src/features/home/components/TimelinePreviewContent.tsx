@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { NotebookStory } from '@/features/timeline/components/NotebookStory';
 import { HomeMomentStoryItem } from '@/features/timeline/components/HomeMomentStoryItem';
@@ -9,17 +10,12 @@ interface TimelinePreviewContentProps {
 }
 
 export function TimelinePreviewContent({ owner }: TimelinePreviewContentProps) {
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const records = useActivityStore((state) =>
     owner === 'baby' ? state.babyActivities : state.momActivities,
   );
 
-  const {
-    timelineEntries,
-    openRecord,
-    openMoment,
-    openMomentMedia,
-  } = useHomeTimeline({
+  const { timelineEntries, openRecord, openMoment, openMomentMedia } = useHomeTimeline({
     owner,
     records,
     dayActivities: records,
