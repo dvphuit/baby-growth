@@ -14,7 +14,7 @@ vi.mock('@/components/timeline/TimelineView', () => ({
     <div><span>Timeline marker</span><button onClick={() => onOpenLightbox('/media.jpg', true)}>open lightbox</button><button onClick={onOpenAddEntry}>add timeline</button></div>
   ),
 }));
-vi.mock('@/components/growth/GrowthView', () => ({
+vi.mock('@/features/growth', () => ({
   GrowthView: ({ onOpenAddMeasurement }: { onOpenAddMeasurement: () => void }) => (
     <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div>
   ),
