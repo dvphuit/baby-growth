@@ -9,7 +9,7 @@ vi.mock('@/components/modals/QuickLogModal', () => ({
     <div><span>Quick Log marker</span><button onClick={onClose}>close quick log</button><button onClick={() => onSelectAction('growth')}>select growth</button></div>
   ),
 }));
-vi.mock('@/components/modals/ActivityLogModal', () => ({
+vi.mock('@/features/activities', () => ({
   ActivityLogModal: ({ mode, onClose, onSaved }: { mode: string; onClose: () => void; onSaved: (message: string) => void }) => (
     <div><span>Activity marker {mode}</span><button onClick={onClose}>close activity</button><button onClick={() => onSaved('saved activity')}>save activity</button></div>
   ),

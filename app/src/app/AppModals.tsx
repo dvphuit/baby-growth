@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
-import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
+import type { ActivityLogMode } from '@/features/activities';
 import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 
 const loadQuickLogModal = () => import('@/components/modals/QuickLogModal');
-const loadActivityLogModal = () => import('@/components/modals/ActivityLogModal');
+const loadActivityLogModal = () => import('@/features/activities');
 const loadAddGrowthModal = () => import('@/components/modals/AddGrowthModal');
 const loadAddPumpingModal = () => import('@/components/modals/AddPumpingModal');
 const loadAddExpenseModal = () => import('@/features/expenses');
