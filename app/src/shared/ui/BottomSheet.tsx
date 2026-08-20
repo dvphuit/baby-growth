@@ -129,7 +129,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           }}
         >
           <motion.div
-            layout
             layoutId={surfaceLayoutId}
             ref={sheetRef}
             role="dialog"
