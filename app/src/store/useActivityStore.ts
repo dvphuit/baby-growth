@@ -113,7 +113,7 @@ export const useActivityStore = create<ActivityStoreState>()(
       }),
     }),
     {
-      name: 'babygrowth_v3_activities',
+      name: 'babygrowth_v4_activities',
       storage: createJSONStorage(() => indexedDbStorage),
       partialize: (state) => ({
         babyActivities: state.babyActivities,
