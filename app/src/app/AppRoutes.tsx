@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { HomeView } from '@/features/home';
 import { havenRouteTransition, havenRouteVariants } from '@/components/motion/motionPresets';
+import { HomeView } from '@/features/home';
 import type { AddToast } from '@/hooks/useAppModals';
 
 const TimelineView = lazy(async () => ({ default: (await import('@/components/timeline/TimelineView')).TimelineView }));
@@ -37,6 +37,7 @@ export function AppRoutes({
   onOpenNotifications,
 }: AppRoutesProps) {
   const location = useLocation();
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div

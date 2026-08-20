@@ -73,6 +73,7 @@ describe('AppModals', () => {
     const user = userEvent.setup();
     const modals = createController({ isQuickLogOpen: true, isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={vi.fn()} />);
+
     await user.click(await screen.findByRole('button', { name: 'close quick log' }));
     await user.click(screen.getByRole('button', { name: 'select growth' }));
     expect(modals.closeQuickLog).toHaveBeenCalledTimes(1);
@@ -84,6 +85,7 @@ describe('AppModals', () => {
     const onSuccessToast = vi.fn();
     const modals = createController({ activityLogMode: 'feeding', isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={onSuccessToast} />);
+
     expect(await screen.findByText('Activity marker feeding')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'save activity' }));
     expect(onSuccessToast).toHaveBeenCalledWith('saved activity', '✓');
@@ -98,6 +100,7 @@ describe('AppModals', () => {
     const user = userEvent.setup();
     const modals = createController({ isNotificationOpen: true, isAnyModalOpen: true });
     render(<AppModals modals={modals} onSuccessToast={vi.fn()} />);
+
     await user.click(await screen.findByRole('button', { name: 'notification quick log' }));
     expect(modals.handleQuickAction).toHaveBeenCalledWith('feeding');
   });

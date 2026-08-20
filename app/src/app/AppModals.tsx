@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
-import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
+import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 
 const loadQuickLogModal = () => import('@/components/modals/QuickLogModal');
 const loadActivityLogModal = () => import('@/components/modals/ActivityLogModal');
@@ -34,8 +34,8 @@ function useRetained(open: boolean, retentionMs = MODAL_EXIT_RETENTION_MS): bool
       setMounted(true);
       return;
     }
-
     if (!mounted) return;
+
     const timeoutId = window.setTimeout(() => setMounted(false), retentionMs);
     return () => window.clearTimeout(timeoutId);
   }, [mounted, open, retentionMs]);
@@ -57,9 +57,7 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
   const postMounted = useRetained(modals.isAddPostOpen);
   const profileMounted = useRetained(modals.isEditProfileOpen);
   const notificationMounted = useRetained(modals.isNotificationOpen);
-  const [lastActivityMode, setLastActivityMode] = useState<ActivityLogMode>(
-    modals.activityLogMode ?? 'feeding',
-  );
+  const [lastActivityMode, setLastActivityMode] = useState<ActivityLogMode>(modals.activityLogMode ?? 'feeding');
 
   useEffect(() => {
     if (modals.activityLogMode) setLastActivityMode(modals.activityLogMode);
@@ -83,7 +81,6 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
           <QuickLogModal isOpen={modals.isQuickLogOpen} onClose={modals.closeQuickLog} onSelectAction={modals.handleQuickAction} />
         </ModalMotionScope>
       )}
-
       {activityMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <ActivityLogModal
@@ -94,35 +91,29 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
           />
         </ModalMotionScope>
       )}
-
       {growthMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddGrowthModal isOpen={modals.isAddGrowthOpen} onClose={modals.closeAddGrowth} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
-
       {pumpingMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddPumpingModal isOpen={modals.isAddPumpingOpen} onClose={modals.closeAddPumping} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
-
       {expenseMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddExpenseModal isOpen={modals.isAddExpenseOpen} onClose={modals.closeAddExpense} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
-
       {postMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddPostModal isOpen={modals.isAddPostOpen} onClose={modals.closeAddPost} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
-
       {profileMounted && (
         <EditProfileModal isOpen={modals.isEditProfileOpen} onClose={modals.closeEditProfile} onSuccessToast={onSuccessToast} />
       )}
-
       {notificationMounted && (
         <NotificationModal isOpen={modals.isNotificationOpen} onClose={modals.closeNotifications} onQuickLog={modals.handleQuickAction} />
       )}

@@ -2,16 +2,16 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { LayoutGroup, MotionConfig } from 'motion/react';
-import './index.css';
-import App from './App.tsx';
+import App from './app/App';
 import { isMockDataEnabled, seedMockData } from './data/mockData';
-import { removeLocalRecord } from './services/localDb';
 import { SYNC_KEYS } from './features/sync';
+import './index.css';
+import { removeLocalRecord } from './services/localDb';
+import { useActivityStore } from './store/useActivityStore';
 import { useBabyStore } from './store/useBabyStore';
 import { useMomStore } from './store/useMomStore';
-import { useTimelineStore } from './store/useTimelineStore';
 import { useReminderStore } from './store/useReminderStore';
-import { useActivityStore } from './store/useActivityStore';
+import { useTimelineStore } from './store/useTimelineStore';
 
 const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_sync_meta'];
 
@@ -58,6 +58,7 @@ void handleResetRequest().then((didReset) => {
   void bootstrapMockData().finally(() => {
     const root = document.getElementById('root');
     if (!root) throw new Error('Missing #root application element.');
+
     createRoot(root).render(
       <StrictMode>
         <BrowserRouter>

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { AppModalController } from '@/hooks/useAppModals';
+import { useBabyStore } from '@/store/useBabyStore';
 import { AppContent } from './App';
 
 const addToast = vi.fn();
@@ -46,18 +47,15 @@ vi.mock('@/hooks/useAppModals', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/hooks/useAppModals')>();
   return { ...original, useAppModals: () => modalController };
 });
-
-vi.mock('@/components/app/AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));
-vi.mock('@/components/app/AppModals', () => ({ AppModals: () => <div>App Modals marker</div> }));
+vi.mock('./AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));
+vi.mock('./AppModals', () => ({ AppModals: () => <div>App Modals marker</div> }));
 vi.mock('@/components/common/Header', () => ({ Header: () => <div>Header marker</div> }));
 vi.mock('@/components/common/BottomNav', () => ({ BottomNav: () => <div>Bottom Nav marker</div> }));
 vi.mock('@/components/common/Toast', () => ({ ToastContainer: () => <div>Toast marker</div> }));
 vi.mock('@/components/common/Lightbox', () => ({ Lightbox: () => <div>Lightbox marker</div> }));
 vi.mock('@/components/common/PWAInstallPrompt', () => ({ PWAInstallPrompt: () => <div>PWA Prompt marker</div> }));
 vi.mock('@/components/common/AppVersionBadge', () => ({ AppVersionBadge: () => <div>Version marker</div> }));
-vi.mock('./PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
-
-import { useBabyStore } from './store/useBabyStore';
+vi.mock('@/PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
 
 describe('AppContent', () => {
   it('renders onboarding view when baby profile is not initialized', () => {
@@ -84,16 +82,11 @@ describe('AppContent', () => {
     expect(useReminderLifecycleMock).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the main header on the profile route when initialized', () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
-    render(<MemoryRouter initialEntries={['/profile']}><AppContent /></MemoryRouter>);
-    expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
-    expect(screen.getByText('App Routes marker')).toBeInTheDocument();
-  });
-
-  it('hides the main header on nested profile routes', () => {
+  it('hides the main header on profile routes when initialized', () => {
     useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
     render(<MemoryRouter initialEntries={['/profile/google-drive']}><AppContent /></MemoryRouter>);
+
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
+    expect(screen.getByText('App Routes marker')).toBeInTheDocument();
   });
 });
