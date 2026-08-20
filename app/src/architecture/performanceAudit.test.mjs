@@ -47,4 +47,12 @@ describe('interaction performance audit', () => {
     expect(mediaUrl).not.toContain("from '@/features/sync'");
     expect(mediaUrl).toContain("await import('@/features/sync/googleDriveSync')");
   });
+
+  it('keeps persistent sticky and fixed navigation surfaces free of backdrop filters', () => {
+    const header = source('shared/styles/header.css');
+    const bottomNav = source('shared/styles/bottom-nav.css');
+
+    expect(header).not.toContain('backdrop-filter');
+    expect(bottomNav).not.toContain('backdrop-filter');
+  });
 });
