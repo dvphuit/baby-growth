@@ -94,7 +94,8 @@ for (const file of sourceCodeFiles()) {
   source = source
     .replaceAll('@/components/common/', '@/shared/ui/')
     .replaceAll('@/components/motion/', '@/shared/motion/')
-    .replaceAll('@/components/onboarding/', '@/app/onboarding/');
+    .replaceAll('@/components/onboarding/', '@/app/onboarding/')
+    .replaceAll('../common/HavenIcons', '@/shared/ui/HavenIcons');
 
   const timelineOwned = file.startsWith(join(SRC, 'features', 'timeline'));
   source = source.replace(/@\/components\/timeline\/([^'"\s]+)/g, (_match, modulePath) => (
