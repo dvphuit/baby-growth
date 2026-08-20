@@ -2,13 +2,29 @@ import { useEffect, useState } from 'react';
 import { getLocalMedia } from '@/data/localDb';
 import type { TimelineMediaItem } from '@/types';
 
-// Map of active object URLs with reference count. Preloading warms the URL with
-// zero consumers; mounted media components own the references that keep it alive.
+// Preloading warms an object URL with zero consumers; mounted media components
+// own the references that keep it alive. Concurrent blob reads are deduplicated
+// separately so Home thumbnails and previews do not hit IndexedDB/Drive twice.
 const activeObjectUrls = new Map<string, { url: string; refCount: number }>();
+const inFlightMediaLoads = new Map<string, Promise<Blob | null>>();
 
 async function downloadDriveMedia(fileId: string): Promise<Blob | null> {
   const { downloadTimelineMediaFromDrive } = await import('@/features/sync/googleDriveSync');
   return downloadTimelineMediaFromDrive(fileId, { interactive: false });
+}
+
+function loadMediaBlob(media: TimelineMediaItem, cacheKey: string): Promise<Blob | null> {
+  const existing = inFlightMediaLoads.get(cacheKey);
+  if (existing) return existing;
+
+  const pending = (async () => {
+    const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
+    return localBlob ?? (media.driveFileId ? downloadDriveMedia(media.driveFileId) : null);
+  })().finally(() => {
+    inFlightMediaLoads.delete(cacheKey);
+  });
+  inFlightMediaLoads.set(cacheKey, pending);
+  return pending;
 }
 
 export function getCachedTimelineMediaUrl(media?: TimelineMediaItem | null): string | null {
@@ -26,16 +42,14 @@ export function preloadTimelineMedia(media: TimelineMediaItem): Promise<string |
   const cacheKey = media.blobId || media.driveFileId;
   if (!cacheKey) return Promise.resolve(null);
 
-  return (async () => {
-    const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
-    const blob = localBlob ?? (media.driveFileId ? await downloadDriveMedia(media.driveFileId) : null);
+  return loadMediaBlob(media, cacheKey).then((blob) => {
     if (!blob) return null;
     const existing = activeObjectUrls.get(cacheKey);
     if (existing) return existing.url;
     const url = URL.createObjectURL(blob);
     activeObjectUrls.set(cacheKey, { url, refCount: 0 });
     return url;
-  })().catch(() => null);
+  }).catch(() => null);
 }
 
 export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
@@ -63,10 +77,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
       registeredKey = cacheKey;
       setResolvedUrl(existing.url);
     } else {
-      void (async () => {
-        const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
-        return localBlob ?? (media.driveFileId ? downloadDriveMedia(media.driveFileId) : null);
-      })().then((blob) => {
+      void loadMediaBlob(media, cacheKey).then((blob) => {
         if (!active) return;
         if (!blob) {
           setResolvedUrl(null);
@@ -101,7 +112,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
         }
       }
     };
-  }, [cacheKey, media.blobId, media.driveFileId, remoteUrl]);
+  }, [cacheKey, media, remoteUrl]);
 
   return resolvedUrl;
 }
