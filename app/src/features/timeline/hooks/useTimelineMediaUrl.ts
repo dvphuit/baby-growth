@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { getLocalMedia } from '@/data/localDb';
 import type { TimelineMediaItem } from '@/types';
 
-// Map of active object URLs with reference count
+// Map of active object URLs with reference count. Preloading warms the URL with
+// zero consumers; mounted media components own the references that keep it alive.
 const activeObjectUrls = new Map<string, { url: string; refCount: number }>();
 
 async function downloadDriveMedia(fileId: string): Promise<Blob | null> {
@@ -32,7 +33,7 @@ export function preloadTimelineMedia(media: TimelineMediaItem): Promise<string |
     const existing = activeObjectUrls.get(cacheKey);
     if (existing) return existing.url;
     const url = URL.createObjectURL(blob);
-    activeObjectUrls.set(cacheKey, { url, refCount: 1 });
+    activeObjectUrls.set(cacheKey, { url, refCount: 0 });
     return url;
   })().catch(() => null);
 }
