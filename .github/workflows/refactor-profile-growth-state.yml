@@ -33,6 +33,7 @@ jobs:
             set -e
             cd app
             npm ci
+            sed -i "/replaceExact('src\/features\/timeline\/TimelineView.test.tsx', \"useBabyStore.getState().updateFamilyData/d" scripts/refactor-profile-growth-state.mjs
             node scripts/refactor-profile-growth-state.mjs
             npm test
             npm run lint
