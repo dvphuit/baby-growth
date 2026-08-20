@@ -66,4 +66,4 @@ jobs:
           git commit -m "perf: defer auto-sync work to idle time"
           git push origin HEAD:perf/idle-auto-sync
 
-# One-shot migration trigger.
+# One-shot migration trigger after PR creation.
