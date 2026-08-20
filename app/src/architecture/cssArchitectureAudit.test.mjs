@@ -16,7 +16,7 @@ function walk(directory) {
 
 function productionSourceText() {
   const files = walk(SRC).filter((file) => {
-    if (/\/styles\//.test(file)) return false;
+    if (file.endsWith('.css')) return false;
     if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(file)) return false;
     return /\.[cm]?[jt]sx?$/.test(file);
   });
@@ -25,7 +25,11 @@ function productionSourceText() {
 
 function importedStylesheets() {
   const entry = readFileSync(join(STYLES, 'components.css'), 'utf8');
-  return [...entry.matchAll(/@import\s+['"]\.\/([^'"]+)['"]/g)].map((match) => match[1]);
+  return [...entry.matchAll(/@import\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
+}
+
+function resolveStylesheet(importPath) {
+  return join(STYLES, importPath);
 }
 
 function classSelectors(css) {
@@ -39,7 +43,7 @@ function buildReport() {
   const filesBySelector = new Map();
 
   for (const file of files) {
-    const selectors = classSelectors(readFileSync(join(STYLES, file), 'utf8'));
+    const selectors = classSelectors(readFileSync(resolveStylesheet(file), 'utf8'));
     selectorsByFile.set(file, selectors);
     for (const selector of selectors) {
       const owners = filesBySelector.get(selector) ?? [];
@@ -113,11 +117,29 @@ describe('stylesheet architecture audit', () => {
     expect(forbiddenStyleResidues()).toEqual([]);
   });
 
-  it('keeps feature-owned growth styles out of global styles and removes the legacy timeline layer', () => {
-    expect(existsSync(join(STYLES, 'growth.css'))).toBe(false);
-    expect(existsSync(join(STYLES, 'timeline.css'))).toBe(false);
-    expect(importedStylesheets()).not.toContain('growth.css');
-    expect(importedStylesheets()).not.toContain('timeline.css');
+  it('keeps feature-owned styles with their features instead of global styles', () => {
+    for (const legacyFile of [
+      'growth.css',
+      'timeline.css',
+      'profile.css',
+      'haven-home.css',
+      'haven-expenses.css',
+      'haven-growth.css',
+      'haven-journal.css',
+    ]) {
+      expect(existsSync(join(STYLES, legacyFile)), `${legacyFile} should not remain global`).toBe(false);
+    }
+
+    for (const featureFile of [
+      join(SRC, 'features', 'home', 'home.css'),
+      join(SRC, 'features', 'expenses', 'expenses.css'),
+      join(SRC, 'features', 'growth', 'growth.css'),
+      join(SRC, 'features', 'growth', 'growth-view.css'),
+      join(SRC, 'features', 'timeline', 'timeline.css'),
+      join(SRC, 'features', 'profile', 'profile.css'),
+    ]) {
+      expect(existsSync(featureFile), `${relative(ROOT, featureFile)} should exist`).toBe(true);
+    }
   });
 
   it('reports ownership overlap without changing runtime behavior', () => {

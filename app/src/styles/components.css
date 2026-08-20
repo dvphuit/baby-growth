@@ -3,11 +3,11 @@
 @import './bottom-nav.css';
 @import './bottom-sheet.css';
 @import './modals.css';
-@import './profile.css';
+@import '../features/profile/profile.css';
 @import './refactor-primitives.css';
-@import './haven-home.css';
-@import './haven-expenses.css';
-@import './haven-growth.css';
+@import '../features/home/home.css';
+@import '../features/expenses/expenses.css';
+@import '../features/growth/growth-view.css';
 @import './haven-onboarding.css';
 @import './haven-primitives.css';
-@import './haven-journal.css';
+@import '../features/timeline/timeline.css';
