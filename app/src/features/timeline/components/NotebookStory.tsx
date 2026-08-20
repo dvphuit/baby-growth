@@ -100,6 +100,9 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
     if (!story) return undefined;
 
     let frameId: number | null = null;
+    let measuring = false;
+    let resizeObserver: ResizeObserver | null = null;
+
     const updateGradient = () => {
       const storyRect = story.getBoundingClientRect();
       const icons = [...story.querySelectorAll<HTMLElement>('.journal-story-icon')];
@@ -114,15 +117,42 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
         updateGradient();
       });
     };
-
-    updateGradient();
-    window.addEventListener('resize', scheduleGradientUpdate);
-    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleGradientUpdate);
-    resizeObserver?.observe(story);
-    return () => {
+    const startMeasuring = () => {
+      if (measuring) return;
+      measuring = true;
+      updateGradient();
+      window.addEventListener('resize', scheduleGradientUpdate);
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(scheduleGradientUpdate);
+        resizeObserver.observe(story);
+      }
+    };
+    const stopMeasuring = () => {
+      if (!measuring) return;
+      measuring = false;
       window.removeEventListener('resize', scheduleGradientUpdate);
       resizeObserver?.disconnect();
-      if (frameId !== null) window.cancelAnimationFrame(frameId);
+      resizeObserver = null;
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      startMeasuring();
+      return stopMeasuring;
+    }
+
+    const visibilityObserver = new IntersectionObserver((observations) => {
+      if (observations.some((observation) => observation.isIntersecting)) startMeasuring();
+      else stopMeasuring();
+    }, { rootMargin: '600px 0px' });
+    visibilityObserver.observe(story);
+
+    return () => {
+      visibilityObserver.disconnect();
+      stopMeasuring();
     };
   }, [entries]);
 
