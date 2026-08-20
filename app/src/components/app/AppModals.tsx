@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
 import type { AddToast, AppModalController } from '@/hooks/useAppModals';
+import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
 
 const loadQuickLogModal = () => import('@/components/modals/QuickLogModal');
 const loadActivityLogModal = () => import('@/components/modals/ActivityLogModal');
@@ -30,6 +31,28 @@ export interface AppModalsProps {
 }
 
 export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
+  const quickLogMounted = useRef(false);
+  const activityMounted = useRef(false);
+  const growthMounted = useRef(false);
+  const pumpingMounted = useRef(false);
+  const expenseMounted = useRef(false);
+  const postMounted = useRef(false);
+  const profileMounted = useRef(false);
+  const notificationMounted = useRef(false);
+  const lastActivityMode = useRef<ActivityLogMode>('feeding');
+
+  if (modals.isQuickLogOpen) quickLogMounted.current = true;
+  if (modals.activityLogMode) {
+    activityMounted.current = true;
+    lastActivityMode.current = modals.activityLogMode;
+  }
+  if (modals.isAddGrowthOpen) growthMounted.current = true;
+  if (modals.isAddPumpingOpen) pumpingMounted.current = true;
+  if (modals.isAddExpenseOpen) expenseMounted.current = true;
+  if (modals.isAddPostOpen) postMounted.current = true;
+  if (modals.isEditProfileOpen) profileMounted.current = true;
+  if (modals.isNotificationOpen) notificationMounted.current = true;
+
   useEffect(() => {
     if (!modals.isQuickLogOpen) return;
     void Promise.all([
@@ -43,52 +66,52 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
 
   return (
     <Suspense fallback={<LazyModalFallback />}>
-      {modals.isQuickLogOpen && (
+      {quickLogMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <QuickLogModal isOpen={modals.isQuickLogOpen} onClose={modals.closeQuickLog} onSelectAction={modals.handleQuickAction} />
         </ModalMotionScope>
       )}
 
-      {modals.activityLogMode && (
+      {activityMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <ActivityLogModal
-            isOpen
-            mode={modals.activityLogMode}
+            isOpen={Boolean(modals.activityLogMode)}
+            mode={modals.activityLogMode ?? lastActivityMode.current}
             onClose={modals.closeActivityLog}
             onSaved={(message) => onSuccessToast(message, '✓')}
           />
         </ModalMotionScope>
       )}
 
-      {modals.isAddGrowthOpen && (
+      {growthMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddGrowthModal isOpen={modals.isAddGrowthOpen} onClose={modals.closeAddGrowth} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
 
-      {modals.isAddPumpingOpen && (
+      {pumpingMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddPumpingModal isOpen={modals.isAddPumpingOpen} onClose={modals.closeAddPumping} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
 
-      {modals.isAddExpenseOpen && (
+      {expenseMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddExpenseModal isOpen={modals.isAddExpenseOpen} onClose={modals.closeAddExpense} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
 
-      {modals.isAddPostOpen && (
+      {postMounted.current && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <AddPostModal isOpen={modals.isAddPostOpen} onClose={modals.closeAddPost} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
 
-      {modals.isEditProfileOpen && (
+      {profileMounted.current && (
         <EditProfileModal isOpen={modals.isEditProfileOpen} onClose={modals.closeEditProfile} onSuccessToast={onSuccessToast} />
       )}
 
-      {modals.isNotificationOpen && (
+      {notificationMounted.current && (
         <NotificationModal isOpen={modals.isNotificationOpen} onClose={modals.closeNotifications} onQuickLog={modals.handleQuickAction} />
       )}
     </Suspense>
