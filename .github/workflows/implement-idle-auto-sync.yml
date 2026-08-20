@@ -193,6 +193,12 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Tests on the generated tree can touch this imported shell file; it is
+          # outside the intended production scope and must remain byte-identical.
+          git restore -- app/src/app/App.tsx
+          test -z "$(git status --short -- app/src/app/App.tsx)"
+
           git add -A
           git diff --cached --check
 
