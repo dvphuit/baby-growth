@@ -32,13 +32,13 @@ export const havenLayoutTransition: Transition = {
 };
 
 export const havenRouteVariants: Variants = {
-  initial: { opacity: 0, y: 10, scale: 0.992, filter: 'blur(3px)' },
-  animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
-  exit: { opacity: 0, y: -6, scale: 0.996, filter: 'blur(2px)' },
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -3 },
 };
 
 export const havenRouteTransition: Transition = {
-  duration: 0.24,
+  duration: 0.16,
   ease: [0.2, 0.75, 0.3, 1],
 };
 
@@ -111,9 +111,9 @@ export const havenPickerTransition: Transition = {
 };
 
 export const havenToastVariants: Variants = {
-  hidden: { opacity: 0, y: -14, scale: 0.96, filter: 'blur(4px)' },
-  visible: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
-  exit: { opacity: 0, y: -8, scale: 0.98, filter: 'blur(2px)' },
+  hidden: { opacity: 0, y: -14, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -8, scale: 0.98 },
 };
 
 export const havenPress = { scale: 0.96 } as const;
