@@ -270,7 +270,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
     logDiagnostic('local-data', 'info', 'Local data refresh started');
     setLocalLoading(true);
     try {
-      const recordKeys = [...SYNC_KEYS, 'babygrowth_v2_sync_meta'];
+      const recordKeys = [...SYNC_KEYS, 'babygrowth_v4_sync_meta'];
       const [nextFiles, records, nextStorageEstimate] = await Promise.all([
         listLocalMedia(),
         getAllLocalRecords(recordKeys),
@@ -365,7 +365,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
             };
           }),
         }));
-        await waitForLocalRecordWrites(['babygrowth_v2_timeline']);
+        await waitForLocalRecordWrites(['babygrowth_v4_timeline']);
       }
       setFiles((current) => current.filter((file) => file.id !== target.id));
       await loadLocalData();
@@ -392,7 +392,7 @@ export function GoogleDriveDataView({ onOpenLightbox, onShowToast }: GoogleDrive
         };
       }),
     }));
-    await waitForLocalRecordWrites(['babygrowth_v2_timeline']);
+    await waitForLocalRecordWrites(['babygrowth_v4_timeline']);
   };
 
   const deleteLocalFile = async () => {
