@@ -30,13 +30,18 @@ jobs:
       - name: Check motion source regressions
         working-directory: .
         run: |
-          if grep -R "filter:\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
+          if grep -R "filter:\\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
             echo "Motion must not animate filter/backdrop-filter"
             exit 1
           fi
 
           if grep -R "layout=" app/src --include='*.tsx' | grep -v "layout=\"position\""; then
             echo "Unexpected layout animation usage detected"
+            exit 1
+          fi
+
+          if grep -R "will-change" app/src --include='*.tsx' --include='*.ts' | grep -E "transform|opacity"; then
+            echo "Avoid permanent will-change hints in React components"
             exit 1
           fi
 
