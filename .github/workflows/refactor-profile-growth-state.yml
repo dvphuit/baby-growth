@@ -1,0 +1,74 @@
+name: Refactor profile and growth state
+
+on:
+  push:
+    branches:
+      - refactor/feature-first-architecture
+    paths:
+      - .github/workflows/refactor-profile-growth-state.yml
+      - app/scripts/refactor-profile-growth-state.mjs
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/feature-first-architecture
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Apply and validate profile/growth split
+        run: |
+          set +e
+          (
+            cd app
+            npm ci
+            node scripts/refactor-profile-growth-state.mjs
+            npm test
+            npm run lint
+            npm run build
+          ) 2>&1 | tee /tmp/refactor-profile-growth-state.log
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
+      - name: Report migration failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Profile/growth state split failed for \`$GITHUB_SHA\`."
+            echo
+            echo "<details><summary>Failure log tail</summary>"
+            echo
+            echo '```text'
+            tail -n 180 /tmp/refactor-profile-growth-state.log || true
+            echo '```'
+            echo '</details>'
+          } > /tmp/refactor-profile-growth-state-comment.md
+          gh pr comment 16 --repo "$GITHUB_REPOSITORY" --body-file /tmp/refactor-profile-growth-state-comment.md
+      - name: Commit profile/growth split
+        if: success()
+        run: |
+          rm -f .github/workflows/refactor-profile-growth-state.yml app/scripts/refactor-profile-growth-state.mjs .github/workflows/refactor-state-inventory.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- app/src .github/workflows app/scripts/refactor-profile-growth-state.mjs
+          git diff --cached --check
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(app/src/|app/scripts/refactor-profile-growth-state\.mjs$|\.github/workflows/refactor-(profile-growth-state|state-inventory)\.yml$)' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected staged paths:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git commit -m "refactor: split profile and growth state ownership"
+          git push origin HEAD:refactor/feature-first-architecture
