@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { reloadPage } from '@/services/appRuntime';
-import { startAutoSync } from '@/features/sync';
 
 export function useAutoSyncLifecycle(): void {
   useEffect(() => {
     let disposed = false;
     let stopAutoSync: (() => void) | undefined;
 
-    void startAutoSync()
+    void import('@/features/sync/googleDriveSync')
+      .then(({ startAutoSync }) => startAutoSync())
       .then((stop) => {
         if (disposed) {
           stop();
