@@ -15,6 +15,7 @@ import { BottomSheet } from '@/components/common/BottomSheet';
 import { HavenDatePicker } from '@/components/common/HavenDatePicker';
 import { HavenDropdown } from '@/components/common/HavenDropdown';
 import { useBabyStore } from '@/store/useBabyStore';
+import './growth.css';
 
 interface AddGrowthModalProps {
   isOpen: boolean;
