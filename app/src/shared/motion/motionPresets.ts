@@ -56,6 +56,12 @@ export const havenSheetVariants: Variants = {
   exit: { y: '100%' },
 };
 
+export const havenSheetTransition: Transition = {
+  type: 'tween',
+  duration: 0.18,
+  ease: [0.2, 0.75, 0.3, 1],
+};
+
 export const havenDialogVariants: Variants = {
   hidden: { opacity: 0, y: 12, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1 },
