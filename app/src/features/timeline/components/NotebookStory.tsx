@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 
 export interface NotebookTimeEntry {
   occurredAt: string;
@@ -93,11 +93,13 @@ function timeGradient(entries: readonly NotebookTimeEntry[], anchorPercentages?:
 
 export function NotebookStory({ entries, owner, children, className = '' }: NotebookStoryProps) {
   const storyRef = useRef<HTMLDivElement>(null);
+  const initialGradient = useMemo(() => timeGradient(entries), [entries]);
 
   useLayoutEffect(() => {
     const story = storyRef.current;
     if (!story) return undefined;
 
+    let frameId: number | null = null;
     const updateGradient = () => {
       const storyRect = story.getBoundingClientRect();
       const icons = [...story.querySelectorAll<HTMLElement>('.journal-story-icon')];
@@ -105,15 +107,22 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
       const anchors = icons.map((icon) => ((icon.getBoundingClientRect().top - storyRect.top) / storyRect.height) * 100);
       story.style.setProperty('--journal-time-gradient', timeGradient(entries, anchors));
     };
+    const scheduleGradientUpdate = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        updateGradient();
+      });
+    };
 
     updateGradient();
-    window.addEventListener('resize', updateGradient);
-    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateGradient);
+    window.addEventListener('resize', scheduleGradientUpdate);
+    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleGradientUpdate);
     resizeObserver?.observe(story);
-    story.querySelectorAll<HTMLElement>('.journal-story-item').forEach((item) => resizeObserver?.observe(item));
     return () => {
-      window.removeEventListener('resize', updateGradient);
+      window.removeEventListener('resize', scheduleGradientUpdate);
       resizeObserver?.disconnect();
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
     };
   }, [entries]);
 
@@ -121,7 +130,7 @@ export function NotebookStory({ entries, owner, children, className = '' }: Note
     <div
       ref={storyRef}
       className={`journal-story owner-${owner} ${className}`.trim()}
-      style={{ '--journal-time-gradient': timeGradient(entries) } as CSSProperties}
+      style={{ '--journal-time-gradient': initialGradient } as CSSProperties}
     >
       {children}
     </div>
