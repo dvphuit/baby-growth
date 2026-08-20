@@ -4,6 +4,7 @@ import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
 export type AddToast = (message: string, icon?: string) => void;
 
 export interface AppModalController {
+  isAnyModalOpen: boolean;
   isNotificationOpen: boolean;
   isQuickLogOpen: boolean;
   isAddGrowthOpen: boolean;
@@ -33,10 +34,7 @@ export interface AppModalController {
   handleQuickAction: (actionType: string) => void;
 }
 
-export function useAppModals(addToast: AddToast): AppModalController {
-  // Keep the dependency in the public hook signature for compatibility with the app shell.
-  // Quick actions no longer emit optimistic success toasts; forms emit after persistence.
-  void addToast;
+export function useAppModals(): AppModalController {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [isAddGrowthOpen, setIsAddGrowthOpen] = useState(false);
@@ -88,7 +86,20 @@ export function useAppModals(addToast: AddToast): AppModalController {
     }
   };
 
+  const isAnyModalOpen = Boolean(
+    isNotificationOpen ||
+    isQuickLogOpen ||
+    isAddGrowthOpen ||
+    isAddPumpingOpen ||
+    isAddExpenseOpen ||
+    isAddPostOpen ||
+    isEditProfileOpen ||
+    activityLogMode ||
+    lightboxSrc
+  );
+
   return {
+    isAnyModalOpen,
     isNotificationOpen,
     isQuickLogOpen,
     isAddGrowthOpen,

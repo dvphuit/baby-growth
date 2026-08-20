@@ -21,7 +21,6 @@ import { useBabyStore } from './store/useBabyStore';
 import { OnboardingView } from './components/onboarding/OnboardingView';
 import { PullToRefresh } from './components/common/PullToRefresh';
 
-
 export const AppContent: React.FC = () => {
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
@@ -42,20 +41,9 @@ export const AppContent: React.FC = () => {
   useAutoSyncLifecycle();
 
   const { toasts, addToast } = useToast();
-  const modals = useAppModals(addToast);
-  const isModalOpen = (
-    modals.isNotificationOpen ||
-    modals.isQuickLogOpen ||
-    modals.isAddGrowthOpen ||
-    modals.isAddPumpingOpen ||
-    modals.isAddExpenseOpen ||
-    modals.isAddPostOpen ||
-    modals.isEditProfileOpen ||
-    modals.activityLogMode !== null ||
-    modals.lightboxSrc !== null
-  );
+  const modals = useAppModals();
 
-  useThemeColor({ pathname: location.pathname, isModalOpen });
+  useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen });
   useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   if (!isInitialized) {
