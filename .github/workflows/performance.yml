@@ -1,0 +1,33 @@
+name: Performance CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance regression tests
+        run: npm test -- --runInBand
+
+      - name: Build performance budget check
+        run: npm run build
+        env:
+          VITE_PERFORMANCE_CHECK: true
