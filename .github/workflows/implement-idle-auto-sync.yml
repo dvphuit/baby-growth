@@ -34,6 +34,60 @@ jobs:
       - name: Apply idle auto-sync migration
         run: node scripts/implement-idle-auto-sync.mjs
 
+      - name: Make idle cleanup resilient
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+
+          const helperPath = 'app/src/shared/lib/idleTask.ts';
+          let helper = readFileSync(helperPath, 'utf8');
+          const unsafeCancel = '      window.cancelIdleCallback(idleId);';
+          const safeCancel = `      if (typeof window.cancelIdleCallback === 'function') {
+                window.cancelIdleCallback(idleId);
+              }`;
+          if (!helper.includes(unsafeCancel)) {
+            throw new Error('Expected idle cancellation fragment was not generated');
+          }
+          helper = helper.replace(unsafeCancel, safeCancel);
+          writeFileSync(helperPath, helper);
+
+          const testPath = 'app/src/features/sync/hooks/useAutoSyncLifecycle.test.tsx';
+          let testSource = readFileSync(testPath, 'utf8');
+
+          const remoteUpdateBefore = `    startAutoSyncMock.mockResolvedValue(vi.fn());
+              renderHook(() => useAutoSyncLifecycle());
+          
+              window.dispatchEvent(new Event('babygrowth:remote-updated'));
+              expect(reloadPageMock).toHaveBeenCalledTimes(1);`;
+          const remoteUpdateAfter = `    startAutoSyncMock.mockResolvedValue(vi.fn());
+              const { unmount } = renderHook(() => useAutoSyncLifecycle());
+          
+              window.dispatchEvent(new Event('babygrowth:remote-updated'));
+              expect(reloadPageMock).toHaveBeenCalledTimes(1);
+              unmount();`;
+          if (!testSource.includes(remoteUpdateBefore)) {
+            throw new Error('Expected remote update test fragment was not generated');
+          }
+          testSource = testSource.replace(remoteUpdateBefore, remoteUpdateAfter);
+
+          const rejectionBefore = `    startAutoSyncMock.mockRejectedValue(new Error('sync unavailable'));
+              renderHook(() => useAutoSyncLifecycle());
+          
+              runIdleCallback();
+              await waitFor(() => expect(startAutoSyncMock).toHaveBeenCalledTimes(1));`;
+          const rejectionAfter = `    startAutoSyncMock.mockRejectedValue(new Error('sync unavailable'));
+              const { unmount } = renderHook(() => useAutoSyncLifecycle());
+          
+              runIdleCallback();
+              await waitFor(() => expect(startAutoSyncMock).toHaveBeenCalledTimes(1));
+              unmount();`;
+          if (!testSource.includes(rejectionBefore)) {
+            throw new Error('Expected rejection test fragment was not generated');
+          }
+          testSource = testSource.replace(rejectionBefore, rejectionAfter);
+          writeFileSync(testPath, testSource);
+          NODE
+
       - name: Run targeted idle auto-sync tests
         working-directory: app
         run: npm test -- src/shared/lib/idleTask.test.ts src/features/sync/hooks/useAutoSyncLifecycle.test.tsx src/features/sync/autoSyncPerformance.test.mjs
