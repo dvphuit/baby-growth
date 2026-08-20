@@ -118,7 +118,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {isOpen && (
         <motion.div
           key="haven-bottom-sheet"
-          layoutId={surfaceLayoutId ? `${surfaceLayoutId}-backdrop` : undefined}
           className="modal-backdrop open"
           variants={havenOverlayVariants}
           initial="hidden"
