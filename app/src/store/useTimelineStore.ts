@@ -152,7 +152,7 @@ export const useTimelineStore = create<TimelineStoreState>()(
       }),
     }),
     {
-      name: 'babygrowth_v2_timeline',
+      name: 'babygrowth_v4_timeline',
       storage: createJSONStorage(() => indexedDbStorage),
       partialize: (state) => ({
         timelineItems: state.timelineItems,
