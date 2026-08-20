@@ -134,9 +134,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
     return { start: today, end: today };
   });
   const [calendarExpanded, setCalendarExpanded] = useState(false);
-  const [weekDragX, setWeekDragX] = useState(0);
   const [weekSettling, setWeekSettling] = useState(false);
   const weekPagerRef = useRef<HTMLDivElement>(null);
+  const weekTrackRef = useRef<HTMLDivElement>(null);
+  const weekDragXRef = useRef(0);
   const weekSwipeStartX = useRef<number | null>(null);
   const pendingWeekDays = useRef(0);
   const suppressWeekClick = useRef(false);
@@ -215,6 +216,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
 
   const weekPageWidth = () => weekPagerRef.current?.clientWidth || 320;
 
+  const applyWeekDragX = (value: number) => {
+    weekDragXRef.current = value;
+    if (weekTrackRef.current) {
+      weekTrackRef.current.style.transform = `translate3d(calc(-33.333333% + ${value}px), 0, 0)`;
+    }
+  };
+
   const canShiftWeek = (days: number) => {
     const target = shiftDateKey(selectedDate, days);
     return target >= calendarBounds.min && target <= calendarBounds.max;
@@ -223,8 +231,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
   const settleWeek = (days: number) => {
     if (days !== 0 && !canShiftWeek(days)) days = 0;
     pendingWeekDays.current = days;
+    weekDragXRef.current = days > 0 ? -weekPageWidth() : days < 0 ? weekPageWidth() : 0;
     setWeekSettling(true);
-    setWeekDragX(days > 0 ? -weekPageWidth() : days < 0 ? weekPageWidth() : 0);
   };
 
   const finishWeekSwipe = () => {
@@ -232,9 +240,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
     weekSwipeStartX.current = null;
     const width = weekPageWidth();
     const threshold = Math.max(42, Math.min(72, width * 0.18));
-    if (Math.abs(weekDragX) < threshold) settleWeek(0);
-    else settleWeek(weekDragX < 0 ? 7 : -7);
-    if (Math.abs(weekDragX) > 8) {
+    const dragX = weekDragXRef.current;
+    if (Math.abs(dragX) < threshold) settleWeek(0);
+    else settleWeek(dragX < 0 ? 7 : -7);
+    if (Math.abs(dragX) > 8) {
       suppressWeekClick.current = true;
       requestAnimationFrame(() => { suppressWeekClick.current = false; });
     }
@@ -243,8 +252,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
   const completeWeekSettle = () => {
     const days = pendingWeekDays.current;
     pendingWeekDays.current = 0;
+    weekDragXRef.current = 0;
     setWeekSettling(false);
-    setWeekDragX(0);
     if (days !== 0) {
       const nextDate = shiftDateKey(selectedDate, days);
       setSelectedRange({ start: nextDate, end: nextDate });
@@ -274,21 +283,22 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
                 onPointerDown={(event) => {
                   if (weekSettling) return;
                   weekSwipeStartX.current = event.clientX;
-                  setWeekDragX(0);
+                  applyWeekDragX(0);
                   event.currentTarget.setPointerCapture?.(event.pointerId);
                 }}
                 onPointerMove={(event) => {
                   if (weekSwipeStartX.current === null || weekSettling) return;
                   let distance = event.clientX - weekSwipeStartX.current;
                   if ((distance > 0 && !canShiftWeek(-7)) || (distance < 0 && !canShiftWeek(7))) distance *= 0.22;
-                  setWeekDragX(Math.max(-weekPageWidth(), Math.min(weekPageWidth(), distance)));
+                  applyWeekDragX(Math.max(-weekPageWidth(), Math.min(weekPageWidth(), distance)));
                 }}
                 onPointerUp={finishWeekSwipe}
                 onPointerCancel={() => { weekSwipeStartX.current = null; settleWeek(0); }}
               >
                 <div
+                  ref={weekTrackRef}
                   className={`journal-week-track ${weekSettling ? 'is-settling' : 'is-dragging'}`}
-                  style={{ transform: `translate3d(calc(-33.333333% + ${weekDragX}px), 0, 0)` }}
+                  style={{ transform: `translate3d(calc(-33.333333% + ${weekDragXRef.current}px), 0, 0)` }}
                   onTransitionEnd={(event) => { if (event.target === event.currentTarget) completeWeekSettle(); }}
                 >
                   {[-7, 0, 7].map((offset) => {
