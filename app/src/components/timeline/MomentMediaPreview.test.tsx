@@ -4,7 +4,7 @@ import { MomentMediaPreview } from '@/components/timeline/MomentMediaPreview';
 import type { TimelineMediaItem } from '@/types';
 
 describe('MomentMediaPreview', () => {
-  it('opens the tapped media without shared-layout media elements', () => {
+  it('opens the tapped media with the active shared-layout identity', () => {
     const items: TimelineMediaItem[] = [
       { id: 'photo-1', type: 'photo', url: 'https://example.com/one.jpg' },
       { id: 'photo-2', type: 'photo', url: 'https://example.com/two.jpg' },
@@ -30,10 +30,13 @@ describe('MomentMediaPreview', () => {
       'src',
       'https://example.com/two.jpg',
     );
-    expect(document.querySelector('[data-layout-id]')).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Khoảnh khắc, ảnh 2' })).toHaveAttribute(
+      'data-layout-id',
+      'moment-test-photo-2',
+    );
   });
 
-  it('navigates across items without triggering shared layouts', async () => {
+  it('updates the active shared-layout identity while navigating', async () => {
     const onClose = vi.fn();
     const items: TimelineMediaItem[] = [
       { id: 'photo-1', type: 'photo', url: 'https://example.com/one.jpg' },
@@ -56,28 +59,32 @@ describe('MomentMediaPreview', () => {
     );
 
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
-    expect(document.querySelector('[data-layout-id]')).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Khoảnh khắc, ảnh 1' })).toHaveAttribute(
+      'data-layout-id',
+      'moment-test-photo-1',
+    );
 
-    // Click next button
     fireEvent.click(screen.getByRole('button', { name: 'Media kế tiếp' }));
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Khoảnh khắc, ảnh 2' })).toHaveAttribute(
       'src',
       'https://example.com/two.jpg',
     );
+    expect(screen.getByRole('img', { name: 'Khoảnh khắc, ảnh 2' })).toHaveAttribute(
+      'data-layout-id',
+      'moment-test-photo-2',
+    );
 
-    // Click dot indicator 3 (video)
     fireEvent.click(screen.getByRole('button', { name: 'Xem media 3' }));
     expect(screen.getByText('3 / 3')).toBeInTheDocument();
     const videoElement = document.querySelector('video');
     expect(videoElement).toBeInTheDocument();
     expect(videoElement).toHaveAttribute('src', 'https://example.com/three.mp4');
+    expect(videoElement).toHaveAttribute('data-layout-id', 'moment-test-video-3');
 
-    // Click previous button
     fireEvent.click(screen.getByRole('button', { name: 'Media trước' }));
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
 
-    // Press Escape to close
     fireEvent.keyDown(window, { key: 'Escape' });
     await waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -126,14 +133,14 @@ describe('MomentMediaPreview', () => {
       <MomentMediaPreview
         preview={{
           items,
-          initialIndex: 3, // Clicked 4th tile (+3 badge)
+          initialIndex: 3,
           title: 'Khoảnh khắc 7 ảnh',
           layoutId: 'moment-timeline-entry1-photo-4',
           originSrc: items[3].url ?? '',
-          getLayoutId: (idx) => {
-            const targetIdx = Math.min(idx, visibleItems.length - 1);
-            const targetMedia = visibleItems[targetIdx] ?? items[0];
-            return `moment-timeline-entry1-${targetMedia.id ?? targetIdx}`;
+          getLayoutId: (index) => {
+            const targetIndex = Math.min(index, visibleItems.length - 1);
+            const targetMedia = visibleItems[targetIndex] ?? items[0];
+            return `moment-timeline-entry1-${targetMedia.id ?? targetIndex}`;
           },
         }}
         onClose={vi.fn()}
@@ -141,7 +148,6 @@ describe('MomentMediaPreview', () => {
     );
 
     expect(screen.getByText('4 / 7')).toBeInTheDocument();
-    // Navigate to 5th item (index 4)
     fireEvent.click(screen.getByRole('button', { name: 'Media kế tiếp' }));
     expect(screen.getByText('5 / 7')).toBeInTheDocument();
 
@@ -222,10 +228,8 @@ describe('MomentMediaPreview', () => {
     expect(screen.getByRole('dialog', { name: 'Xem media Khoảnh khắc' })).toBeInTheDocument();
     expect(document.body.style.overflow).toBe('hidden');
 
-    // Close by setting preview to null
     rerender(<MomentMediaPreview preview={null} onClose={onClose} />);
 
-    // Dialog should finish exit animation and unmount
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Xem media Khoảnh khắc' })).not.toBeInTheDocument();
     });
