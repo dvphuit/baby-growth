@@ -126,9 +126,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
                 <X size={18} />
               </motion.button>
             </div>
-            <motion.div layout="position" className="haven-dialog-body" transition={havenLayoutTransition}>
-              {children}
-            </motion.div>
+            <div className="haven-dialog-body">{children}</div>
             {footer && (
               <motion.div layout="position" className="haven-dialog-footer" transition={havenLayoutTransition}>
                 {footer}
