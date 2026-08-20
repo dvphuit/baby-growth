@@ -10,7 +10,6 @@ import { removeLocalRecord } from './services/localDb';
 import { useActivityStore } from './store/useActivityStore';
 import { useBabyStore } from './store/useBabyStore';
 import { useExpenseStore } from './store/useExpenseStore';
-import { useMomStore } from './store/useMomStore';
 import { useReminderStore } from './store/useReminderStore';
 import { useTimelineStore } from './store/useTimelineStore';
 
@@ -39,7 +38,6 @@ async function bootstrapMockData(): Promise<void> {
   try {
     await Promise.all([
       useBabyStore.persist.rehydrate(),
-      useMomStore.persist.rehydrate(),
       useTimelineStore.persist.rehydrate(),
       useReminderStore.persist.rehydrate(),
       useActivityStore.persist.rehydrate(),
