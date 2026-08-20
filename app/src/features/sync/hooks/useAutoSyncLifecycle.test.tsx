@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { startAutoSync } from '@/services/googleDriveSync';
+import { startAutoSync } from '@/features/sync';
 import { reloadPage } from '@/services/appRuntime';
 import { useAutoSyncLifecycle } from './useAutoSyncLifecycle';
 
-vi.mock('@/services/googleDriveSync', () => ({ startAutoSync: vi.fn() }));
+vi.mock('@/features/sync', () => ({ startAutoSync: vi.fn() }));
 vi.mock('@/services/appRuntime', () => ({ reloadPage: vi.fn() }));
 
 const startAutoSyncMock = vi.mocked(startAutoSync);

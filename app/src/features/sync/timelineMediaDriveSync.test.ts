@@ -11,10 +11,10 @@ const localDb = vi.hoisted(() => ({
 }));
 const drive = vi.hoisted(() => ({ uploadTimelineMediaToDrive: vi.fn() }));
 
-vi.mock('./localDb', () => localDb);
+vi.mock('@/data/localDb', () => localDb);
 vi.mock('@/features/sync/googleDriveSync', () => drive);
 
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { syncTimelineMediaToDrive } from './timelineMediaDriveSync';
 import { getTimelineMediaSyncProgress, resetTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
 

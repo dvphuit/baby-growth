@@ -2,12 +2,12 @@ import type { FamilyData, GrowthHistoryRecord, TimelineItem } from '@/types';
 import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder } from '@/types/reminder';
 import { isGoogleConfigured } from '@/features/sync';
-import { setLocalRecord } from '@/services/localDb';
-import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/store/useActivityStore';
+import { setLocalRecord } from '@/data/localDb';
+import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useExpenseStore } from '@/store/useExpenseStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
 function isoDate(yearsAgo = 0, monthsAgo = 0, daysAgo = 0): string {
   const date = new Date();

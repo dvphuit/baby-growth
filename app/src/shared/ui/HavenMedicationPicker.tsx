@@ -4,7 +4,7 @@ import {
   normalizeMedicationName,
   type MedicationDoseUnit,
   type MedicationCatalogItem,
-} from '@/domain/medicationCatalog';
+} from '@/features/activities/domain/medicationCatalog';
 
 const DOSE_UNITS: Array<{ value: MedicationDoseUnit; label: string }> = [
   { value: 'giọt', label: 'Giọt' },

@@ -24,7 +24,7 @@ import {
   setAutoSyncEnabled,
   syncWithGoogleDrive,
   type DriveBackupSummary,
-} from '@/services/googleDriveSync';
+} from '@/features/sync';
 import {
   HavenFeedingIcon,
   HavenHeadCircIcon,

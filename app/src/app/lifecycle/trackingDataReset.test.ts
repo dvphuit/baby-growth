@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SYNC_KEYS } from '@/features/sync';
-import { useActivityStore } from '@/store/useActivityStore';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useExpenseStore } from '@/store/useExpenseStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 
 const TRACKING_STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses'];
@@ -30,7 +30,7 @@ const drive = vi.hoisted(() => ({
   runWithAutoSyncPaused: vi.fn(),
 }));
 
-vi.mock('./localDb', () => persistence);
+vi.mock('@/data/localDb', () => persistence);
 vi.mock('@/features/sync', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/sync')>()),
   deleteTimelineMediaFromDrive: drive.deleteTimelineMediaFromDrive,

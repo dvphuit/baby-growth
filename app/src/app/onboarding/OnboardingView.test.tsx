@@ -2,10 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exportAppSnapshot } from '@/features/sync/appSnapshot';
 import { useBabyStore } from '@/store/useBabyStore';
-import * as googleDriveSync from '@/services/googleDriveSync';
+import * as googleDriveSync from '@/features/sync';
 import { OnboardingView } from './OnboardingView';
 
-vi.mock('@/services/googleDriveSync', () => ({
+vi.mock('@/features/sync', () => ({
   isGoogleConfigured: vi.fn(() => true),
   isGoogleConnected: vi.fn(() => false),
   requestGoogleAccessToken: vi.fn().mockResolvedValue(undefined),

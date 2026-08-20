@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import type { AppModalController } from '@/hooks/useAppModals';
+import type { AppModalController } from '@/app/hooks/useAppModals';
 import { useBabyStore } from '@/store/useBabyStore';
 import { AppContent } from './App';
 
@@ -40,11 +40,11 @@ const modalController: AppModalController = {
   handleQuickAction: vi.fn(),
 };
 
-vi.mock('@/hooks/useToast', () => ({ useToast: () => ({ toasts: [], addToast, dismissToast: vi.fn() }) }));
-vi.mock('@/hooks/useAutoSyncLifecycle', () => ({ useAutoSyncLifecycle: () => useAutoSyncLifecycleMock() }));
-vi.mock('@/hooks/useReminderLifecycle', () => ({ useReminderLifecycle: (options: unknown) => useReminderLifecycleMock(options) }));
-vi.mock('@/hooks/useAppModals', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@/hooks/useAppModals')>();
+vi.mock('@/shared/hooks/useToast', () => ({ useToast: () => ({ toasts: [], addToast, dismissToast: vi.fn() }) }));
+vi.mock('@/features/sync/hooks/useAutoSyncLifecycle', () => ({ useAutoSyncLifecycle: () => useAutoSyncLifecycleMock() }));
+vi.mock('@/features/reminders/hooks/useReminderLifecycle', () => ({ useReminderLifecycle: (options: unknown) => useReminderLifecycleMock(options) }));
+vi.mock('@/app/hooks/useAppModals', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/app/hooks/useAppModals')>();
   return { ...original, useAppModals: () => modalController };
 });
 vi.mock('./AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));

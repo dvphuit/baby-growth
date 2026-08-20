@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { indexedDbStorage } from '@/services/localDb';
+import { indexedDbStorage } from '@/data/localDb';
 import type { Reminder, ReminderOccurrence, ReminderOccurrenceState } from '@/types/reminder';
 
 function createId(): string {

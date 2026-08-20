@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useActivityStore } from '@/store/useActivityStore';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useExpenseStore } from '@/store/useExpenseStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 
 const localDb = vi.hoisted(() => ({
@@ -14,8 +14,8 @@ const timelineMediaDriveSync = vi.hoisted(() => ({
   syncTimelineMediaToDrive: vi.fn(),
 }));
 
-vi.mock('@/services/localDb', () => localDb);
-vi.mock('@/services/timelineMediaDriveSync', () => timelineMediaDriveSync);
+vi.mock('@/data/localDb', () => localDb);
+vi.mock('@/features/sync/timelineMediaDriveSync', () => timelineMediaDriveSync);
 
 function jsonResponse(value: unknown): Response {
   return new Response(JSON.stringify(value), {

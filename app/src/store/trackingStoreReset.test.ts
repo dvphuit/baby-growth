@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { todayStr } from '@/utils/date';
 
-vi.mock('@/services/localDb', () => ({
+vi.mock('@/data/localDb', () => ({
   indexedDbStorage: {
     getItem: vi.fn(async () => null),
     setItem: vi.fn(async () => undefined),
@@ -9,11 +9,11 @@ vi.mock('@/services/localDb', () => ({
   },
 }));
 
-import { useActivityStore } from './useActivityStore';
-import { useExpenseStore } from './useExpenseStore';
-import { useReminderStore } from './useReminderStore';
-import { useTimelineStore } from './useTimelineStore';
-import { useUIStore } from './useUIStore';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
+import { useUIStore } from '@/store/useUIStore';
 
 describe('tracking auxiliary-store reset', () => {
   beforeEach(() => {

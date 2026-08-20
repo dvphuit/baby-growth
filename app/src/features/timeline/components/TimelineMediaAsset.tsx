@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { TimelineMediaItem } from '@/types';
-import { useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
+import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 
 interface TimelineMediaAssetProps {
   media: TimelineMediaItem;

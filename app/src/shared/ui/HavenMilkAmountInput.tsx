@@ -1,6 +1,6 @@
 import { Minus, Plus, Milk, Sparkles } from 'lucide-react';
 import React, { useId, useMemo } from 'react';
-import { getFeedingRecommendation, type FeedingRecommendation } from '@/domain/dailyCareTargets';
+import { getFeedingRecommendation, type FeedingRecommendation } from '@/features/activities/domain/dailyCareTargets';
 import { useBabyStore } from '@/store/useBabyStore';
 
 export interface HavenMilkAmountInputProps {

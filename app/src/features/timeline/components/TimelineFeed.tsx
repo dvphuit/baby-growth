@@ -1,7 +1,7 @@
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import { getTimelineMediaItems } from '@/domain/timelineMedia';
-import { useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
+import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
+import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import type { TimelineItem } from '@/types';
 
 interface TimelineFeedProps {

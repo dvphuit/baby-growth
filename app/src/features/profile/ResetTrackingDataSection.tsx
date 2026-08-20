@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
-import { resetTrackingData } from '@/services/trackingDataReset';
+import { resetTrackingData } from '@/app/lifecycle/trackingDataReset';
 
 interface ResetTrackingDataSectionProps {
   onShowToast?: (msg: string, icon?: string) => void;

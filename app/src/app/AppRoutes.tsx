@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { havenRouteTransition, havenRouteVariants } from '@/shared/motion/motionPresets';
 import { HomeView } from '@/features/home';
-import type { AddToast } from '@/hooks/useAppModals';
+import type { AddToast } from '@/app/hooks/useAppModals';
 
 const TimelineView = lazy(async () => ({ default: (await import('@/features/timeline')).TimelineView }));
 const GrowthView = lazy(async () => ({ default: (await import('@/features/growth')).GrowthView }));

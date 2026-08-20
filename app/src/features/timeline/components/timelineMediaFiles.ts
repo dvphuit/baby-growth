@@ -1,5 +1,5 @@
 import type { TimelineMediaItem } from '@/types';
-import { removeLocalMedia, setLocalMedia } from '@/services/localDb';
+import { removeLocalMedia, setLocalMedia } from '@/data/localDb';
 
 interface FaceDetectorResult {
   boundingBox: DOMRectReadOnly;
@@ -90,6 +90,6 @@ export async function removeTimelineMediaFiles(items: readonly TimelineMediaItem
   await Promise.all(items.flatMap((item) => item.blobId ? [removeLocalMedia(item.blobId)] : []));
   const driveFileIds = items.flatMap((item) => item.driveFileId ? [item.driveFileId] : []);
   if (driveFileIds.length === 0 || (typeof navigator !== 'undefined' && !navigator.onLine)) return;
-  const { deleteTimelineMediaFromDrive } = await import('@/services/googleDriveSync');
+  const { deleteTimelineMediaFromDrive } = await import('@/features/sync');
   await Promise.allSettled(driveFileIds.map((fileId) => deleteTimelineMediaFromDrive(fileId, { interactive: false })));
 }

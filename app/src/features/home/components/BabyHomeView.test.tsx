@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BabyHomeView } from './BabyHomeView';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type { BabyActivity, TimelineItem } from '@/types';
 
 let records: BabyActivity[] = [];
 
-vi.mock('@/store/useActivityStore', () => ({
+vi.mock('@/features/activities/store/useActivityStore', () => ({
   useActivityStore: (selector: (state: { babyActivities: BabyActivity[] }) => unknown) => selector({ babyActivities: records }),
 }));
 

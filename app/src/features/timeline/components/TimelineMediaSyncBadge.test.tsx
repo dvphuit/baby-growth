@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   publishTimelineMediaSyncProgress,
   resetTimelineMediaSyncProgress,
-} from '@/services/timelineMediaSyncProgress';
+} from '@/features/sync/timelineMediaSyncProgress';
 import { TimelineMediaSyncBadge } from './TimelineMediaSyncBadge';
 
 describe('TimelineMediaSyncBadge', () => {

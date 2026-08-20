@@ -17,6 +17,13 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['babygrowth_v2_', 'production persistence must use the current generation directly'],
   ['babygrowth_v3_', 'production persistence must use the current generation directly'],
   ['babygrowth_v4_mom', 'removed Mom store must not reappear as a persistence key'],
+  ['@/domain/', 'domain logic must be owned by a feature'],
+  ['@/hooks/', 'hooks must be owned by app, feature, or shared boundaries'],
+  ['@/store/useActivityStore', 'activity state must be owned by the activities feature'],
+  ['@/store/useExpenseStore', 'expense state must be owned by the expenses feature'],
+  ['@/store/useReminderStore', 'reminder state must be owned by the reminders feature'],
+  ['@/store/useTimelineStore', 'timeline state must be owned by the timeline feature'],
+  ['@/services/googleDriveSync', 'Google Drive sync must use the sync feature boundary'],
 ];
 
 function productionFiles(directory) {
@@ -58,6 +65,25 @@ describe('architecture acceptance guard', () => {
   it('does not keep the removed modal or mom-store modules', () => {
     expect(existsSync(join(SRC, 'store', 'useMomStore.ts'))).toBe(false);
     expect(existsSync(join(SRC, 'components', 'modals'))).toBe(false);
+  });
+
+  it('keeps domain logic, hooks, and feature stores with their owners', () => {
+    expect(existsSync(join(SRC, 'domain'))).toBe(false);
+    expect(existsSync(join(SRC, 'hooks'))).toBe(false);
+
+    for (const legacyPath of [
+      join(SRC, 'store', 'useActivityStore.ts'),
+      join(SRC, 'store', 'useExpenseStore.ts'),
+      join(SRC, 'store', 'useReminderStore.ts'),
+      join(SRC, 'store', 'useTimelineStore.ts'),
+      join(SRC, 'services', 'googleDriveSync.ts'),
+      join(SRC, 'services', 'localDb.ts'),
+      join(SRC, 'services', 'notificationService.ts'),
+      join(SRC, 'services', 'timelineMediaDriveSync.ts'),
+      join(SRC, 'services', 'timelineMediaSyncProgress.ts'),
+    ]) {
+      expect(existsSync(legacyPath), `${relative(ROOT, legacyPath)} should not remain`).toBe(false);
+    }
   });
 
   it('uses a non-AI package identity in package metadata and lockfile', () => {

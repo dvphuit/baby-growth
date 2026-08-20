@@ -16,7 +16,7 @@ import {
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
-import { useFamily } from '@/hooks/useFamily';
+import { useFamily } from '@/features/profile/hooks/useFamily';
 import { useBabyStore } from '@/store/useBabyStore';
 
 interface EditProfileModalProps {

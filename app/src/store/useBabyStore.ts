@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { FAMILY_DATA, INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
-import { indexedDbStorage } from '@/services/localDb';
+import { indexedDbStorage } from '@/data/localDb';
 import type { DailyHabit, FamilyData, GrowthHistoryRecord, StageData, StageKey } from '@/types';
 import { generateId } from '@/utils/format';
 

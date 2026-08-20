@@ -1,7 +1,7 @@
 import { useState, useId } from 'react';
 import { Milk, ArrowRight } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
-import { useActivityStore } from '@/store/useActivityStore';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 
 interface AddPumpingModalProps {
   isOpen: boolean;

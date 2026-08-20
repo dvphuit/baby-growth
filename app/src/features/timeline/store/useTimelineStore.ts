@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { indexedDbStorage } from '@/services/localDb';
+import { indexedDbStorage } from '@/data/localDb';
 import type { TimelineItem, TimelineMediaItem, CalendarViewMode } from '@/types';
 import { INITIAL_TIMELINE_ITEMS, FAMILY_DATA } from '@/data/seedData';
 import { todayStr, currentTimeStr } from '@/utils/date';
 import { generateId } from '@/utils/format';
-import { useUIStore } from './useUIStore';
-import { useBabyStore } from './useBabyStore';
+import { useUIStore } from '@/store/useUIStore';
+import { useBabyStore } from '@/store/useBabyStore';
 
 interface TimelineStoreState {
   timelineItems: TimelineItem[];

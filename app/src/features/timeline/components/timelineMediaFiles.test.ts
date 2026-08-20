@@ -6,7 +6,7 @@ const localMedia = vi.hoisted(() => ({
   removeLocalMedia: vi.fn(),
 }));
 
-vi.mock('@/services/localDb', () => localMedia);
+vi.mock('@/data/localDb', () => localMedia);
 
 describe('timelineMediaFiles', () => {
   beforeEach(() => {

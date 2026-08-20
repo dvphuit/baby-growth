@@ -16,12 +16,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useFamily } from '@/hooks/useFamily';
+import { useFamily } from '@/features/profile/hooks/useFamily';
 import { GoogleSyncCard } from './GoogleSyncCard';
 import { ResetTrackingDataSection } from './ResetTrackingDataSection';
 import { formatDateDisplay } from '@/utils/date';
 import { getZodiacSign } from '@/utils/zodiac';
-import { getRealGrowthHistory } from '@/domain/growthSelectors';
+import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { AppBar } from '@/shared/ui/AppBar';
 
 interface ProfileViewProps {

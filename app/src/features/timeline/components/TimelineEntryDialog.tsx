@@ -46,29 +46,29 @@ import {
   assessDiaper,
   assessTemperature,
   type LiveAssessment,
-} from '@/domain/activityAssessments';
-import { getAgeInMonths } from '@/domain/dailyCareTargets';
+} from '@/features/activities/domain/activityAssessments';
+import { getAgeInMonths } from '@/features/activities/domain/dailyCareTargets';
 import {
   detectTimelineMediaType,
   readTimelineMediaFiles,
   removeTimelineMediaFiles,
 } from '@/features/timeline/components/timelineMediaFiles';
-import { getTimelineMediaItems } from '@/domain/timelineMedia';
-import { useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
+import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
+import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import {
   useActivityStore,
   type NewBabyActivity,
   type NewMomActivity,
-} from '@/store/useActivityStore';
+} from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type {
   ActivityRecord,
   GrowthHistoryRecord,
   TimelineItem,
   TimelineMediaItem,
 } from '@/types';
-import { buildBabyTimelineEntry, type DerivedTimelineEntry } from '@/domain/timelineSelectors';
+import { buildBabyTimelineEntry, type DerivedTimelineEntry } from '@/features/timeline/domain/timelineSelectors';
 import { entryMeta } from '@/features/timeline/components/timelineEntryPresentation';
 
 export type JournalTimelineEntry = DerivedTimelineEntry & { moment?: TimelineItem };

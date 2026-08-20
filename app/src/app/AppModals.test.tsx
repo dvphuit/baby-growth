@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import type { AppModalController } from '@/hooks/useAppModals';
+import type { AppModalController } from '@/app/hooks/useAppModals';
 import { AppModals } from './AppModals';
 
 vi.mock('@/features/activities', () => ({

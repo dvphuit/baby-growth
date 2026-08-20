@@ -1,5 +1,5 @@
 import { Image as ImageIcon } from 'lucide-react';
-import { getTimelineMediaItems } from '@/domain/timelineMedia';
+import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
 import { TimelineMediaButton } from './TimelineEntryDialog';
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { reloadPage } from '@/services/appRuntime';
-import { startAutoSync } from '@/services/googleDriveSync';
+import { startAutoSync } from '@/features/sync';
 
 export function useAutoSyncLifecycle(): void {
   useEffect(() => {

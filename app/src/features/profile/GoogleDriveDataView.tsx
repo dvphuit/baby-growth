@@ -18,14 +18,14 @@ import {
   SYNC_KEYS,
   type DriveBackupSummary,
   type DriveTimelineMediaFile,
-} from '@/services/googleDriveSync';
+} from '@/features/sync';
 import {
   getAllLocalRecords,
   listLocalMedia,
   removeLocalMedia,
   waitForLocalRecordWrites,
   type LocalMediaRecord,
-} from '@/services/localDb';
+} from '@/data/localDb';
 import {
   clearDiagnosticLogs,
   formatDiagnosticLogs,
@@ -33,8 +33,8 @@ import {
   logDiagnostic,
   subscribeDiagnosticLogs,
   type DiagnosticLogEntry,
-} from '@/services/diagnosticLog';
-import { useTimelineStore } from '@/store/useTimelineStore';
+} from '@/app/diagnostics/diagnosticLog';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type { TimelineMediaItem } from '@/types';
 
 interface GoogleDriveDataViewProps {

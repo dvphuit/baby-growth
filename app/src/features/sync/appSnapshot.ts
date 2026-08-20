@@ -1,9 +1,9 @@
-import type { MedicationCatalogItem } from '@/domain/medicationCatalog';
-import { useActivityStore } from '@/store/useActivityStore';
+import type { MedicationCatalogItem } from '@/features/activities/domain/medicationCatalog';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useExpenseStore } from '@/store/useExpenseStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import type {
   BabyActivity,

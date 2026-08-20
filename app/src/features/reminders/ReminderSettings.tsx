@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { Bell, BellOff, Trash2 } from 'lucide-react';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
-import { getNotificationCapability, requestSystemNotificationPermission } from '@/services/notificationService';
-import { useReminderStore } from '@/store/useReminderStore';
+import { getNotificationCapability, requestSystemNotificationPermission } from '@/features/reminders/services/notificationService';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import type { ReminderMode, ReminderRepeat, ReminderType } from '@/types/reminder';
 
 function localDateTimeInputValue(date = new Date(Date.now() + 60 * 60_000)): string {

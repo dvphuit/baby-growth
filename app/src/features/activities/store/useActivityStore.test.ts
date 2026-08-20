@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/services/localDb', () => ({
+vi.mock('@/data/localDb', () => ({
   indexedDbStorage: {
     getItem: vi.fn(async () => null),
     setItem: vi.fn(async () => undefined),
@@ -8,8 +8,8 @@ vi.mock('@/services/localDb', () => ({
   },
 }));
 
-import { useActivityStore } from './useActivityStore';
-import { createDefaultMedicationCatalog } from '@/domain/medicationCatalog';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { createDefaultMedicationCatalog } from '@/features/activities/domain/medicationCatalog';
 
 describe('useActivityStore', () => {
   beforeEach(() => {

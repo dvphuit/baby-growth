@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { getDueOccurrences, getReminderOccurrences } from '@/domain/reminderScheduler';
-import { showReminderNotification } from '@/services/notificationService';
-import { useActivityStore } from '@/store/useActivityStore';
-import { useReminderStore } from '@/store/useReminderStore';
+import { getDueOccurrences, getReminderOccurrences } from '@/features/reminders/domain/reminderScheduler';
+import { showReminderNotification } from '@/features/reminders/services/notificationService';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 
 interface ReminderLifecycleOptions {
   onQuickLog?: (action: string) => void;

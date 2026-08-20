@@ -6,12 +6,12 @@ import App from './app/App';
 import { isMockDataEnabled, seedMockData } from './data/mockData';
 import { SYNC_KEYS } from './features/sync';
 import './index.css';
-import { removeLocalRecord } from './services/localDb';
-import { useActivityStore } from './store/useActivityStore';
+import { removeLocalRecord } from '@/data/localDb';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from './store/useBabyStore';
-import { useExpenseStore } from './store/useExpenseStore';
-import { useReminderStore } from './store/useReminderStore';
-import { useTimelineStore } from './store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
 const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses', 'babygrowth_v4_sync_meta'];
 

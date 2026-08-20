@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MomHomeView } from './MomHomeView';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type { MomActivity, TimelineItem } from '@/types';
 
 let records: MomActivity[] = [];
 
-vi.mock('@/store/useActivityStore', () => ({
+vi.mock('@/features/activities/store/useActivityStore', () => ({
   useActivityStore: (selector: (state: { momActivities: MomActivity[] }) => unknown) => selector({ momActivities: records }),
 }));
 

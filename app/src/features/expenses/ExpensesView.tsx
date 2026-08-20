@@ -21,8 +21,8 @@ import {
   X,
 } from 'lucide-react';
 import { getExpenseCategory } from '@/data/expenseCategories';
-import type { AddToast } from '@/hooks/useAppModals';
-import { useExpenseStore } from '@/store/useExpenseStore';
+import type { AddToast } from '@/app/hooks/useAppModals';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import type { ExpenseRecord } from '@/types/expense';
 import { AddExpenseModal } from './AddExpenseModal';
 import { ExpenseCategoryIcon } from './ExpenseCategoryIcon';

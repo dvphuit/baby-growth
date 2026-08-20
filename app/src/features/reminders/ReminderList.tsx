@@ -1,7 +1,7 @@
 import { Check, Clock3, Edit3 } from 'lucide-react';
-import { getReminderOccurrences } from '@/domain/reminderScheduler';
-import { useActivityStore } from '@/store/useActivityStore';
-import { useReminderStore } from '@/store/useReminderStore';
+import { getReminderOccurrences } from '@/features/reminders/domain/reminderScheduler';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import type { ReminderOccurrence } from '@/types/reminder';
 
 interface ReminderListProps {

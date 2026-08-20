@@ -5,7 +5,7 @@ import {
   getDiagnosticLogs,
   logDiagnostic,
   subscribeDiagnosticLogs,
-} from './diagnosticLog';
+} from '@/app/diagnostics/diagnosticLog';
 
 describe('diagnosticLog', () => {
   beforeEach(() => {

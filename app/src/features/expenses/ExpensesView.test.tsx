@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useExpenseStore } from '@/store/useExpenseStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { ExpensesView } from './ExpensesView';
 
 const records = [

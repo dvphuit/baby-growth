@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useBabyStore } from './useBabyStore';
-import { useExpenseStore } from './useExpenseStore';
+import { useBabyStore } from '@/store/useBabyStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 
 describe('tracking profile reset', () => {
   beforeEach(() => {

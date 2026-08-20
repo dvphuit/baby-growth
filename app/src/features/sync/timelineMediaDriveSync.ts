@@ -1,8 +1,8 @@
-import { getLocalMedia, waitForLocalRecordWrites } from './localDb';
+import { getLocalMedia, waitForLocalRecordWrites } from '@/data/localDb';
 import { uploadTimelineMediaToDrive } from '@/features/sync/googleDriveSync';
-import { logDiagnostic } from './diagnosticLog';
+import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { publishTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
 
 const TIMELINE_STORAGE_KEY = 'babygrowth_v4_timeline';

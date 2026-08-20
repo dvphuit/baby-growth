@@ -3,7 +3,7 @@ import { Calendar, Check } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { EXPENSE_CATEGORIES } from '@/data/expenseCategories';
-import { useExpenseStore } from '@/store/useExpenseStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import type { ExpenseRecord } from '@/types/expense';
 import { evaluateMathExpression, formatExpression } from '@/utils/expenseMath';
 import { ExpenseCategoryIcon } from './ExpenseCategoryIcon';

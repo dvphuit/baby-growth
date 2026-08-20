@@ -13,7 +13,7 @@ import {
   syncWithGoogleDrive,
   type SyncResult,
   type SyncState,
-} from '@/services/googleDriveSync';
+} from '@/features/sync';
 
 interface GoogleSyncCardProps {
   onShowToast?: (message: string, icon?: string) => void;

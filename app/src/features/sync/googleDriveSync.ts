@@ -1,6 +1,6 @@
 import { exportAppSnapshot, parseAppSnapshot, applyAppSnapshot, subscribeAppSnapshotChanges, type AppSnapshot } from './appSnapshot';
-import { getLocalRecord, setLocalRecord } from '@/services/localDb';
-import { logDiagnostic } from '@/services/diagnosticLog';
+import { getLocalRecord, setLocalRecord } from '@/data/localDb';
+import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 
 const SYNC_FILE_NAME = 'babygrowth-sync.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
@@ -475,7 +475,7 @@ export async function deleteTimelineMediaFromDrive(
 }
 
 async function syncPendingTimelineMedia(interactive: boolean): Promise<void> {
-  const { syncTimelineMediaToDrive } = await import('@/services/timelineMediaDriveSync');
+  const { syncTimelineMediaToDrive } = await import('@/features/sync/timelineMediaDriveSync');
   await runWithAutoSyncSuppressed(() => syncTimelineMediaToDrive({ interactive }));
 }
 

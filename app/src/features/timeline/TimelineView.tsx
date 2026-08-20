@@ -14,12 +14,12 @@ import {
   type EditableTimelineSource,
 } from '@/features/timeline/components/TimelineEntryDialog';
 import { entryMeta } from '@/features/timeline/components/timelineEntryPresentation';
-import { getRealGrowthHistory } from '@/domain/growthSelectors';
-import { getTimelineMediaItems } from '@/domain/timelineMedia';
-import { buildTimelineEntries, filterTimelineByLocalDateRange } from '@/domain/timelineSelectors';
-import { useActivityStore } from '@/store/useActivityStore';
+import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
+import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
+import { buildTimelineEntries, filterTimelineByLocalDateRange } from '@/features/timeline/domain/timelineSelectors';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import type { TimelineItem } from '@/types';
 

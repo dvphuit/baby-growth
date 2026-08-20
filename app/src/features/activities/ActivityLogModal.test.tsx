@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActivityLogModal } from './ActivityLogModal';
-import { useActivityStore } from '@/store/useActivityStore';
-import { createDefaultMedicationCatalog } from '@/domain/medicationCatalog';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { createDefaultMedicationCatalog } from '@/features/activities/domain/medicationCatalog';
 
 describe('ActivityLogModal', () => {
   beforeEach(() => {

@@ -3,13 +3,13 @@ import {
   runWithAutoSyncPaused,
   SYNC_KEYS,
 } from '@/features/sync';
-import { useActivityStore } from '@/store/useActivityStore';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
-import { useExpenseStore } from '@/store/useExpenseStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import { clearLocalMedia, waitForLocalRecordWrites } from './localDb';
+import { clearLocalMedia, waitForLocalRecordWrites } from '@/data/localDb';
 
 const TRACKING_STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses'] as const;
 

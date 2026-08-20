@@ -4,7 +4,7 @@ import {
   getTimelineMediaSyncProgress,
   subscribeTimelineMediaSyncProgress,
   type TimelineMediaSyncProgress,
-} from '@/services/timelineMediaSyncProgress';
+} from '@/features/sync/timelineMediaSyncProgress';
 import type { TimelineMediaItem } from '@/types';
 
 interface TimelineMediaSyncBadgeProps {

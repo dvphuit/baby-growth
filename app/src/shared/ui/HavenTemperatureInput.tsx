@@ -1,6 +1,6 @@
 import { Minus, Plus, Thermometer, Sparkles, AlertCircle, AlertTriangle, Flame, Check } from 'lucide-react';
 import React, { useId, useMemo } from 'react';
-import { getTemperatureStatus, type TemperatureStatus } from '@/domain/dailyCareTargets';
+import { getTemperatureStatus, type TemperatureStatus } from '@/features/activities/domain/dailyCareTargets';
 
 export interface HavenTemperatureInputProps {
   value: number | string;

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ModalMotionScope } from '@/shared/motion/ModalMotionScope';
 import type { ActivityLogMode } from '@/features/activities';
-import type { AddToast, AppModalController } from '@/hooks/useAppModals';
+import type { AddToast, AppModalController } from '@/app/hooks/useAppModals';
 
 const loadQuickLogModal = () => import('@/features/activities');
 const loadActivityLogModal = () => import('@/features/activities');

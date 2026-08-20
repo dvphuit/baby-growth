@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { downloadTimelineMediaFromDrive } from '@/services/googleDriveSync';
-import { getLocalMedia } from '@/services/localDb';
+import { downloadTimelineMediaFromDrive } from '@/features/sync';
+import { getLocalMedia } from '@/data/localDb';
 import type { TimelineMediaItem } from '@/types';
 
 // Map of active object URLs with reference count

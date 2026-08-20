@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearLocalMedia, getLocalMedia, setLocalMedia } from '@/services/localDb';
-import { useTimelineStore } from '@/store/useTimelineStore';
+import { clearLocalMedia, getLocalMedia, setLocalMedia } from '@/data/localDb';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { GoogleDriveDataView } from './GoogleDriveDataView';
 
 const drive = vi.hoisted(() => ({
@@ -16,7 +16,7 @@ const drive = vi.hoisted(() => ({
   requestGoogleAccessToken: vi.fn(),
 }));
 
-vi.mock('@/services/googleDriveSync', () => drive);
+vi.mock('@/features/sync', () => drive);
 describe('GoogleDriveDataView', () => {
   beforeEach(async () => {
     window.localStorage.clear();

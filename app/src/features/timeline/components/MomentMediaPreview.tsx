@@ -12,7 +12,7 @@ import {
 } from 'motion/react';
 import { havenLayoutTransition } from '@/shared/motion/motionPresets';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
-import { preloadTimelineMedia, useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
+import { preloadTimelineMedia, useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import type { TimelineMediaItem } from '@/types';
 
 export interface MomentMediaPreviewState {

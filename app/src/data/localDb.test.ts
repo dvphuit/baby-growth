@@ -63,7 +63,7 @@ describe('localDb pending writes', () => {
 
   it('keeps the write barrier pending until the IndexedDB transaction completes', async () => {
     const indexedDb = installControlledIndexedDb();
-    const { indexedDbStorage, waitForLocalRecordWrites } = await import('./localDb');
+    const { indexedDbStorage, waitForLocalRecordWrites } = await import('@/data/localDb');
 
     const write = Promise.resolve(indexedDbStorage.setItem('key', 'value'));
     indexedDb.openRequest.onsuccess?.(new Event('success'));
@@ -85,14 +85,14 @@ describe('localDb pending writes', () => {
   });
 
   it('resolves immediately when the requested keys have no pending writes', async () => {
-    const { waitForLocalRecordWrites } = await import('./localDb');
+    const { waitForLocalRecordWrites } = await import('@/data/localDb');
 
     await expect(waitForLocalRecordWrites(['idle-key'])).resolves.toBeUndefined();
   });
 
   it('keeps the removal barrier pending until the IndexedDB transaction completes', async () => {
     const indexedDb = installControlledIndexedDb();
-    const { removeLocalRecord, waitForLocalRecordWrites } = await import('./localDb');
+    const { removeLocalRecord, waitForLocalRecordWrites } = await import('@/data/localDb');
 
     const removal = removeLocalRecord('key');
     indexedDb.openRequest.onsuccess?.(new Event('success'));
@@ -116,7 +116,7 @@ describe('localDb pending writes', () => {
   it('does not resurrect a removed record from legacy localStorage', async () => {
     window.localStorage.setItem('key', 'stale-value');
     const indexedDb = installControlledIndexedDb();
-    const { indexedDbStorage } = await import('./localDb');
+    const { indexedDbStorage } = await import('@/data/localDb');
 
     const removal = indexedDbStorage.removeItem('key');
     indexedDb.openRequest.onsuccess?.(new Event('success'));
@@ -131,7 +131,7 @@ describe('localDb pending writes', () => {
 
   it('rejects a tracked write when its IndexedDB transaction aborts', async () => {
     const indexedDb = installControlledIndexedDb();
-    const { indexedDbStorage, waitForLocalRecordWrites } = await import('./localDb');
+    const { indexedDbStorage, waitForLocalRecordWrites } = await import('@/data/localDb');
     const write = Promise.resolve(indexedDbStorage.setItem('key', 'value'));
     indexedDb.openRequest.onsuccess?.(new Event('success'));
     await Promise.resolve();
@@ -151,7 +151,7 @@ describe('localDb pending writes', () => {
 
   it('rejects a tracked removal when its IndexedDB transaction errors', async () => {
     const indexedDb = installControlledIndexedDb();
-    const { removeLocalRecord, waitForLocalRecordWrites } = await import('./localDb');
+    const { removeLocalRecord, waitForLocalRecordWrites } = await import('@/data/localDb');
     const removal = removeLocalRecord('key');
     indexedDb.openRequest.onsuccess?.(new Event('success'));
     await Promise.resolve();
@@ -171,7 +171,7 @@ describe('localDb pending writes', () => {
 
   it('stores and removes media blobs without serializing them', async () => {
     vi.stubGlobal('indexedDB', undefined);
-    const { clearLocalMedia, getLocalMedia, listLocalMedia, removeLocalMedia, setLocalMedia } = await import('./localDb');
+    const { clearLocalMedia, getLocalMedia, listLocalMedia, removeLocalMedia, setLocalMedia } = await import('@/data/localDb');
     const photo = new Blob(['photo-bytes'], { type: 'image/jpeg' });
     const video = new Blob(['video-bytes'], { type: 'video/mp4' });
 
