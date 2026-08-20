@@ -13,10 +13,11 @@ vi.mock('@/features/activities', () => ({
   ),
   AddPumpingModal: () => <span>Add Pumping marker</span>,
 }));
-vi.mock('@/components/modals/AddGrowthModal', () => ({
+vi.mock('@/features/growth', () => ({
   AddGrowthModal: ({ onClose, onSuccessToast }: { onClose: () => void; onSuccessToast: (message: string, icon?: string) => void }) => (
     <div><span>Add Growth marker</span><button onClick={onClose}>close growth modal</button><button onClick={() => onSuccessToast('saved growth', '📏')}>success growth</button></div>
   ),
+  GrowthView: () => null,
 }));
 vi.mock('@/features/expenses', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
 vi.mock('@/features/timeline', () => ({
