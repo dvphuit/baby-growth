@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -92,7 +92,7 @@ describe('Haven reusable primitives', () => {
     expect(screen.getByRole('listbox', { name: 'Lọc người' })).toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'Của bé' }));
     expect(screen.getByRole('button', { name: 'Lọc người: Của bé' })).toBeInTheDocument();
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
   });
 
   it('supports numeric value options and disabled state in HavenDropdown', async () => {
@@ -148,18 +148,14 @@ describe('Haven reusable primitives', () => {
     }
     render(<DatePickerHarness />);
 
-    // Test single date picker
     const dateTrigger = screen.getByRole('button', { name: /Ngày đo: 18\/08\/2026/ });
     await user.click(dateTrigger);
     const day19 = screen.getByRole('gridcell', { name: /Thứ Tư, 19 tháng 8, 2026/i });
     await user.click(day19);
     expect(screen.getByRole('button', { name: /Ngày đo: 19\/08\/2026/ })).toBeInTheDocument();
 
-    // Test datetime picker
     const dateTimeTrigger = screen.getByRole('button', { name: /Thời điểm: 18\/08\/2026 · 10:30/ });
     await user.click(dateTimeTrigger);
-
-    // Switch to Time tab and adjust time
     const timeTab = screen.getByRole('tab', { name: /10:30/ });
     await user.click(timeTab);
     expect(screen.getByText('10')).toBeInTheDocument();

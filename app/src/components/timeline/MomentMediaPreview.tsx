@@ -7,6 +7,7 @@ import {
   motion,
   useMotionValue,
   useTransform,
+  type MotionValue,
   type PanInfo,
 } from 'motion/react';
 import { havenLayoutTransition } from '@/components/motion/motionPresets';
@@ -44,8 +45,6 @@ const dismissTransition = {
   ease: 'easeIn' as const,
 };
 
-/* ─── Slide item ──────────────────────────────────────────────── */
-
 function MomentMediaSlideItem({
   media,
   title,
@@ -53,6 +52,7 @@ function MomentMediaSlideItem({
   isActive,
   isInitial,
   originSrc,
+  layoutId,
   activeY,
   activeScale,
 }: {
@@ -62,12 +62,13 @@ function MomentMediaSlideItem({
   isActive: boolean;
   isInitial: boolean;
   originSrc?: string;
-  activeY: any;
-  activeScale: any;
+  layoutId?: string;
+  activeY: MotionValue<number>;
+  activeScale: MotionValue<number>;
 }) {
   const resolvedUrl = useTimelineMediaUrl(media);
-  const src = (isInitial && originSrc) || resolvedUrl || media?.url || '';
-  const isVideo = media?.type === 'video';
+  const src = (isInitial && originSrc) || resolvedUrl || media.url || '';
+  const isVideo = media.type === 'video';
 
   return (
     <div className="moment-media-preview-slide">
@@ -77,6 +78,7 @@ function MomentMediaSlideItem({
       >
         {isVideo ? (
           <motion.video
+            layoutId={isActive ? layoutId : undefined}
             className="moment-media-preview-asset"
             src={src || undefined}
             controls={isActive}
@@ -86,6 +88,7 @@ function MomentMediaSlideItem({
           />
         ) : (
           <motion.img
+            layoutId={isActive ? layoutId : undefined}
             className="moment-media-preview-asset"
             src={src || undefined}
             alt={`${title}, ảnh ${index + 1}`}
@@ -98,13 +101,13 @@ function MomentMediaSlideItem({
   );
 }
 
-/* ─── Preview content ─────────────────────────────────────────── */
-
 function MomentMediaPreviewContent({
   items,
   initialIndex,
   title,
+  layoutId,
   originSrc,
+  getLayoutId,
   onClose,
 }: MomentMediaPreviewContentProps) {
   const safeInitialIndex = Math.max(0, Math.min(items.length - 1, initialIndex));
@@ -128,7 +131,6 @@ function MomentMediaPreviewContent({
   const closingRef = useRef(false);
   const dismissingRef = useRef(false);
 
-  // Preload all media items immediately on mount
   useEffect(() => {
     items.forEach((item) => {
       void preloadTimelineMedia(item);
@@ -164,13 +166,10 @@ function MomentMediaPreviewContent({
 
   useLayoutEffect(() => {
     const updateWidth = () => {
-      if (stageRef.current) {
-        const newWidth = stageRef.current.clientWidth;
-        setContainerWidth(newWidth);
-        if (newWidth > 0) {
-          x.set(-activeIndexRef.current * newWidth);
-        }
-      }
+      if (!stageRef.current) return;
+      const newWidth = stageRef.current.clientWidth;
+      setContainerWidth(newWidth);
+      if (newWidth > 0) x.set(-activeIndexRef.current * newWidth);
     };
     updateWidth();
     window.addEventListener('resize', updateWidth);
@@ -206,21 +205,19 @@ function MomentMediaPreviewContent({
     const width = containerWidth || stageRef.current?.clientWidth || window.innerWidth;
     if (width <= 0) return;
 
-    if (!panDirection.current) {
-      if (Math.abs(info.offset.x) > 6 || Math.abs(info.offset.y) > 6) {
-        if (Math.abs(info.offset.x) >= Math.abs(info.offset.y)) {
-          panDirection.current = 'horizontal';
-        } else if (info.offset.y > 0) {
-          panDirection.current = 'vertical';
-        }
+    if (!panDirection.current && (Math.abs(info.offset.x) > 6 || Math.abs(info.offset.y) > 6)) {
+      if (Math.abs(info.offset.x) >= Math.abs(info.offset.y)) {
+        panDirection.current = 'horizontal';
+      } else if (info.offset.y > 0) {
+        panDirection.current = 'vertical';
       }
     }
 
     if (panDirection.current === 'horizontal') {
       let offset = info.offset.x;
       if (
-        (activeIndexRef.current === 0 && offset > 0) ||
-        (activeIndexRef.current === items.length - 1 && offset < 0)
+        (activeIndexRef.current === 0 && offset > 0)
+        || (activeIndexRef.current === items.length - 1 && offset < 0)
       ) {
         offset *= 0.35;
       }
@@ -244,11 +241,7 @@ function MomentMediaPreviewContent({
       } else {
         animate(y, 0, havenLayoutTransition);
         if (width > 0) {
-          trackAnimationRef.current = animate(
-            x,
-            -activeIndexRef.current * width,
-            pagerTransition,
-          );
+          trackAnimationRef.current = animate(x, -activeIndexRef.current * width, pagerTransition);
         }
       }
       return;
@@ -260,13 +253,13 @@ function MomentMediaPreviewContent({
 
       let targetIndex = activeIndexRef.current;
       if (
-        (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold) &&
-        activeIndexRef.current < items.length - 1
+        (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold)
+        && activeIndexRef.current < items.length - 1
       ) {
         targetIndex = activeIndexRef.current + 1;
       } else if (
-        (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold) &&
-        activeIndexRef.current > 0
+        (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold)
+        && activeIndexRef.current > 0
       ) {
         targetIndex = activeIndexRef.current - 1;
       }
@@ -295,6 +288,9 @@ function MomentMediaPreviewContent({
       animate={{ opacity: isDismissing || isClosing ? 0 : 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22, ease: 'easeOut' }}
+      onAnimationComplete={() => {
+        if (closingRef.current) onClose();
+      }}
     >
       <motion.button
         type="button"
@@ -307,18 +303,7 @@ function MomentMediaPreviewContent({
         style={{ opacity: backdropOpacity }}
         transition={{ duration: 0.22, ease: 'easeOut' }}
       />
-      <motion.section
-        className="moment-media-preview-frame"
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={isClosing
-          ? { opacity: 0, scale: 0.92, y: 16 }
-          : { opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        transition={{ duration: 0.22, ease: 'easeOut' }}
-        onAnimationComplete={() => {
-          if (closingRef.current) onClose();
-        }}
-      >
+      <section className="moment-media-preview-frame">
         <motion.header
           className="moment-media-preview-header"
           initial={{ opacity: 0, y: -12 }}
@@ -358,6 +343,7 @@ function MomentMediaPreviewContent({
                 isActive={index === activeIndex}
                 isInitial={index === safeInitialIndex}
                 originSrc={originSrc}
+                layoutId={index === safeInitialIndex ? layoutId : getLayoutId?.(index, media)}
                 activeY={y}
                 activeScale={dragScale}
               />
@@ -419,12 +405,10 @@ function MomentMediaPreviewContent({
             )) : <span>{activeIndex + 1} / {items.length}</span>}
           </div>
         </motion.footer>
-      </motion.section>
+      </section>
     </motion.div>
   );
 }
-
-/* ─── Public wrapper with AnimatePresence for shared element transitions ── */
 
 export function MomentMediaPreview({ preview, onClose }: MomentMediaPreviewProps) {
   if (typeof document === 'undefined') return null;

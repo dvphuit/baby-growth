@@ -43,7 +43,7 @@ export const havenRouteTransition: Transition = {
 };
 
 export const havenOverlayVariants: Variants = {
-  hidden: { opacity: 0, pointerEvents: 'none' },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, pointerEvents: 'auto' },
   exit: { opacity: 0, pointerEvents: 'none' },
 };

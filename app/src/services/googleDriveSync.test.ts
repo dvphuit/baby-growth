@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useBabyStore } from '@/store/useBabyStore';
 import { useActivityStore } from '@/store/useActivityStore';
+import { useBabyStore } from '@/store/useBabyStore';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -51,7 +52,6 @@ function installGoogleTokenClient(): void {
 
 describe('generation-2 Google Drive sync', () => {
   beforeEach(() => {
-    vi.resetModules();
     vi.clearAllMocks();
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-id');
     window.localStorage.clear();
@@ -60,6 +60,7 @@ describe('generation-2 Google Drive sync', () => {
     timelineMediaDriveSync.syncTimelineMediaToDrive.mockResolvedValue(0);
     useBabyStore.getState().resetToDefaults();
     useActivityStore.getState().resetTrackingData();
+    useExpenseStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
     useTimelineStore.setState({ timelineItems: [] });
     useUIStore.setState({ profileMode: 'baby' });

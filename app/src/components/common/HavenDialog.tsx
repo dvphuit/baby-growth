@@ -35,21 +35,26 @@ const MOBILE_DIALOG_EXIT = {
   },
 } as const;
 
+function matchesMobileDialog(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(MOBILE_DIALOG_MEDIA).matches;
+}
+
 export function HavenDialog({ open, onClose, title, description, children, footer, modal = true, className = '' }: HavenDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
   const surfaceLayoutId = useModalSurfaceLayoutId();
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia(MOBILE_DIALOG_MEDIA).matches,
-  );
+  const [isMobile, setIsMobile] = useState(matchesMobileDialog);
 
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const media = window.matchMedia(MOBILE_DIALOG_MEDIA);
     const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
     setIsMobile(media.matches);
-    media.addEventListener('change', handleChange);
-    return () => media.removeEventListener('change', handleChange);
+    media.addEventListener?.('change', handleChange);
+    return () => media.removeEventListener?.('change', handleChange);
   }, []);
 
   useEffect(() => {

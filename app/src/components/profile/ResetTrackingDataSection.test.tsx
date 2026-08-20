@@ -44,7 +44,7 @@ describe('ResetTrackingDataSection', () => {
 
     await openConfirmation(user);
 
-    expect(screen.getByText(/cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký, chi phí, nhắc nhở và trò chuyện với AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/cữ bú, giấc ngủ, tã, số đo, hoạt động, nhật ký, chi phí và nhắc nhở/i)).toBeInTheDocument();
     expect(screen.getByText(/Hồ sơ của Bé và Mẹ cùng thông tin lúc sinh vẫn được giữ lại/i)).toBeInTheDocument();
     expect(screen.getByText(/bản sao lưu hiện có trên Google Drive sẽ được thay thế/i)).toBeInTheDocument();
   });

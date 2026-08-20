@@ -154,6 +154,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           >
             <div
               className="sheet-drag-handle-area"
+              tabIndex={-1}
               onPointerDown={handleDragStart}
               style={{ touchAction: 'none', cursor: dismissible ? 'grab' : 'default' }}
             >
