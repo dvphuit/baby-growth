@@ -99,6 +99,12 @@ for (const file of sourceCodeFiles()) {
     .replace(/\.\.\/motion\/([^'"\s]+)/g, (_match, modulePath) => `@/shared/motion/${modulePath}`);
 
   const timelineOwned = file.startsWith(join(SRC, 'features', 'timeline'));
+  if (timelineOwned) {
+    source = source.replace(
+      /\.\.\/\.\.\/(data|types|domain|hooks|services|store|utils|config)(\/[^'"\s]+)?/g,
+      (_match, rootPath, modulePath = '') => `@/${rootPath}${modulePath}`,
+    );
+  }
   source = source.replace(/@\/components\/timeline\/([^'"\s]+)/g, (_match, modulePath) => (
     timelineOwned ? `@/features/timeline/components/${modulePath}` : '@/features/timeline'
   ));
