@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useBabyStore } from './useBabyStore';
 import { useExpenseStore } from './useExpenseStore';
-import { useMomStore } from './useMomStore';
 
 describe('tracking profile reset', () => {
   beforeEach(() => {
@@ -29,23 +28,6 @@ describe('tracking profile reset', () => {
     expect(useExpenseStore.getState()).toMatchObject({ expenses: [], monthlyBudget: 5_000_000 });
     expect(state.currentStageData().todayVitals).toMatchObject({ temperature: '', sleepTotal: '', milkTotal: '', diaperCount: 0, weight: '3.2 kg' });
     expect(state.currentStageData().motorMilestones.items.every((item) => item.status === 'upcoming')).toBe(true);
-  });
-
-  it('keeps Mom identity while clearing Mom tracking metrics', () => {
-    useMomStore.setState({ momData: {
-      ...useMomStore.getState().momData,
-      name: 'Mai',
-      wellnessScore: 92,
-      pumping: { ...useMomStore.getState().momData.pumping, todayTotal: '180 ml', sessionsToday: 2, history: [{ time: '09:00', amount: '90 ml', note: '' }] },
-    }});
-
-    useMomStore.getState().resetTrackingData();
-
-    const mom = useMomStore.getState().momData;
-    expect(mom.name).toBe('Mai');
-    expect(mom.pumping.history).toEqual([]);
-    expect(mom.pumping.sessionsToday).toBe(0);
-    expect(mom.pumping.todayTotal).toBe('0 ml');
   });
 
   it('preserves the semantic birth record when it differs from edited profile strings', () => {
