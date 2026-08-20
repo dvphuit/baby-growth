@@ -122,7 +122,6 @@ export interface FamilyData {
   notes?: string;
 }
 
-
 export interface PumpingSession {
   time: string;
   amount: string;
@@ -197,20 +196,6 @@ export interface TimelineMediaItem {
   name?: string;
   focalX?: number;
   focalY?: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  sender: 'ai' | 'user';
-  text: string;
-  time: string;
-}
-
-export interface AIChatKnowledge {
-  doctorName: string;
-  status: string;
-  suggestedQuestions: string[];
-  mockReplies: Record<string, string>;
 }
 
 export interface DailyHabit {
