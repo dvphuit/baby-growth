@@ -17,7 +17,7 @@ function feeding(id: string, amountMl: number, hour: number): BabyActivity {
 }
 
 function renderView(onOpenQuickLog = vi.fn()) {
-  render(<BabyHomeView onOpenScoreDetail={vi.fn()} onOpenQuickLog={onOpenQuickLog} onOpenAiChat={vi.fn()} />);
+  render(<BabyHomeView onOpenQuickLog={onOpenQuickLog} />);
   return onOpenQuickLog;
 }
 
@@ -44,7 +44,7 @@ describe('BabyHomeView', () => {
     expect(screen.getByRole('progressbar', { name: 'Tiến độ lượng sữa' }).parentElement).toHaveTextContent('0 ml');
     expect(screen.getByRole('progressbar', { name: 'Tiến độ giấc ngủ' }).parentElement).toHaveTextContent('0 phút');
     expect(screen.getByText('Chưa có dữ liệu được ghi nhận.')).toBeInTheDocument();
-    expect(screen.queryByText(/540 ml|12h 30p|Growth Score|AI/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/540 ml|12h 30p|Growth Score/)).not.toBeInTheDocument();
     expect(screen.queryByText(/hôm nay/i)).not.toBeInTheDocument();
   });
 
@@ -91,9 +91,7 @@ describe('BabyHomeView', () => {
   it('uses the shared notebook timeline in chronological order', () => {
     records = [feeding('late-feeding', 60, 11), feeding('early-feeding', 90, 7)];
 
-    const { container } = render(
-      <BabyHomeView onOpenScoreDetail={vi.fn()} onOpenQuickLog={vi.fn()} onOpenAiChat={vi.fn()} />,
-    );
+    const { container } = render(<BabyHomeView onOpenQuickLog={vi.fn()} />);
 
     expect(container.querySelector('.journal-story.owner-baby.haven-home-notebook')).toBeInTheDocument();
     expect(container.querySelector('.haven-activity-list')).not.toBeInTheDocument();
@@ -102,9 +100,7 @@ describe('BabyHomeView', () => {
 
   it('shows baby moments from today with media and opens their shared preview', () => {
     useTimelineStore.setState({ timelineItems: [moment()] });
-    const { container } = render(
-      <BabyHomeView onOpenScoreDetail={vi.fn()} onOpenQuickLog={vi.fn()} onOpenAiChat={vi.fn()} />,
-    );
+    const { container } = render(<BabyHomeView onOpenQuickLog={vi.fn()} />);
 
     expect(screen.getByRole('button', { name: 'Nụ cười ở nhà, 08:30' })).toBeInTheDocument();
     expect(container.querySelector('.journal-story-item.is-moment .journal-story-media')).toBeInTheDocument();
@@ -120,12 +116,10 @@ describe('BabyHomeView', () => {
     expect(itemButton).toBeInTheDocument();
     fireEvent.click(itemButton);
 
-    // Verify detail dialog is opened
     expect(screen.getByRole('dialog', { name: /Cữ bú/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Đóng' }).length).toBeGreaterThanOrEqual(1);
 
-    // Click edit button
     fireEvent.click(screen.getByRole('button', { name: /Chỉnh sửa/i }));
     expect(screen.getByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
   });

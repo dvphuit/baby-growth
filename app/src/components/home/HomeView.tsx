@@ -11,20 +11,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenQuickLog, onOpenPumpin
   const profileMode = useUIStore((state) => state.profileMode);
 
   if (profileMode === 'mom') {
-    return (
-      <MomHomeView
-        onOpenScoreDetail={() => undefined}
-        onOpenAiChat={() => undefined}
-        onOpenPumping={onOpenPumping}
-      />
-    );
+    return <MomHomeView onOpenPumping={onOpenPumping} />;
   }
 
-  return (
-    <BabyHomeView
-      onOpenScoreDetail={() => undefined}
-      onOpenQuickLog={onOpenQuickLog}
-      onOpenAiChat={() => undefined}
-    />
-  );
+  return <BabyHomeView onOpenQuickLog={onOpenQuickLog} />;
 };

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
 import { useActivityStore } from '@/store/useActivityStore';
@@ -10,35 +10,12 @@ import { MomentMediaPreview, type MomentMediaPreviewState } from '@/components/t
 import { TimelineEntryDialog, type JournalTimelineEntry } from '@/components/timeline/TimelineEntryDialog';
 import { isTimelineMomentOnLocalDay, timelineMomentOccurredAt, timelineMomentOwner } from '@/domain/timelineMedia';
 import { useTimelineStore } from '@/store/useTimelineStore';
+import { useLiveNow } from '@/shared/hooks/useLiveNow';
+import { formatClockTime, formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
 import type { MomActivity } from '@/types';
 
 export interface MomHomeViewProps {
-  onOpenScoreDetail: () => void;
-  onOpenAiChat: () => void;
   onOpenPumping: () => void;
-  onShowToast?: (message: string, icon?: string) => void;
-}
-
-function formatMinutes(total: number): string {
-  if (total <= 0) return 'Chưa ghi nhận';
-  const hours = Math.floor(total / 60);
-  const minutes = total % 60;
-  return hours > 0 ? `${hours}g ${minutes}p` : `${minutes} phút`;
-}
-
-function formatTime(iso: string | null): string {
-  if (!iso) return 'Chưa ghi nhận';
-  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
-}
-
-function formatClock(date: Date): string {
-  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
-}
-
-function formatDay(date: Date): string {
-  const weekday = new Intl.DateTimeFormat('vi-VN', { weekday: 'long' }).format(date);
-  const calendarDate = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(date);
-  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} · ${calendarDate}`;
 }
 
 function moodLabel(value: string | undefined): string {
@@ -60,7 +37,7 @@ function activityPresentation(type: MomActivity['type']): ActivityPresentation {
 
 function activityDetail(record: MomActivity): string {
   if (record.type === 'pumping') return `${record.amountMl} ml`;
-  if (record.type === 'sleep') return `Đã ngủ ${formatMinutes(record.durationMinutes)}`;
+  if (record.type === 'sleep') return `Đã ngủ ${formatDurationMinutes(record.durationMinutes)}`;
   if (record.type === 'mood') return `Mẹ cảm thấy ${moodLabel(record.mood).toLowerCase()}`;
   return '';
 }
@@ -68,18 +45,13 @@ function activityDetail(record: MomActivity): string {
 export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
   const records = useActivityStore((state) => state.momActivities);
   const timelineItems = useTimelineStore((state) => state.timelineItems);
-  const [now, setNow] = useState(() => new Date());
+  const now = useLiveNow();
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [selectedMomentId, setSelectedMomentId] = useState<string | null>(null);
   const [momentPreview, setMomentPreview] = useState<MomentMediaPreviewState | null>(null);
   const selectedRecord = selectedRecordId
     ? records.find((item) => item.id === selectedRecordId) ?? null
     : null;
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const metrics = useMemo(() => selectMomTodayMetrics(records, now), [records, now]);
   const dayActivities = useMemo(() => getMomActivitiesForDay(records, now), [records, now]);
@@ -113,7 +85,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
       detail: metrics.pumpingCount ? `${metrics.pumpingCount} cữ` : 'Chưa ghi nhận', tone: 'rose', Icon: Milk,
     },
     {
-      key: 'sleep', label: 'Giấc ngủ', value: metrics.sleepMinutes ? formatMinutes(metrics.sleepMinutes) : '—',
+      key: 'sleep', label: 'Giấc ngủ', value: metrics.sleepMinutes ? formatDurationMinutes(metrics.sleepMinutes) : '—',
       detail: metrics.sleepMinutes ? 'Tổng trong ngày' : 'Chưa ghi nhận', tone: 'lilac', Icon: Moon,
     },
     {
@@ -121,7 +93,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
       detail: latestMood ? 'Gần nhất' : 'Chưa ghi nhận', tone: 'honey', Icon: Smile,
     },
     {
-      key: 'latest', label: 'Cữ gần nhất', value: metrics.lastPumpingAt ? formatTime(metrics.lastPumpingAt) : '—',
+      key: 'latest', label: 'Cữ gần nhất', value: metrics.lastPumpingAt ? formatTimeOfDay(metrics.lastPumpingAt) : '—',
       detail: metrics.lastPumpingAt ? 'Thời điểm hút' : 'Chưa ghi nhận', tone: 'clay', Icon: Clock3,
     },
   ];
@@ -131,14 +103,14 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
       <section className="haven-daily-summary-card haven-daily-summary-card-mom" aria-labelledby="mom-today-title">
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-daily-topline">
-          <span className="haven-daily-date"><UserRound size={13} /> {formatDay(now)}</span>
+          <span className="haven-daily-date"><UserRound size={13} /> {formatLocalDay(now)}</span>
           <span className="haven-daily-count">{timelineEntries.length} hoạt động</span>
         </div>
 
         <div className="haven-clock-row">
           <div className="haven-daily-hero-copy">
             <span className="haven-daily-eyebrow"><Sparkles size={11} /> NHỊP CỦA MẸ</span>
-            <h2 id="mom-today-title" className="haven-live-clock"><SegmentClock time={formatClock(now)} /></h2>
+            <h2 id="mom-today-title" className="haven-live-clock"><SegmentClock time={formatClockTime(now)} /></h2>
           </div>
           <button type="button" className="haven-daily-add-btn" aria-label="+ Hút sữa" onClick={onOpenPumping}>
             <span><Plus size={22} strokeWidth={2.8} /></span>
@@ -183,7 +155,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
                         key={`moment-${timelineEntry.item.id}`}
                         item={timelineEntry.item}
                         occurredAt={timelineEntry.occurredAt}
-                        formattedTime={formatTime(timelineEntry.occurredAt)}
+                        formattedTime={formatTimeOfDay(timelineEntry.occurredAt)}
                         onOpenEntry={() => {
                           setSelectedRecordId(null);
                           setSelectedMomentId(timelineEntry.item.id);
@@ -199,7 +171,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
                   const detail = activityDetail(record);
                   return (
                     <article key={record.id} className={`journal-story-item tone-${tone}`}>
-                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTime(record.occurredAt)}</time>
+                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTimeOfDay(record.occurredAt)}</time>
                       <span className="journal-story-icon" aria-hidden="true"><Icon size={16} /></span>
                       <div className="journal-story-content">
                         <button
@@ -209,7 +181,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
                             setSelectedMomentId(null);
                             setSelectedRecordId(record.id);
                           }}
-                          aria-label={`${label}, ${formatTime(record.occurredAt)}`}
+                          aria-label={`${label}, ${formatTimeOfDay(record.occurredAt)}`}
                         >
                           <span className="journal-story-heading">
                             <strong className="journal-story-title">{label}</strong>

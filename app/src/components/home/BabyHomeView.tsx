@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Layers, Milk, Moon, Pill, Plus, Sparkles, Thermometer } from 'lucide-react';
 import { useActivityStore } from '@/store/useActivityStore';
@@ -15,29 +15,12 @@ import { MomentMediaPreview, type MomentMediaPreviewState } from '@/components/t
 import { TimelineEntryDialog, type JournalTimelineEntry } from '@/components/timeline/TimelineEntryDialog';
 import { isTimelineMomentOnLocalDay, timelineMomentOccurredAt, timelineMomentOwner } from '@/domain/timelineMedia';
 import { useTimelineStore } from '@/store/useTimelineStore';
+import { useLiveNow } from '@/shared/hooks/useLiveNow';
+import { formatClockTime, formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
 import type { BabyActivity } from '@/types';
 
 export interface BabyHomeViewProps {
-  onOpenScoreDetail: () => void;
   onOpenQuickLog: () => void;
-  onOpenAiChat: () => void;
-  onShowToast?: (message: string, icon?: string) => void;
-}
-
-function formatMinutes(total: number): string {
-  if (total <= 0) return 'Chưa ghi nhận';
-  const hours = Math.floor(total / 60);
-  const minutes = total % 60;
-  return hours > 0 ? `${hours}g ${minutes}p` : `${minutes} phút`;
-}
-
-function formatTime(iso: string | null): string {
-  if (!iso) return 'Chưa ghi nhận';
-  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
-}
-
-function formatClock(date: Date): string {
-  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
 }
 
 function progressPercent(value: number, target: number | null): number {
@@ -72,18 +55,13 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
   const timelineItems = useTimelineStore((state) => state.timelineItems);
   const currentStageData = useBabyStore((state) => state.currentStageData());
   const family = useFamily();
-  const [now, setNow] = useState(() => new Date());
+  const now = useLiveNow();
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [selectedMomentId, setSelectedMomentId] = useState<string | null>(null);
   const [momentPreview, setMomentPreview] = useState<MomentMediaPreviewState | null>(null);
   const selectedRecord = selectedRecordId
     ? records.find((item) => item.id === selectedRecordId) ?? null
     : null;
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const metrics = useMemo(() => selectBabyTodayMetrics(records, now), [records, now]);
   const dayActivities = useMemo(() => getBabyActivitiesForDay(records, now), [records, now]);
@@ -127,7 +105,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-clock-row">
           <div className="haven-daily-hero-copy">
-            <h2 id="baby-daily-title" className="haven-live-clock"><SegmentClock time={formatClock(now)} /></h2>
+            <h2 id="baby-daily-title" className="haven-live-clock"><SegmentClock time={formatClockTime(now)} /></h2>
           </div>
           <button type="button" className="haven-daily-add-btn" aria-label="+ Ghi nhanh" onClick={onOpenQuickLog}>
             <span><Plus size={22} strokeWidth={2.8} /></span>
@@ -162,7 +140,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
               <div><span>Giấc ngủ</span><small>Bao gồm giấc ngày</small></div>
             </div>
             <div className="haven-care-progress-value">
-              <strong>{metrics.sleepMinutes ? formatMinutes(metrics.sleepMinutes) : '0 phút'}</strong>
+              <strong>{metrics.sleepMinutes ? formatDurationMinutes(metrics.sleepMinutes) : '0 phút'}</strong>
               <span>{sleepTarget.label}</span>
             </div>
             <div className="haven-care-track" role="progressbar" aria-label="Tiến độ giấc ngủ" aria-valuemin={0} aria-valuemax={100} aria-valuenow={sleepProgress}>
@@ -180,7 +158,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
           <span className="haven-secondary-divider" />
           <div className="haven-secondary-metric haven-secondary-metric-clock">
             <img className="haven-card-decor" src="/assets/decor/care-clock.png" alt="" aria-hidden="true" />
-            <Clock3 size={14} /><span>Cữ gần nhất</span><strong>{metrics.lastFeedingAt ? formatTime(metrics.lastFeedingAt) : '—'}</strong>
+            <Clock3 size={14} /><span>Cữ gần nhất</span><strong>{metrics.lastFeedingAt ? formatTimeOfDay(metrics.lastFeedingAt) : '—'}</strong>
           </div>
         </div>
 
@@ -213,7 +191,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
                         key={`moment-${timelineEntry.item.id}`}
                         item={timelineEntry.item}
                         occurredAt={timelineEntry.occurredAt}
-                        formattedTime={formatTime(timelineEntry.occurredAt)}
+                        formattedTime={formatTimeOfDay(timelineEntry.occurredAt)}
                         onOpenEntry={() => {
                           setSelectedRecordId(null);
                           setSelectedMomentId(timelineEntry.item.id);
@@ -229,7 +207,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
                   const { summary, signs } = activityDisplay(record);
                   return (
                     <article key={record.id} className={`journal-story-item tone-${tone}`}>
-                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTime(record.occurredAt)}</time>
+                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTimeOfDay(record.occurredAt)}</time>
                       <span className="journal-story-icon" aria-hidden="true"><Icon size={16} /></span>
                       <div className="journal-story-content">
                         <button
@@ -239,7 +217,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
                             setSelectedMomentId(null);
                             setSelectedRecordId(record.id);
                           }}
-                          aria-label={`${label}, ${formatTime(record.occurredAt)}`}
+                          aria-label={`${label}, ${formatTimeOfDay(record.occurredAt)}`}
                         >
                           <span className="journal-story-heading">
                             <strong className="journal-story-title">{label}</strong>

@@ -10,6 +10,11 @@ vi.mock('@/store/useActivityStore', () => ({
   useActivityStore: (selector: (state: { momActivities: MomActivity[] }) => unknown) => selector({ momActivities: records }),
 }));
 
+function renderView(onOpenPumping = vi.fn()) {
+  render(<MomHomeView onOpenPumping={onOpenPumping} />);
+  return onOpenPumping;
+}
+
 describe('MomHomeView', () => {
   beforeEach(() => {
     records = [];
@@ -17,7 +22,7 @@ describe('MomHomeView', () => {
   });
 
   it('shows honest empty states instead of wellness demo values', () => {
-    render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />);
+    renderView();
     expect(screen.getAllByText('Chưa ghi nhận').length).toBeGreaterThanOrEqual(4);
     expect(screen.queryByText(/4.85 L|7.5h|Wellness|EPDS/)).not.toBeInTheDocument();
     expect(screen.queryByText(/hôm nay/i)).not.toBeInTheDocument();
@@ -31,15 +36,14 @@ describe('MomHomeView', () => {
       { id: 's1', owner: 'mom', type: 'sleep', durationMinutes: 180, occurredAt: now, createdAt: now },
       { id: 'm1', owner: 'mom', type: 'mood', mood: 'good', occurredAt: now, createdAt: now },
     ];
-    render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />);
+    renderView();
     expect(screen.getByText('200 ml · 2 cữ')).toBeInTheDocument();
     expect(screen.getByText('3g 0p')).toBeInTheDocument();
     expect(screen.getByText('Tốt')).toBeInTheDocument();
   });
 
   it('keeps pumping as a primary action', () => {
-    const onOpenPumping = vi.fn();
-    render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={onOpenPumping} onOpenAiChat={vi.fn()} />);
+    const onOpenPumping = renderView();
     fireEvent.click(screen.getByRole('button', { name: '+ Hút sữa' }));
     expect(onOpenPumping).toHaveBeenCalledTimes(1);
   });
@@ -53,7 +57,7 @@ describe('MomHomeView', () => {
       { id: 'old-note', owner: 'mom', type: 'recovery_note', note: 'Ghi chú hôm qua', occurredAt: yesterday.toISOString(), createdAt: yesterday.toISOString() },
     ];
 
-    render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />);
+    renderView();
 
     expect(screen.getByRole('heading', { name: 'Dòng thời gian' })).toBeInTheDocument();
     expect(screen.getAllByText('Tâm trạng').length).toBeGreaterThanOrEqual(1);
@@ -70,9 +74,7 @@ describe('MomHomeView', () => {
       { id: 'early-pump', owner: 'mom', type: 'pumping', amountMl: 90, side: 'both', occurredAt: early.toISOString(), createdAt: early.toISOString() },
     ];
 
-    const { container } = render(
-      <MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />,
-    );
+    const { container } = render(<MomHomeView onOpenPumping={vi.fn()} />);
 
     expect(container.querySelector('.journal-story.owner-mom.haven-home-notebook')).toBeInTheDocument();
     expect(container.querySelector('.haven-activity-list')).not.toBeInTheDocument();
@@ -93,7 +95,7 @@ describe('MomHomeView', () => {
       { ...base, id: 'baby-hidden', owner: 'baby', title: 'Khoảnh khắc của bé', tagType: 'general', type: 'daily' },
     ] });
 
-    render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />);
+    renderView();
 
     expect(screen.getByRole('button', { name: 'Một phút thư giãn, 16:20' })).toBeInTheDocument();
     expect(screen.queryByText('Khoảnh khắc của bé')).not.toBeInTheDocument();
@@ -104,17 +106,15 @@ describe('MomHomeView', () => {
     records = [
       { id: 'pump-test', owner: 'mom', type: 'pumping', amountMl: 120, side: 'both', occurredAt: now, createdAt: now },
     ];
-    const { container } = render(<MomHomeView onOpenScoreDetail={vi.fn()} onOpenPumping={vi.fn()} onOpenAiChat={vi.fn()} />);
+    const { container } = render(<MomHomeView onOpenPumping={vi.fn()} />);
 
     const itemButton = container.querySelector('.journal-story-main') as HTMLButtonElement;
     expect(itemButton).toBeInTheDocument();
     fireEvent.click(itemButton);
 
-    // Verify detail dialog is opened
     expect(screen.getByRole('dialog', { name: /Hút sữa/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Chỉnh sửa/i })).toBeInTheDocument();
 
-    // Click edit button
     fireEvent.click(screen.getByRole('button', { name: /Chỉnh sửa/i }));
     expect(screen.getByRole('button', { name: 'Lưu thay đổi' })).toBeInTheDocument();
   });
