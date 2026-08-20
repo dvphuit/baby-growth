@@ -84,7 +84,6 @@ export function HavenDialog({ open, onClose, title, description, children, foote
       {open && (
         <motion.div
           key="haven-dialog-backdrop"
-          layoutId={surfaceLayoutId ? `${surfaceLayoutId}-backdrop` : undefined}
           className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'}`.trim()}
           variants={havenOverlayVariants}
           initial="hidden"
