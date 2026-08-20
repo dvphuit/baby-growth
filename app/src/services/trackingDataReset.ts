@@ -6,7 +6,6 @@ import {
 import { useActivityStore } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useExpenseStore } from '@/store/useExpenseStore';
-import { useMomStore } from '@/store/useMomStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -33,7 +32,6 @@ function waitForStoreHydration(store: PersistedStore): Promise<void> {
 async function waitForTrackingStoresHydrated(): Promise<void> {
   await Promise.all([
     waitForStoreHydration(useBabyStore),
-    waitForStoreHydration(useMomStore),
     waitForStoreHydration(useActivityStore),
     waitForStoreHydration(useExpenseStore),
     waitForStoreHydration(useTimelineStore),
@@ -49,7 +47,6 @@ export async function resetTrackingData(): Promise<TrackingDataResetResult> {
       (item.mediaItems ?? []).flatMap((media) => media.driveFileId ? [media.driveFileId] : []));
 
     useBabyStore.getState().resetTrackingData();
-    useMomStore.getState().resetTrackingData();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
