@@ -1,62 +1,32 @@
 import { useMemo } from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { Clock3, HeartPulse, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
-import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { SegmentClock } from './SegmentClock';
-import { LazyMomentMediaPreview } from './LazyMomentMediaPreview';
-import { LazyTimelineEntryDialog } from './LazyTimelineEntryDialog';
+import { Clock3, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/features/activities/domain/activitySelectors';
-import { NotebookStory } from '@/features/timeline/components/NotebookStory';
-import { HomeMomentStoryItem } from '@/features/timeline/components/HomeMomentStoryItem';
-import { useHomeTimeline } from '../hooks/useHomeTimeline';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';
 import { formatClockTime, formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
-import type { MomActivity } from '@/types';
+import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
+import { SegmentClock } from './SegmentClock';
 
 export interface MomHomeViewProps {
   onOpenPumping: () => void;
 }
 
 function moodLabel(value: string | undefined): string {
-  const labels: Record<string, string> = { great: 'Rất tốt', good: 'Tốt', neutral: 'Bình thường', low: 'Không tốt', very_low: 'Rất không tốt' };
-  return value ? labels[value] ?? value : 'Chưa ghi nhận';
-}
-
-type ActivityPresentation = { label: string; tone: string; Icon: LucideIcon };
-
-function activityPresentation(type: MomActivity['type']): ActivityPresentation {
-  const values: Record<MomActivity['type'], ActivityPresentation> = {
-    pumping: { label: 'Hút sữa', tone: 'blue', Icon: Milk },
-    sleep: { label: 'Giấc ngủ', tone: 'lavender', Icon: Moon },
-    mood: { label: 'Tâm trạng', tone: 'rose', Icon: Smile },
-    recovery_note: { label: 'Phục hồi', tone: 'neutral', Icon: HeartPulse },
+  const labels: Record<string, string> = {
+    great: 'Rất tốt',
+    good: 'Tốt',
+    neutral: 'Bình thường',
+    low: 'Không tốt',
+    very_low: 'Rất không tốt',
   };
-  return values[type];
-}
-
-function activityDetail(record: MomActivity): string {
-  if (record.type === 'pumping') return `${record.amountMl} ml`;
-  if (record.type === 'sleep') return `Đã ngủ ${formatDurationMinutes(record.durationMinutes)}`;
-  if (record.type === 'mood') return `Mẹ cảm thấy ${moodLabel(record.mood).toLowerCase()}`;
-  return '';
+  return value ? labels[value] ?? value : 'Chưa ghi nhận';
 }
 
 export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
   const records = useActivityStore((state) => state.momActivities);
   const now = useLiveNow();
   const metrics = useMemo(() => selectMomTodayMetrics(records, now), [records, now]);
-  const dayActivities = useMemo(() => getMomActivitiesForDay(records, now), [records, now]);
-  const {
-    timelineEntries,
-    selectedRecord,
-    selectedMomentEntry,
-    momentPreview,
-    openRecord,
-    openMoment,
-    openMomentMedia,
-    closeEntry,
-    closeMomentPreview,
-  } = useHomeTimeline({ owner: 'mom', records, dayActivities, now });
+  const dayActivityCount = useMemo(() => getMomActivitiesForDay(records, now).length, [records, now]);
   const latestMood = metrics.latestMood?.type === 'mood' ? metrics.latestMood.mood : undefined;
   const pumpingTotal = metrics.pumpingCount ? `${metrics.pumpingAmountMl} ml` : 'Chưa ghi nhận';
 
@@ -85,7 +55,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-daily-topline">
           <span className="haven-daily-date"><UserRound size={13} /> {formatLocalDay(now)}</span>
-          <span className="haven-daily-count">{timelineEntries.length} hoạt động</span>
+          <span className="haven-daily-count">{dayActivityCount} hoạt động</span>
         </div>
 
         <div className="haven-clock-row">
@@ -113,71 +83,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
         </div>
       </section>
 
-      <section className="haven-activity-surface haven-activity-surface-mom" aria-labelledby="mom-recent-title">
-        <div className="haven-sheet-heading">
-          <div><span className="haven-eyebrow">NHẬT KÝ TRONG NGÀY</span><h3 id="mom-recent-title">Dòng thời gian</h3></div>
-          <button type="button" className="haven-text-action" onClick={onOpenPumping}><Plus size={12} /> Thêm</button>
-        </div>
-        {timelineEntries.length === 0 ? (
-          <div className="haven-empty-state haven-empty-state-mom">
-            <span><Sparkles size={18} /></span>
-            <strong>Mẹ chưa ghi hoạt động nào</strong>
-            <p>Ghi một hoạt động nhỏ để quan sát nhịp nghỉ ngơi và phục hồi của Mẹ.</p>
-            <button type="button" className="haven-empty-action" onClick={onOpenPumping}>Ghi hoạt động đầu tiên</button>
-          </div>
-        ) : (
-          <NotebookStory entries={timelineEntries} owner="mom" className="haven-home-notebook">
-            <section className="journal-period">
-              <div className="journal-period-items">
-                {timelineEntries.map((timelineEntry) => {
-                  if (timelineEntry.kind === 'moment') {
-                    return (
-                      <HomeMomentStoryItem
-                        key={`moment-${timelineEntry.item.id}`}
-                        item={timelineEntry.item}
-                        occurredAt={timelineEntry.occurredAt}
-                        formattedTime={formatTimeOfDay(timelineEntry.occurredAt)}
-                        onOpenEntry={() => openMoment(timelineEntry.item.id)}
-                        onOpenMedia={openMomentMedia}
-                      />
-                    );
-                  }
-                  const record = timelineEntry.record;
-                  const { label, tone, Icon } = activityPresentation(record.type);
-                  const detail = activityDetail(record);
-                  return (
-                    <article key={record.id} className={`journal-story-item tone-${tone}`}>
-                      <time className="journal-story-time" dateTime={record.occurredAt}>{formatTimeOfDay(record.occurredAt)}</time>
-                      <span className="journal-story-icon" aria-hidden="true"><Icon size={16} /></span>
-                      <div className="journal-story-content">
-                        <button
-                          type="button"
-                          className="journal-story-main"
-                          onClick={() => openRecord(record.id)}
-                          aria-label={`${label}, ${formatTimeOfDay(record.occurredAt)}`}
-                        >
-                          <span className="journal-story-heading">
-                            <strong className="journal-story-title">{label}</strong>
-                            {detail && <><span className="journal-story-separator" aria-hidden="true">·</span><span className="journal-story-summary">{detail}</span></>}
-                          </span>
-                          {record.note && <span className="journal-story-detail">{record.note}</span>}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          </NotebookStory>
-        )}
-      </section>
-      <LazyTimelineEntryDialog
-        open={selectedRecord !== null || selectedMomentEntry !== null}
-        entry={selectedMomentEntry ?? selectedRecord}
-        onClose={closeEntry}
-        onOpenMomentMedia={openMomentMedia}
-      />
-      <LazyMomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
+      <IdleHomeTimelinePreview owner="mom" onAddActivity={onOpenPumping} />
     </div>
   );
 };
