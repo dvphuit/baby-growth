@@ -1,6 +1,5 @@
-import { createContext, useContext, type ReactNode } from 'react';
-
-const ModalSurfaceLayoutIdContext = createContext<string | undefined>(undefined);
+import type { ReactNode } from 'react';
+import { ModalSurfaceLayoutIdContext } from './modalMotionContext';
 
 interface ModalMotionScopeProps {
   layoutId: string;
@@ -13,8 +12,4 @@ export function ModalMotionScope({ layoutId, children }: ModalMotionScopeProps) 
       {children}
     </ModalSurfaceLayoutIdContext.Provider>
   );
-}
-
-export function useModalSurfaceLayoutId(): string | undefined {
-  return useContext(ModalSurfaceLayoutIdContext);
 }

@@ -10,7 +10,7 @@ import {
   havenOverlayVariants,
   havenPressStrong,
 } from '@/components/motion/motionPresets';
-import { useModalSurfaceLayoutId } from '@/components/motion/ModalMotionScope';
+import { useModalSurfaceLayoutId } from '@/components/motion/modalMotionContext';
 
 interface HavenDialogProps {
   open: boolean;

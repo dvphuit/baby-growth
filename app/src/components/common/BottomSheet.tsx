@@ -9,7 +9,7 @@ import {
   havenSheetVariants,
   havenSnappySpring,
 } from '@/components/motion/motionPresets';
-import { useModalSurfaceLayoutId } from '@/components/motion/ModalMotionScope';
+import { useModalSurfaceLayoutId } from '@/components/motion/modalMotionContext';
 
 interface BottomSheetProps {
   isOpen: boolean;
