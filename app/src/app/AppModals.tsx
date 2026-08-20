@@ -5,7 +5,7 @@ import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 
 const loadQuickLogModal = () => import('@/features/activities');
 const loadActivityLogModal = () => import('@/features/activities');
-const loadAddGrowthModal = () => import('@/components/modals/AddGrowthModal');
+const loadAddGrowthModal = () => import('@/features/growth');
 const loadAddPumpingModal = () => import('@/features/activities');
 const loadAddExpenseModal = () => import('@/features/expenses');
 const loadAddPostModal = () => import('@/features/timeline');
