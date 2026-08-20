@@ -1,4 +1,4 @@
-.growth-ai-assessment-box {
+.growth-reference-box {
   background: linear-gradient(135deg, #F2F7EC 0%, #EAF1E1 100%);
   border: 1px solid #D2E2BE;
   border-radius: var(--radius-md);
@@ -9,13 +9,13 @@
   gap: 8px;
 }
 
-.growth-ai-icon {
+.growth-reference-icon {
   font-size: 18px;
   flex-shrink: 0;
   margin-top: 1px;
 }
 
-.growth-ai-text {
+.growth-reference-text {
   font-size: 11px;
   color: var(--color-primary-dark);
   line-height: 1.4;
