@@ -68,6 +68,23 @@ describe('interaction performance audit', () => {
     expect(pullToRefresh).not.toContain('will-change: transform');
   });
 
+  it('keeps route and modal motion bounded on large surfaces', () => {
+    const routes = source('app/AppRoutes.tsx');
+    const bottomSheet = source('shared/ui/BottomSheet.tsx');
+    const dialog = source('shared/ui/HavenDialog.tsx');
+
+    expect(routes).not.toContain('AnimatePresence');
+    expect(routes).not.toContain('exit="exit"');
+    expect(routes).toContain("location.key !== 'default'");
+
+    expect(bottomSheet).toContain('layoutId={surfaceLayoutId}');
+    expect(bottomSheet).not.toMatch(/<motion\.div\s+layout\s+layoutId=\{surfaceLayoutId\}/);
+    expect(dialog).toContain('layoutId={surfaceLayoutId}');
+    expect(dialog).not.toMatch(/<motion\.div\s+layout\s+layoutId=\{surfaceLayoutId\}/);
+    expect(dialog).toContain('duration: 0.16');
+    expect(dialog).not.toContain('scale: 0.995');
+  });
+
   it('keeps the baby timeline runtime behind an idle lazy boundary', () => {
     const homeView = source('features/home/components/HomeView.tsx');
     const babyHome = source('features/home/components/BabyHomeView.tsx');
