@@ -33,6 +33,18 @@ describe('useAppModals', () => {
     expect(result.current.isAnyModalOpen).toBe(true);
   });
 
+  it('opens and closes the pumping modal through the controller API', () => {
+    const { result } = renderHook(() => useAppModals());
+
+    act(() => result.current.openAddPumping());
+    expect(result.current.isAddPumpingOpen).toBe(true);
+    expect(result.current.isAnyModalOpen).toBe(true);
+
+    act(() => result.current.closeAddPumping());
+    expect(result.current.isAddPumpingOpen).toBe(false);
+    expect(result.current.isAnyModalOpen).toBe(false);
+  });
+
   it('opens vaccine reminders', () => {
     const { result } = renderHook(() => useAppModals());
     act(() => result.current.handleQuickAction('vaccine'));
