@@ -125,7 +125,6 @@ export function HavenDialog({ open, onClose, title, description, children, foote
           }}
         >
           <motion.div
-            layout
             layoutId={surfaceLayoutId}
             ref={dialogRef}
             className={`haven-dialog ${className}`.trim()}
