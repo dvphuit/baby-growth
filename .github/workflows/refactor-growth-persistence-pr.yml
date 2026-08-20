@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/refactor-growth-persistence-pr.yml
       - app/scripts/refactor-growth-persistence.mjs
+      - app/scripts/fix-growth-persistence-merge.mjs
 
 permissions:
   contents: write
@@ -30,17 +31,18 @@ jobs:
           cd app
           npm ci
           node scripts/refactor-growth-persistence.mjs
+          node scripts/fix-growth-persistence-merge.mjs
           npm test
           npm run lint
           npm run build
       - name: Commit verified growth persistence
         run: |
-          rm -f .github/workflows/refactor-growth-persistence-pr.yml app/scripts/refactor-growth-persistence.mjs
+          rm -f .github/workflows/refactor-growth-persistence-pr.yml app/scripts/refactor-growth-persistence.mjs app/scripts/fix-growth-persistence-merge.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- app/src ARCHITECTURE.md .github/workflows/refactor-growth-persistence-pr.yml app/scripts/refactor-growth-persistence.mjs
+          git add -- app/src ARCHITECTURE.md .github/workflows/refactor-growth-persistence-pr.yml app/scripts/refactor-growth-persistence.mjs app/scripts/fix-growth-persistence-merge.mjs
           git diff --cached --check
-          unexpected="$(git diff --cached --name-only | grep -Ev '^(app/src/|ARCHITECTURE\.md$|app/scripts/refactor-growth-persistence\.mjs$|\.github/workflows/refactor-growth-persistence-pr\.yml$)' || true)"
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(app/src/|ARCHITECTURE\.md$|app/scripts/(refactor-growth-persistence|fix-growth-persistence-merge)\.mjs$|\.github/workflows/refactor-growth-persistence-pr\.yml$)' || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected staged paths:"
             echo "$unexpected"
