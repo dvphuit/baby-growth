@@ -36,7 +36,8 @@ jobs:
             npm ci
             sed -i "/replaceExact('src\/features\/timeline\/TimelineView.test.tsx', \"useBabyStore.getState().updateFamilyData/d" scripts/refactor-profile-growth-state.mjs
             node scripts/refactor-profile-growth-state.mjs
-            sed -i "s#'../common/HavenIcons'#'@/shared/ui/HavenIcons'#; s#'../common/HavenDatePicker'#'@/shared/ui/HavenDatePicker'#; s#'../common/HavenDropdown'#'@/shared/ui/HavenDropdown'#" src/app/onboarding/OnboardingView.tsx
+            node --input-type=module -e "import fs from 'node:fs'; const fixes = new Map([['src/app/onboarding/OnboardingView.tsx', [[\"'../common/HavenIcons'\", \"'@/shared/ui/HavenIcons'\"], [\"'../common/HavenDatePicker'\", \"'@/shared/ui/HavenDatePicker'\"], [\"'../common/HavenDropdown'\", \"'@/shared/ui/HavenDropdown'\"]]], ['src/features/timeline/components/CalendarStrip.tsx', [[\"'../../data/seedData'\", \"'@/data/seedData'\"]]], ['src/features/timeline/components/MultiDayBanner.tsx', [[\"'../../data/seedData'\", \"'@/data/seedData'\"]]], ['src/features/timeline/components/TimelineFeed.tsx', [[\"'../../types'\", \"'@/types'\"]]]]); for (const [file, replacements] of fixes) { let source = fs.readFileSync(file, 'utf8'); for (const [from, to] of replacements) source = source.replaceAll(from, to); fs.writeFileSync(file, source); }"
+            ! grep -R -n -E "\.\./common/(HavenIcons|HavenDatePicker|HavenDropdown)|\.\./\.\./(data/seedData|types)" src/app/onboarding src/features/timeline/components
             npm test
             npm run lint
             npm run build
