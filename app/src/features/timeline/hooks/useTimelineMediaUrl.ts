@@ -112,7 +112,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
         }
       }
     };
-  }, [cacheKey, media, remoteUrl]);
+  }, [cacheKey, media.blobId, media.driveFileId, remoteUrl]);
 
   return resolvedUrl;
 }
