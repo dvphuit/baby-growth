@@ -4,12 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AppModalController } from '@/hooks/useAppModals';
 import { AppModals } from './AppModals';
 
-vi.mock('@/components/modals/QuickLogModal', () => ({
+vi.mock('@/features/activities', () => ({
   QuickLogModal: ({ onClose, onSelectAction }: { onClose: () => void; onSelectAction: (action: string) => void }) => (
     <div><span>Quick Log marker</span><button onClick={onClose}>close quick log</button><button onClick={() => onSelectAction('growth')}>select growth</button></div>
   ),
-}));
-vi.mock('@/features/activities', () => ({
   ActivityLogModal: ({ mode, onClose, onSaved }: { mode: string; onClose: () => void; onSaved: (message: string) => void }) => (
     <div><span>Activity marker {mode}</span><button onClick={onClose}>close activity</button><button onClick={() => onSaved('saved activity')}>save activity</button></div>
   ),

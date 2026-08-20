@@ -1,6 +1,5 @@
-import { useUIStore } from '@/store/useUIStore';
-import { BottomSheet } from '../common/BottomSheet';
 import { Camera, HeartPulse } from 'lucide-react';
+import { BottomSheet } from '@/components/common/BottomSheet';
 import {
   HavenDiaperIcon,
   HavenFeedingIcon,
@@ -11,7 +10,8 @@ import {
   HavenSleepIcon,
   HavenTemperatureIcon,
   HavenWalletIcon,
-} from '../common/HavenIcons';
+} from '@/components/common/HavenIcons';
+import { useUIStore } from '@/store/useUIStore';
 
 interface QuickLogModalProps {
   isOpen: boolean;
@@ -89,4 +89,3 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
     </BottomSheet>
   );
 };
-

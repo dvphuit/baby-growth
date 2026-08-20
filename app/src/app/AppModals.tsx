@@ -3,7 +3,7 @@ import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
 import type { ActivityLogMode } from '@/features/activities';
 import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 
-const loadQuickLogModal = () => import('@/components/modals/QuickLogModal');
+const loadQuickLogModal = () => import('@/features/activities');
 const loadActivityLogModal = () => import('@/features/activities');
 const loadAddGrowthModal = () => import('@/components/modals/AddGrowthModal');
 const loadAddPumpingModal = () => import('@/components/modals/AddPumpingModal');
