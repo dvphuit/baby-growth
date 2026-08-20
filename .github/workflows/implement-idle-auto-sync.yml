@@ -65,10 +65,13 @@ jobs:
               window.dispatchEvent(new Event('babygrowth:remote-updated'));
               expect(reloadPageMock).toHaveBeenCalledTimes(1);
               unmount();`;
-          if (!testSource.includes(remoteUpdateBefore)) {
+
+          const normalizedRemoteBefore = remoteUpdateBefore.replace(/^ {10}/gm, '');
+          const normalizedRemoteAfter = remoteUpdateAfter.replace(/^ {10}/gm, '');
+          if (!testSource.includes(normalizedRemoteBefore)) {
             throw new Error('Expected remote update test fragment was not generated');
           }
-          testSource = testSource.replace(remoteUpdateBefore, remoteUpdateAfter);
+          testSource = testSource.replace(normalizedRemoteBefore, normalizedRemoteAfter);
 
           const rejectionBefore = `    startAutoSyncMock.mockRejectedValue(new Error('sync unavailable'));
               renderHook(() => useAutoSyncLifecycle());
@@ -81,10 +84,13 @@ jobs:
               runIdleCallback();
               await waitFor(() => expect(startAutoSyncMock).toHaveBeenCalledTimes(1));
               unmount();`;
-          if (!testSource.includes(rejectionBefore)) {
+
+          const normalizedRejectionBefore = rejectionBefore.replace(/^ {10}/gm, '');
+          const normalizedRejectionAfter = rejectionAfter.replace(/^ {10}/gm, '');
+          if (!testSource.includes(normalizedRejectionBefore)) {
             throw new Error('Expected rejection test fragment was not generated');
           }
-          testSource = testSource.replace(rejectionBefore, rejectionAfter);
+          testSource = testSource.replace(normalizedRejectionBefore, normalizedRejectionAfter);
           writeFileSync(testPath, testSource);
           NODE
 
