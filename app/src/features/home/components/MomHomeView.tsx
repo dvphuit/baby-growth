@@ -4,10 +4,10 @@ import { Clock3, HeartPulse, Milk, Moon, Plus, Smile, Sparkles, UserRound } from
 import { useActivityStore } from '@/store/useActivityStore';
 import { SegmentClock } from './SegmentClock';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/domain/activitySelectors';
-import { NotebookStory } from '@/components/timeline/NotebookStory';
-import { HomeMomentStoryItem } from '@/components/timeline/HomeMomentStoryItem';
-import { MomentMediaPreview, type MomentMediaPreviewState } from '@/components/timeline/MomentMediaPreview';
-import { TimelineEntryDialog, type JournalTimelineEntry } from '@/components/timeline/TimelineEntryDialog';
+import { NotebookStory } from '@/features/timeline';
+import { HomeMomentStoryItem } from '@/features/timeline';
+import { MomentMediaPreview, type MomentMediaPreviewState } from '@/features/timeline';
+import { TimelineEntryDialog, type JournalTimelineEntry } from '@/features/timeline';
 import { isTimelineMomentOnLocalDay, timelineMomentOccurredAt, timelineMomentOwner } from '@/domain/timelineMedia';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';

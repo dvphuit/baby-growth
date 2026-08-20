@@ -1,7 +1,7 @@
 import { FileText, Trash2 } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
-import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/components/common/HavenIcons';
+import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 
 interface GrowthHistoryProps {
   onOpenAddMeasurement: () => void;

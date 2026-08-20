@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TimelineEntryDialog } from '@/components/timeline/TimelineEntryDialog';
+import { TimelineEntryDialog } from '@/features/timeline';
 import type { ActivityRecord } from '@/types';
 
 export type ActivityLogMode =

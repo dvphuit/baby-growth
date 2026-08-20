@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { havenPopupTransition, havenPopupVariants } from '@/components/motion/motionPresets';
+import { havenPopupTransition, havenPopupVariants } from '@/shared/motion/motionPresets';
 
 interface PopupTriggerProps {
   'aria-controls': string;

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { MomentMediaPreview } from '@/components/timeline/MomentMediaPreview';
+import { MomentMediaPreview } from '@/features/timeline/components/MomentMediaPreview';
 import type { TimelineMediaItem } from '@/types';
 
 describe('MomentMediaPreview', () => {

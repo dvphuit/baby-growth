@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BottomSheet } from '@/components/common/BottomSheet';
+import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { resetTrackingData } from '@/services/trackingDataReset';
 
 interface ResetTrackingDataSectionProps {

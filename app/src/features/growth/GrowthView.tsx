@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
 import { useBabyStore } from '@/store/useBabyStore';
 import { buildRealGrowthChart, getRealGrowthHistory } from '@/domain/growthSelectors';
-import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/components/common/HavenIcons';
+import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 import type { GrowthMetric } from '@/types';
 import { WHOChart } from './WHOChart';
 import { MilestoneRoadmap } from './MilestoneRoadmap';

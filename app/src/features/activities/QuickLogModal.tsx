@@ -1,5 +1,5 @@
 import { Camera, HeartPulse } from 'lucide-react';
-import { BottomSheet } from '@/components/common/BottomSheet';
+import { BottomSheet } from '@/shared/ui/BottomSheet';
 import {
   HavenDiaperIcon,
   HavenFeedingIcon,
@@ -10,7 +10,7 @@ import {
   HavenSleepIcon,
   HavenTemperatureIcon,
   HavenWalletIcon,
-} from '@/components/common/HavenIcons';
+} from '@/shared/ui/HavenIcons';
 import { useUIStore } from '@/store/useUIStore';
 
 interface QuickLogModalProps {

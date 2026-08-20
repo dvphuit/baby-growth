@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { havenLayoutTransition, havenToastVariants } from '@/components/motion/motionPresets';
+import { havenLayoutTransition, havenToastVariants } from '@/shared/motion/motionPresets';
 
 export interface ToastMessage {
   id: string;

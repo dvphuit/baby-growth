@@ -32,15 +32,15 @@ import {
   X,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { HavenDatePicker } from '@/components/common/HavenDatePicker';
-import { HavenDialog } from '@/components/common/HavenDialog';
-import { HavenDropdown } from '@/components/common/HavenDropdown';
-import { HavenMedicationPicker } from '@/components/common/HavenMedicationPicker';
-import { HavenMilkAmountInput } from '@/components/common/HavenMilkAmountInput';
-import { HavenTemperatureInput } from '@/components/common/HavenTemperatureInput';
-import { TimelineMediaAsset } from '@/components/timeline/TimelineMediaAsset';
-import { TimelineMediaSyncBadge } from '@/components/timeline/TimelineMediaSyncBadge';
-import { havenLayoutTransition } from '@/components/motion/motionPresets';
+import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
+import { HavenDialog } from '@/shared/ui/HavenDialog';
+import { HavenDropdown } from '@/shared/ui/HavenDropdown';
+import { HavenMedicationPicker } from '@/shared/ui/HavenMedicationPicker';
+import { HavenMilkAmountInput } from '@/shared/ui/HavenMilkAmountInput';
+import { HavenTemperatureInput } from '@/shared/ui/HavenTemperatureInput';
+import { TimelineMediaAsset } from '@/features/timeline/components/TimelineMediaAsset';
+import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
+import { havenLayoutTransition } from '@/shared/motion/motionPresets';
 import {
   assessBabySleep,
   assessDiaper,
@@ -52,7 +52,7 @@ import {
   detectTimelineMediaType,
   readTimelineMediaFiles,
   removeTimelineMediaFiles,
-} from '@/components/timeline/timelineMediaFiles';
+} from '@/features/timeline/components/timelineMediaFiles';
 import { getTimelineMediaItems } from '@/domain/timelineMedia';
 import { useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
 import {
@@ -69,7 +69,7 @@ import type {
   TimelineMediaItem,
 } from '@/types';
 import { buildBabyTimelineEntry, type DerivedTimelineEntry } from '@/domain/timelineSelectors';
-import { entryMeta } from '@/components/timeline/timelineEntryPresentation';
+import { entryMeta } from '@/features/timeline/components/timelineEntryPresentation';
 
 export type JournalTimelineEntry = DerivedTimelineEntry & { moment?: TimelineItem };
 

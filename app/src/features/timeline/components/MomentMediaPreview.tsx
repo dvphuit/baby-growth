@@ -10,8 +10,8 @@ import {
   type MotionValue,
   type PanInfo,
 } from 'motion/react';
-import { havenLayoutTransition } from '@/components/motion/motionPresets';
-import { TimelineMediaSyncBadge } from '@/components/timeline/TimelineMediaSyncBadge';
+import { havenLayoutTransition } from '@/shared/motion/motionPresets';
+import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import { preloadTimelineMedia, useTimelineMediaUrl } from '@/hooks/useTimelineMediaUrl';
 import type { TimelineMediaItem } from '@/types';
 

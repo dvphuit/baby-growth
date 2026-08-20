@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Home, CalendarHeart, TrendingUp, Wallet, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
-import { havenPressStrong, havenSnappySpring } from '@/components/motion/motionPresets';
+import { havenPressStrong, havenSnappySpring } from '@/shared/motion/motionPresets';
 
 interface BottomNavProps {
   onOpenQuickLog: () => void;

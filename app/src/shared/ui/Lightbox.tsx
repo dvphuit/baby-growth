@@ -6,7 +6,7 @@ import {
   havenOverlayTransition,
   havenOverlayVariants,
   havenPressStrong,
-} from '@/components/motion/motionPresets';
+} from '@/shared/motion/motionPresets';
 
 interface LightboxProps {
   mediaSrc: string | null;

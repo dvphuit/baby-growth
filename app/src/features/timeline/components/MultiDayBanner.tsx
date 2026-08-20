@@ -1,5 +1,5 @@
 import { useTimelineStore } from '@/store/useTimelineStore';
-import { CALENDAR_RANGE_EVENTS } from '../../data/seedData';
+import { CALENDAR_RANGE_EVENTS } from '@/data/seedData';
 
 export const MultiDayBanner: React.FC = () => {
   const selectedCalendarDate = useTimelineStore(s => s.selectedCalendarDate);

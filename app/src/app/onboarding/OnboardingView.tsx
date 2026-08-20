@@ -30,9 +30,9 @@ import {
   HavenHeadCircIcon,
   HavenRulerIcon,
   HavenScaleIcon,
-} from '../common/HavenIcons';
-import { HavenDatePicker } from '../common/HavenDatePicker';
-import { HavenDropdown } from '../common/HavenDropdown';
+} from '@/shared/ui/HavenIcons';
+import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
+import { HavenDropdown } from '@/shared/ui/HavenDropdown';
 
 interface OnboardingViewProps {
   onComplete?: () => void;

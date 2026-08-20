@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
+import { ModalMotionScope } from '@/shared/motion/ModalMotionScope';
 import type { ActivityLogMode } from '@/features/activities';
 import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 

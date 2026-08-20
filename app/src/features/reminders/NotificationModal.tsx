@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Settings2 } from 'lucide-react';
-import { BottomSheet } from '@/components/common/BottomSheet';
+import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { ReminderList } from './ReminderList';
 import { ReminderSettings } from './ReminderSettings';
 

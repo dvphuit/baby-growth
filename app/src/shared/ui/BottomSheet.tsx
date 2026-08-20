@@ -8,8 +8,8 @@ import {
   havenPressStrong,
   havenSheetVariants,
   havenSnappySpring,
-} from '@/components/motion/motionPresets';
-import { useModalSurfaceLayoutId } from '@/components/motion/modalMotionContext';
+} from '@/shared/motion/motionPresets';
+import { useModalSurfaceLayoutId } from '@/shared/motion/modalMotionContext';
 
 interface BottomSheetProps {
   isOpen: boolean;

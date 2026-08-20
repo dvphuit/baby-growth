@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
   TimelineEntryDialog,
   type JournalTimelineEntry,
-} from '@/components/timeline/TimelineEntryDialog';
+} from '@/features/timeline/components/TimelineEntryDialog';
 import { useUIStore } from '@/store/useUIStore';
 import type { TimelineItem } from '@/types';
 

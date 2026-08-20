@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
-import { havenSnappySpring, havenSoftSpring } from '@/components/motion/motionPresets';
+import { havenSnappySpring, havenSoftSpring } from '@/shared/motion/motionPresets';
 import './PullToRefresh.css';
 
 const THRESHOLD = 64;

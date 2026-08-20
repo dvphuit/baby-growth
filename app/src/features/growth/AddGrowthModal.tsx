@@ -11,9 +11,9 @@ import {
   Scale,
   Sparkles,
 } from 'lucide-react';
-import { BottomSheet } from '@/components/common/BottomSheet';
-import { HavenDatePicker } from '@/components/common/HavenDatePicker';
-import { HavenDropdown } from '@/components/common/HavenDropdown';
+import { BottomSheet } from '@/shared/ui/BottomSheet';
+import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
+import { HavenDropdown } from '@/shared/ui/HavenDropdown';
 import { useBabyStore } from '@/store/useBabyStore';
 import './growth.css';
 

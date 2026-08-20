@@ -49,12 +49,12 @@ vi.mock('@/hooks/useAppModals', async (importOriginal) => {
 });
 vi.mock('./AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));
 vi.mock('./AppModals', () => ({ AppModals: () => <div>App Modals marker</div> }));
-vi.mock('@/components/common/Header', () => ({ Header: () => <div>Header marker</div> }));
-vi.mock('@/components/common/BottomNav', () => ({ BottomNav: () => <div>Bottom Nav marker</div> }));
-vi.mock('@/components/common/Toast', () => ({ ToastContainer: () => <div>Toast marker</div> }));
-vi.mock('@/components/common/Lightbox', () => ({ Lightbox: () => <div>Lightbox marker</div> }));
-vi.mock('@/components/common/PWAInstallPrompt', () => ({ PWAInstallPrompt: () => <div>PWA Prompt marker</div> }));
-vi.mock('@/components/common/AppVersionBadge', () => ({ AppVersionBadge: () => <div>Version marker</div> }));
+vi.mock('@/shared/ui/Header', () => ({ Header: () => <div>Header marker</div> }));
+vi.mock('@/shared/ui/BottomNav', () => ({ BottomNav: () => <div>Bottom Nav marker</div> }));
+vi.mock('@/shared/ui/Toast', () => ({ ToastContainer: () => <div>Toast marker</div> }));
+vi.mock('@/shared/ui/Lightbox', () => ({ Lightbox: () => <div>Lightbox marker</div> }));
+vi.mock('@/shared/ui/PWAInstallPrompt', () => ({ PWAInstallPrompt: () => <div>PWA Prompt marker</div> }));
+vi.mock('@/shared/ui/AppVersionBadge', () => ({ AppVersionBadge: () => <div>Version marker</div> }));
 vi.mock('@/PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
 
 describe('AppContent', () => {

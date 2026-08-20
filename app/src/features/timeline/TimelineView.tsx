@@ -3,17 +3,17 @@ import {
   CalendarDays, ChevronDown, ChevronUp,
   NotebookPen,
 } from 'lucide-react';
-import { HavenAlert } from '@/components/common/HavenAlert';
-import { HavenCalendar, type HavenDateRange } from '@/components/common/HavenCalendar';
-import { NotebookStory } from '@/components/timeline/NotebookStory';
-import { MomentMediaPreview, type MomentMediaPreviewState } from '@/components/timeline/MomentMediaPreview';
+import { HavenAlert } from '@/shared/ui/HavenAlert';
+import { HavenCalendar, type HavenDateRange } from '@/shared/ui/HavenCalendar';
+import { NotebookStory } from '@/features/timeline/components/NotebookStory';
+import { MomentMediaPreview, type MomentMediaPreviewState } from '@/features/timeline/components/MomentMediaPreview';
 import {
   TimelineEntryDialog,
   TimelineMediaButton,
   type JournalTimelineEntry,
   type EditableTimelineSource,
-} from '@/components/timeline/TimelineEntryDialog';
-import { entryMeta } from '@/components/timeline/timelineEntryPresentation';
+} from '@/features/timeline/components/TimelineEntryDialog';
+import { entryMeta } from '@/features/timeline/components/timelineEntryPresentation';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
 import { getTimelineMediaItems } from '@/domain/timelineMedia';
 import { buildTimelineEntries, filterTimelineByLocalDateRange } from '@/domain/timelineSelectors';

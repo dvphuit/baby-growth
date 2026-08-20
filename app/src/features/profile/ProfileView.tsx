@@ -22,7 +22,7 @@ import { ResetTrackingDataSection } from './ResetTrackingDataSection';
 import { formatDateDisplay } from '@/utils/date';
 import { getZodiacSign } from '@/utils/zodiac';
 import { getRealGrowthHistory } from '@/domain/growthSelectors';
-import { AppBar } from '@/components/common/AppBar';
+import { AppBar } from '@/shared/ui/AppBar';
 
 interface ProfileViewProps {
   onOpenEditProfile: () => void;

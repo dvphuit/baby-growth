@@ -5,8 +5,8 @@ import {
   AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, ClipboardCopy, Cloud, Database, FileJson,
   HardDrive, Image as ImageIcon, Images, RefreshCw, ShieldCheck, Smartphone, Terminal, Trash2, Video,
 } from 'lucide-react';
-import { AppBar } from '@/components/common/AppBar';
-import { HavenDialog } from '@/components/common/HavenDialog';
+import { AppBar } from '@/shared/ui/AppBar';
+import { HavenDialog } from '@/shared/ui/HavenDialog';
 import {
   checkDriveBackup,
   deleteTimelineMediaFromDrive,

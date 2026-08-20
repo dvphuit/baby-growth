@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { havenRouteTransition, havenRouteVariants } from '@/components/motion/motionPresets';
+import { havenRouteTransition, havenRouteVariants } from '@/shared/motion/motionPresets';
 import { HomeView } from '@/features/home';
 import type { AddToast } from '@/hooks/useAppModals';
 

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, 'src');
-const STYLES = join(SRC, 'styles');
+const STYLE_ENTRY = join(SRC, 'index.css');
 
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -24,12 +24,12 @@ function productionSourceText() {
 }
 
 function importedStylesheets() {
-  const entry = readFileSync(join(STYLES, 'components.css'), 'utf8');
+  const entry = readFileSync(STYLE_ENTRY, 'utf8');
   return [...entry.matchAll(/@import\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
 }
 
 function resolveStylesheet(importPath) {
-  return join(STYLES, importPath);
+  return join(SRC, importPath);
 }
 
 function classSelectors(css) {
@@ -117,18 +117,8 @@ describe('stylesheet architecture audit', () => {
     expect(forbiddenStyleResidues()).toEqual([]);
   });
 
-  it('keeps feature-owned styles with their features instead of global styles', () => {
-    for (const legacyFile of [
-      'growth.css',
-      'timeline.css',
-      'profile.css',
-      'haven-home.css',
-      'haven-expenses.css',
-      'haven-growth.css',
-      'haven-journal.css',
-    ]) {
-      expect(existsSync(join(STYLES, legacyFile)), `${legacyFile} should not remain global`).toBe(false);
-    }
+  it('keeps feature and shared styles in explicit ownership folders', () => {
+    expect(existsSync(join(SRC, 'styles'))).toBe(false);
 
     for (const featureFile of [
       join(SRC, 'features', 'home', 'home.css'),
@@ -137,8 +127,24 @@ describe('stylesheet architecture audit', () => {
       join(SRC, 'features', 'growth', 'growth-view.css'),
       join(SRC, 'features', 'timeline', 'timeline.css'),
       join(SRC, 'features', 'profile', 'profile.css'),
+      join(SRC, 'app', 'onboarding', 'onboarding.css'),
     ]) {
       expect(existsSync(featureFile), `${relative(ROOT, featureFile)} should exist`).toBe(true);
+    }
+
+    for (const sharedFile of [
+      join(SRC, 'shared', 'styles', 'tokens.css'),
+      join(SRC, 'shared', 'styles', 'base.css'),
+      join(SRC, 'shared', 'styles', 'shared.css'),
+      join(SRC, 'shared', 'styles', 'header.css'),
+      join(SRC, 'shared', 'styles', 'bottom-nav.css'),
+      join(SRC, 'shared', 'styles', 'bottom-sheet.css'),
+      join(SRC, 'shared', 'styles', 'modals.css'),
+      join(SRC, 'shared', 'styles', 'tracker-primitives.css'),
+      join(SRC, 'shared', 'styles', 'primitives.css'),
+      join(SRC, 'shared', 'motion', 'animations.css'),
+    ]) {
+      expect(existsSync(sharedFile), `${relative(ROOT, sharedFile)} should exist`).toBe(true);
     }
   });
 
