@@ -1,28 +1,26 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { FAMILY_DATA, INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
+import { INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
 import { indexedDbStorage } from '@/data/localDb';
 import type { DailyHabit, FamilyData, GrowthHistoryRecord, StageData, StageKey } from '@/types';
 import { generateId } from '@/utils/format';
 
-interface BabyStoreState {
+export interface GrowthStoreState {
   currentStage: StageKey;
   stages: Record<string, StageData>;
   dailyHabits: DailyHabit[];
-  familyData: FamilyData;
   currentStageData: () => StageData;
   setStage: (stage: StageKey) => void;
   toggleHabit: (id: string) => void;
-  initializeChildProfile: (
+  initializeChildGrowth: (
     profile: Partial<FamilyData>,
     initialVitals?: { weight?: number; height?: number; headCirc?: number },
   ) => void;
-  updateFamilyData: (data: Partial<FamilyData>) => void;
   addGrowthMeasurement: (measurement: { weight: number; height: number; headCirc: number; date?: string; note?: string }) => void;
   updateGrowthMeasurement: (id: string, patch: Partial<Pick<GrowthHistoryRecord, 'date' | 'weight' | 'height' | 'headCirc' | 'note'>>) => void;
   deleteGrowthMeasurement: (id: string) => void;
   toggleMilestone: (milestoneId: string, status?: 'completed' | 'in-progress' | 'upcoming', dateAchieved?: string) => void;
-  resetTrackingData: () => void;
+  resetTrackingData: (familyData: FamilyData) => void;
   resetToDefaults: () => void;
 }
 
@@ -44,13 +42,12 @@ function getStageForBirthDate(birthDate: string): StageKey {
   return 'stage_0_1';
 }
 
-export const useBabyStore = create<BabyStoreState>()(
+export const useGrowthStore = create<GrowthStoreState>()(
   persist(
     (set, get) => ({
       currentStage: 'stage_0_1',
       stages: structuredClone(INITIAL_STAGES),
       dailyHabits: structuredClone(INITIAL_DAILY_HABITS),
-      familyData: structuredClone(FAMILY_DATA),
       currentStageData: () => {
         const { stages, currentStage } = get();
         return stages[currentStage] || stages.stage_0_1 || INITIAL_STAGES.stage_0_1;
@@ -59,12 +56,8 @@ export const useBabyStore = create<BabyStoreState>()(
       toggleHabit: (id) => set((state) => ({
         dailyHabits: state.dailyHabits.map((habit) => habit.id === id ? { ...habit, completed: !habit.completed } : habit),
       })),
-      updateFamilyData: (updates) => set((state) => ({ familyData: { ...state.familyData, ...updates } })),
-
-      initializeChildProfile: (profile, initialVitals) => {
+      initializeChildGrowth: (profile, initialVitals) => {
         const targetStage = getStageForBirthDate(profile.birthDate || '');
-        const updatedFamily: FamilyData = { ...FAMILY_DATA, ...profile, isInitialized: true };
-
         set((prevState) => {
           const stage = structuredClone(prevState.stages[targetStage]);
           const weight = initialVitals?.weight || (profile.birthWeight ? parseFloat(profile.birthWeight) : 0) || 0;
@@ -110,7 +103,6 @@ export const useBabyStore = create<BabyStoreState>()(
           return {
             ...prevState,
             currentStage: targetStage,
-            familyData: updatedFamily,
             stages: { ...prevState.stages, [targetStage]: stage },
           };
         });
@@ -273,44 +265,14 @@ export const useBabyStore = create<BabyStoreState>()(
         });
       },
 
-      resetTrackingData: () => {
+      resetTrackingData: (familyData) => {
         const state = get();
         const existingBirthRecord = Object.values(state.stages)
           .flatMap((stage) => stage.growthHistory ?? [])
           .find((record) => record.id.startsWith('gh_birth')
             || (record.ageText === 'Sơ sinh (Lúc chào đời)' && record.labelIndex === 0));
-        const {
-          childName,
-          childFullName,
-          birthDate,
-          birthTime,
-          gender,
-          bloodType,
-          childAvatar,
-          momName,
-          momAvatar,
-          birthWeight,
-          birthHeight,
-          headCircAtBirth,
-          hospital,
-        } = state.familyData;
+        const { birthDate, birthWeight, birthHeight, headCircAtBirth } = familyData;
         const currentStage = getStageForBirthDate(birthDate);
-        const preservedFamily: FamilyData = {
-          isInitialized: true,
-          childName,
-          childFullName,
-          birthDate,
-          birthTime,
-          gender,
-          bloodType,
-          childAvatar,
-          momName,
-          momAvatar,
-          birthWeight,
-          birthHeight,
-          headCircAtBirth,
-          hospital,
-        };
         const stages = structuredClone(INITIAL_STAGES);
         const positiveValue = (value: number | string | undefined): number => {
           const parsed = typeof value === 'number' ? value : parseFloat(value || '');
@@ -368,18 +330,16 @@ export const useBabyStore = create<BabyStoreState>()(
           currentStage,
           stages,
           dailyHabits: structuredClone(INITIAL_DAILY_HABITS),
-          familyData: preservedFamily,
         });
       },
       resetToDefaults: () => set({
         currentStage: 'stage_0_1',
         stages: structuredClone(INITIAL_STAGES),
         dailyHabits: structuredClone(INITIAL_DAILY_HABITS),
-        familyData: structuredClone(FAMILY_DATA),
       }),
     }),
     {
-      name: 'babygrowth_v4_baby',
+      name: 'babygrowth_v4_growth',
       storage: createJSONStorage(() => indexedDbStorage),
     },
   ),

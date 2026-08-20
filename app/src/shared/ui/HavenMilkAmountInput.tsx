@@ -1,7 +1,8 @@
 import { Minus, Plus, Milk, Sparkles } from 'lucide-react';
 import React, { useId, useMemo } from 'react';
 import { getFeedingRecommendation, type FeedingRecommendation } from '@/features/activities/domain/dailyCareTargets';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 
 export interface HavenMilkAmountInputProps {
   value: number | string;
@@ -38,8 +39,8 @@ export const HavenMilkAmountInput: React.FC<HavenMilkAmountInputProps> = ({
   const percent = max > min ? Math.round(((clampedValue - min) / (max - min)) * 100) : 0;
 
   // Derive recommendation based on active baby's age & weight if not provided
-  const familyData = useBabyStore((s) => s.familyData);
-  const currentStage = useBabyStore((s) => s.currentStageData());
+  const familyData = useProfileStore((s) => s.familyData);
+  const currentStage = useGrowthStore((s) => s.currentStageData());
   const weightKg = useMemo(() => {
     const vitalsWeight = currentStage?.todayVitals?.weight;
     if (vitalsWeight) {

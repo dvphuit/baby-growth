@@ -17,6 +17,8 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['babygrowth_v2_', 'production persistence must use the current generation directly'],
   ['babygrowth_v3_', 'production persistence must use the current generation directly'],
   ['babygrowth_v4_mom', 'removed Mom store must not reappear as a persistence key'],
+  ['useBabyStore', 'profile and growth state must not be recombined into a baby store'],
+  ['babygrowth_v4_baby', 'profile and growth persistence must use separate ownership keys'],
   ['@/domain/', 'domain logic must be owned by a feature'],
   ['@/hooks/', 'hooks must be owned by app, feature, or shared boundaries'],
   ['@/store/useActivityStore', 'activity state must be owned by the activities feature'],

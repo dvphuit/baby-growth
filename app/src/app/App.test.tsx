@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { AppModalController } from '@/app/hooks/useAppModals';
-import { useBabyStore } from '@/store/useBabyStore';
+import { initializeChildProfile, resetChildStoresToDefaults } from '@/features/profile';
 import { AppContent } from './App';
 
 const addToast = vi.fn();
@@ -59,7 +59,7 @@ vi.mock('@/PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
 
 describe('AppContent', () => {
   it('renders onboarding view when baby profile is not initialized', () => {
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
 
     expect(screen.getByRole('heading', { name: /Đăng nhập Google Drive/i })).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('AppContent', () => {
   });
 
   it('composes the shell and mounts sync/reminder lifecycles when initialized', () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
     render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
 
     expect(screen.getByText('Header marker')).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('AppContent', () => {
   });
 
   it('hides the main header on profile routes when initialized', () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
     render(<MemoryRouter initialEntries={['/profile/google-drive']}><AppContent /></MemoryRouter>);
 
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();

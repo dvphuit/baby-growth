@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ProfileView } from './ProfileView';
-import { useBabyStore } from '@/store/useBabyStore';
+import { resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 
 vi.mock('./GoogleSyncCard', () => ({
   GoogleSyncCard: () => <div>Sao lưu dữ liệu</div>,
@@ -39,8 +39,8 @@ function renderProfile(overrides?: { onEdit?: () => void; onNotifications?: () =
 
 describe('ProfileView', () => {
   beforeEach(() => {
-    useBabyStore.getState().resetToDefaults();
-    useBabyStore.getState().updateFamilyData({
+    resetChildStoresToDefaults();
+    useProfileStore.getState().updateFamilyData({
       isInitialized: true,
       childName: 'Bơ',
       childFullName: 'Nguyễn Minh An',

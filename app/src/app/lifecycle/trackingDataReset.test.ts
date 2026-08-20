@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SYNC_KEYS } from '@/features/sync';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { initializeChildProfile, resetChildStoresToDefaults } from '@/features/profile';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -43,12 +44,12 @@ async function flushMicrotasks(): Promise<void> {
 }
 
 function seedTrackingData(): void {
-  useBabyStore.getState().initializeChildProfile({
+  initializeChildProfile({
     childName: 'Bơ', childFullName: 'Nguyễn An', birthDate: '2026-01-05', birthTime: '07:30',
     gender: 'girl', bloodType: 'A+', childAvatar: '/baby.jpg', momName: 'Mai', momAvatar: '/mom.jpg',
     birthWeight: '3.2 kg', birthHeight: '49 cm', headCircAtBirth: '34 cm', hospital: 'Từ Dũ',
   }, { weight: 3.2, height: 49, headCirc: 34 });
-  useBabyStore.getState().addGrowthMeasurement({ weight: 5.1, height: 58, headCirc: 38, date: '2026-03-05' });
+  useGrowthStore.getState().addGrowthMeasurement({ weight: 5.1, height: 58, headCirc: 38, date: '2026-03-05' });
   useActivityStore.getState().addMomActivity({
     owner: 'mom', type: 'pumping', occurredAt: '2026-08-17T07:00:00.000Z', amountMl: 90, side: 'both',
   });
@@ -70,9 +71,9 @@ function seedTrackingData(): void {
 }
 
 function expectTrackingDataReset(): void {
-  const baby = useBabyStore.getState();
-  expect(baby.currentStageData().growthHistory).toHaveLength(1);
-  expect(baby.currentStageData().growthHistory[0]).toMatchObject({
+  const growth = useGrowthStore.getState();
+  expect(growth.currentStageData().growthHistory).toHaveLength(1);
+  expect(growth.currentStageData().growthHistory[0]).toMatchObject({
     date: '2026-01-05', weight: 3.2, height: 49, headCirc: 34,
   });
   expect(useActivityStore.getState()).toMatchObject({ babyActivities: [], momActivities: [] });
@@ -92,7 +93,7 @@ describe('resetTrackingData', () => {
     drive.runWithAutoSyncPaused.mockImplementation(async (operation) => operation({
       overwriteDriveBackupWithLocalData: drive.overwriteDriveBackupWithLocalData,
     }));
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
@@ -101,7 +102,7 @@ describe('resetTrackingData', () => {
   });
 
   afterEach(() => {
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useExpenseStore.getState().resetTrackingData();
   });
 

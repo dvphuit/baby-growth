@@ -6,7 +6,8 @@ import { INITIAL_TIMELINE_ITEMS, FAMILY_DATA } from '@/data/seedData';
 import { todayStr, currentTimeStr } from '@/utils/date';
 import { generateId } from '@/utils/format';
 import { useUIStore } from '@/store/useUIStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 
 interface TimelineStoreState {
   timelineItems: TimelineItem[];
@@ -49,9 +50,8 @@ export const useTimelineStore = create<TimelineStoreState>()(
           dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : dateStr;
 
         const profileMode = useUIStore.getState().profileMode;
-        const babyState = useBabyStore.getState();
-        const currentStage = babyState.currentStage;
-        const family = babyState.familyData;
+        const currentStage = useGrowthStore.getState().currentStage;
+        const family = useProfileStore.getState().familyData;
         const mediaItems: TimelineMediaItem[] = (item.mediaItems ?? [])
           .filter((media) => media.blobId || media.driveFileId || media.url?.trim())
           .map((media) => ({

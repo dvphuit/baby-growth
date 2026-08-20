@@ -1,5 +1,5 @@
 import { FileText, Trash2 } from 'lucide-react';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 
@@ -8,8 +8,8 @@ interface GrowthHistoryProps {
 }
 
 export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasurement }) => {
-  const currentStageData = useBabyStore((state) => state.currentStageData());
-  const deleteGrowthMeasurement = useBabyStore((state) => state.deleteGrowthMeasurement);
+  const currentStageData = useGrowthStore((state) => state.currentStageData());
+  const deleteGrowthMeasurement = useGrowthStore((state) => state.deleteGrowthMeasurement);
   const history = getRealGrowthHistory(currentStageData.growthHistory);
 
   const handleDelete = (id: string, date: string) => {

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GrowthView } from './GrowthView';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import type { GrowthHistoryRecord } from '@/types';
 
 // Mock chart.js so canvas doesn't throw in jsdom
@@ -15,7 +15,7 @@ vi.mock('./WHOChart', () => ({
 
 describe('GrowthView', () => {
   beforeEach(() => {
-    useBabyStore.getState().resetToDefaults();
+    useGrowthStore.getState().resetToDefaults();
   });
 
   it('renders Haven growth hero and honest empty state when no measurements exist', () => {
@@ -74,7 +74,7 @@ describe('GrowthView', () => {
       },
     ];
 
-    const state = useBabyStore.getState();
+    const state = useGrowthStore.getState();
     const stage = state.stages[state.currentStage];
     stage.growthHistory = initialHistory;
 

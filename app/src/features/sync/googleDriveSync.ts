@@ -11,7 +11,8 @@ const AUTO_SYNC_DEBOUNCE_MS = 1200;
 /** Local persistence keys are exposed only for the storage diagnostics screen.
  * Google Drive synchronization never reads or writes them. */
 export const SYNC_KEYS = [
-  'babygrowth_v4_baby',
+  'babygrowth_v4_profile',
+  'babygrowth_v4_growth',
   'babygrowth_v4_timeline',
   'babygrowth_v4_ui',
   'babygrowth_v4_activities',

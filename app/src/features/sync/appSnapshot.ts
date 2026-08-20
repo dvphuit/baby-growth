@@ -1,6 +1,7 @@
 import type { MedicationCatalogItem } from '@/features/activities/domain/medicationCatalog';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -52,7 +53,8 @@ export interface AppSnapshot {
 }
 
 export function exportAppSnapshot(now = new Date()): AppSnapshot {
-  const baby = useBabyStore.getState();
+  const profile = useProfileStore.getState();
+  const growth = useGrowthStore.getState();
   const activities = useActivityStore.getState();
   const expenses = useExpenseStore.getState();
   const timeline = useTimelineStore.getState();
@@ -63,7 +65,7 @@ export function exportAppSnapshot(now = new Date()): AppSnapshot {
     generation: APP_SNAPSHOT_GENERATION,
     exportedAt: now.toISOString(),
     profile: {
-      familyData: structuredClone(baby.familyData),
+      familyData: structuredClone(profile.familyData),
       profileMode: ui.profileMode,
     },
     activities: {
@@ -72,9 +74,9 @@ export function exportAppSnapshot(now = new Date()): AppSnapshot {
       medicationCatalog: structuredClone(activities.medicationCatalog),
     },
     growth: {
-      currentStage: baby.currentStage,
-      stages: structuredClone(baby.stages),
-      dailyHabits: structuredClone(baby.dailyHabits),
+      currentStage: growth.currentStage,
+      stages: structuredClone(growth.stages),
+      dailyHabits: structuredClone(growth.dailyHabits),
     },
     timeline: {
       items: structuredClone(timeline.timelineItems),
@@ -138,8 +140,8 @@ export function parseAppSnapshot(value: unknown): AppSnapshot {
 export function applyAppSnapshot(snapshot: AppSnapshot): void {
   const parsed = parseAppSnapshot(snapshot);
 
-  useBabyStore.setState({
-    familyData: structuredClone(parsed.profile.familyData),
+  useProfileStore.setState({ familyData: structuredClone(parsed.profile.familyData) });
+  useGrowthStore.setState({
     currentStage: parsed.growth.currentStage,
     stages: structuredClone(parsed.growth.stages),
     dailyHabits: structuredClone(parsed.growth.dailyHabits),
@@ -164,7 +166,8 @@ export function applyAppSnapshot(snapshot: AppSnapshot): void {
 
 export function subscribeAppSnapshotChanges(listener: () => void): () => void {
   const unsubscribe = [
-    useBabyStore.subscribe(listener),
+    useProfileStore.subscribe(listener),
+    useGrowthStore.subscribe(listener),
     useUIStore.subscribe(listener),
     useActivityStore.subscribe(listener),
     useExpenseStore.subscribe(listener),

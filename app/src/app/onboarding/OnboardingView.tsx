@@ -14,7 +14,7 @@ import {
   User,
   UserPlus,
 } from 'lucide-react';
-import { useBabyStore } from '@/store/useBabyStore';
+import { initializeChildProfile } from '@/features/profile';
 import {
   checkDriveBackup,
   isGoogleConfigured,
@@ -80,7 +80,6 @@ function formatBackupDate(isoString?: string): string {
 }
 
 export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) => {
-  const initializeChildProfile = useBabyStore((s) => s.initializeChildProfile);
 
   const [step, setStep] = useState<'auth' | 'backup_found' | 'profile'>(() => {
     return isGoogleConnected() ? 'profile' : 'auth';

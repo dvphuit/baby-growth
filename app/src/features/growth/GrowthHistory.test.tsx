@@ -1,12 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GrowthHistory } from './GrowthHistory';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import type { GrowthHistoryRecord } from '@/types';
 
 describe('GrowthHistory', () => {
   beforeEach(() => {
-    useBabyStore.getState().resetToDefaults();
+    useGrowthStore.getState().resetToDefaults();
   });
 
   it('renders empty state when there are no user measurements', () => {
@@ -32,7 +32,7 @@ describe('GrowthHistory', () => {
       note: 'Khám định kỳ',
     };
 
-    const state = useBabyStore.getState();
+    const state = useGrowthStore.getState();
     const stage = state.stages[state.currentStage];
     stage.growthHistory = [testRecord];
 

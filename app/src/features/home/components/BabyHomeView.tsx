@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Layers, Milk, Moon, Pill, Plus, Sparkles, Thermometer } from 'lucide-react';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { SegmentClock } from './SegmentClock';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
 import { getBabyActivitiesForDay, selectBabyTodayMetrics } from '@/features/activities/domain/activitySelectors';
 import { getMilkTarget, getSleepTarget } from '@/features/activities/domain/dailyCareTargets';
@@ -53,7 +53,7 @@ function activityDisplay(record: BabyActivity): { summary: string; signs: string
 export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) => {
   const records = useActivityStore((state) => state.babyActivities);
   const timelineItems = useTimelineStore((state) => state.timelineItems);
-  const currentStageData = useBabyStore((state) => state.currentStageData());
+  const currentStageData = useGrowthStore((state) => state.currentStageData());
   const family = useFamily();
   const now = useLiveNow();
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);

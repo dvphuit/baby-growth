@@ -17,7 +17,7 @@ import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
 import { useFamily } from '@/features/profile/hooks/useFamily';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -37,7 +37,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSuccessToast,
 }) => {
   const family = useFamily();
-  const updateFamilyData = useBabyStore((state) => state.updateFamilyData);
+  const updateFamilyData = useProfileStore((state) => state.updateFamilyData);
 
   const [childName, setChildName] = useState(family.childName);
   const [childFullName, setChildFullName] = useState(family.childFullName);

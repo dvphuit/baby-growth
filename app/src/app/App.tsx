@@ -15,14 +15,14 @@ import { useThemeColor } from '@/app/hooks/useThemeColor';
 import { useToast } from '@/shared/hooks/useToast';
 import PWABadge from '@/PWABadge';
 import { installGlobalDiagnosticLogging, logDiagnostic } from '@/app/diagnostics/diagnosticLog';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { AppModals } from './AppModals';
 import { AppRoutes } from './AppRoutes';
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
-  const familyData = useBabyStore((state) => state.familyData);
+  const familyData = useProfileStore((state) => state.familyData);
   const isInitialized = Boolean(familyData?.isInitialized && familyData?.childName);
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);

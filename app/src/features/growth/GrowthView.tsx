@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { buildRealGrowthChart, getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 import type { GrowthMetric } from '@/types';
@@ -21,9 +22,9 @@ function formatDelta(current: number, prev: number, unit: string): string | null
 }
 
 export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) => {
-  const currentStage = useBabyStore((state) => state.currentStage);
-  const currentStageData = useBabyStore((state) => state.currentStageData());
-  const familyData = useBabyStore((state) => state.familyData);
+  const currentStage = useGrowthStore((state) => state.currentStage);
+  const currentStageData = useGrowthStore((state) => state.currentStageData());
+  const familyData = useProfileStore((state) => state.familyData);
   const [growthMetric, setGrowthMetric] = useState<GrowthMetric>('weight');
 
   const realHistory = useMemo(

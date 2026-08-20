@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { initializeChildProfile, resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -9,7 +9,7 @@ import { APP_SNAPSHOT_GENERATION, applyAppSnapshot, exportAppSnapshot, parseAppS
 
 describe('appSnapshot', () => {
   beforeEach(() => {
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
@@ -18,7 +18,7 @@ describe('appSnapshot', () => {
   });
 
   it('exports semantic generation-2 data instead of Zustand storage keys', () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
     useUIStore.setState({ profileMode: 'mom' });
     useActivityStore.getState().addMomActivity({
       owner: 'mom',
@@ -48,7 +48,7 @@ describe('appSnapshot', () => {
   });
 
   it('round-trips domain state through the snapshot boundary', () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
     useActivityStore.getState().addBabyActivity({
       owner: 'baby',
       type: 'diaper',
@@ -63,12 +63,12 @@ describe('appSnapshot', () => {
     });
     const snapshot = exportAppSnapshot(new Date('2026-08-20T09:00:00.000Z'));
 
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     applyAppSnapshot(snapshot);
 
-    expect(useBabyStore.getState().familyData.childName).toBe('Bé Bơ');
+    expect(useProfileStore.getState().familyData.childName).toBe('Bé Bơ');
     expect(useActivityStore.getState().babyActivities).toHaveLength(1);
     expect(useActivityStore.getState().babyActivities[0]?.type).toBe('diaper');
     expect(useExpenseStore.getState().monthlyBudget).toBe(7_000_000);

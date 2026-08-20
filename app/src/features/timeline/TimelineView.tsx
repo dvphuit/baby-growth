@@ -18,7 +18,8 @@ import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
 import { buildTimelineEntries, filterTimelineByLocalDateRange } from '@/features/timeline/domain/timelineSelectors';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import type { TimelineItem } from '@/types';
@@ -123,8 +124,8 @@ function momentEntry(item: TimelineItem): JournalTimelineEntry {
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) => {
   const babyActivities = useActivityStore((state) => state.babyActivities);
   const momActivities = useActivityStore((state) => state.momActivities);
-  const rawGrowthHistory = useBabyStore((state) => state.currentStageData().growthHistory);
-  const birthDate = useBabyStore((state) => state.familyData.birthDate);
+  const rawGrowthHistory = useGrowthStore((state) => state.currentStageData().growthHistory);
+  const birthDate = useProfileStore((state) => state.familyData.birthDate);
   const timelineItems = useTimelineStore((state) => state.timelineItems);
   const ownerFilter = useUIStore((state) => state.profileMode);
   const growthHistory = useMemo(() => getRealGrowthHistory(rawGrowthHistory), [rawGrowthHistory]);

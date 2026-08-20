@@ -4,7 +4,8 @@ import {
   SYNC_KEYS,
 } from '@/features/sync';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -31,7 +32,8 @@ function waitForStoreHydration(store: PersistedStore): Promise<void> {
 
 async function waitForTrackingStoresHydrated(): Promise<void> {
   await Promise.all([
-    waitForStoreHydration(useBabyStore),
+    waitForStoreHydration(useGrowthStore),
+    waitForStoreHydration(useProfileStore),
     waitForStoreHydration(useActivityStore),
     waitForStoreHydration(useExpenseStore),
     waitForStoreHydration(useTimelineStore),
@@ -46,7 +48,7 @@ export async function resetTrackingData(): Promise<TrackingDataResetResult> {
     const driveMediaIds = useTimelineStore.getState().timelineItems.flatMap((item) =>
       (item.mediaItems ?? []).flatMap((media) => media.driveFileId ? [media.driveFileId] : []));
 
-    useBabyStore.getState().resetTrackingData();
+    useGrowthStore.getState().resetTrackingData(useProfileStore.getState().familyData);
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();

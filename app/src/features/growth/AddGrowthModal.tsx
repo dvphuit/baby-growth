@@ -14,7 +14,7 @@ import {
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import './growth.css';
 
 interface AddGrowthModalProps {
@@ -29,8 +29,8 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
   onSuccessToast,
 }) => {
   const formId = useId();
-  const currentStageData = useBabyStore((state) => state.currentStageData());
-  const addGrowthMeasurement = useBabyStore((state) => state.addGrowthMeasurement);
+  const currentStageData = useGrowthStore((state) => state.currentStageData());
+  const addGrowthMeasurement = useGrowthStore((state) => state.addGrowthMeasurement);
 
   const vitals = currentStageData.todayVitals || {};
   const todayStr = new Date().toISOString().split('T')[0];

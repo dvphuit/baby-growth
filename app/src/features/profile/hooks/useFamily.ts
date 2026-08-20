@@ -1,9 +1,9 @@
 /**
- * Hook for accessing family profile data reactively from useBabyStore.
+ * Hook for accessing family profile data reactively from the profile store.
  */
-import { useBabyStore } from '@/store/useBabyStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import type { FamilyData } from '@/types';
 
 export function useFamily(): FamilyData {
-  return useBabyStore((state) => state.familyData);
+  return useProfileStore((state) => state.familyData);
 }

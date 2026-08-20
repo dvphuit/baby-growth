@@ -8,7 +8,8 @@ import { SYNC_KEYS } from './features/sync';
 import './index.css';
 import { removeLocalRecord } from '@/data/localDb';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from './store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -37,14 +38,15 @@ async function bootstrapMockData(): Promise<void> {
 
   try {
     await Promise.all([
-      useBabyStore.persist.rehydrate(),
+      useProfileStore.persist.rehydrate(),
+      useGrowthStore.persist.rehydrate(),
       useTimelineStore.persist.rehydrate(),
       useReminderStore.persist.rehydrate(),
       useActivityStore.persist.rehydrate(),
       useExpenseStore.persist.rehydrate(),
     ]);
 
-    const family = useBabyStore.getState().familyData;
+    const family = useProfileStore.getState().familyData;
     if (family?.isInitialized && family?.childName) return;
 
     seedMockData();

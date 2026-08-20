@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { initializeChildProfile, resetChildStoresToDefaults } from '@/features/profile';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -54,7 +54,7 @@ describe('generation-2 Google Drive sync', () => {
     localDb.getLocalRecord.mockResolvedValue(null);
     localDb.setLocalRecord.mockResolvedValue(undefined);
     timelineMediaDriveSync.syncTimelineMediaToDrive.mockResolvedValue(0);
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
     useReminderStore.getState().resetTrackingData();
@@ -70,7 +70,7 @@ describe('generation-2 Google Drive sync', () => {
   });
 
   it('creates semantic sync snapshots without Zustand persistence records', async () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
     const sync = await import('@/features/sync/googleDriveSync');
 
     const snapshot = sync.createSyncSnapshot();
@@ -83,7 +83,7 @@ describe('generation-2 Google Drive sync', () => {
   });
 
   it('patches the existing Drive backup with the current semantic snapshot', async () => {
-    useBabyStore.getState().initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'remote-1', name: 'babygrowth-sync.json' }] }))
       .mockResolvedValueOnce(jsonResponse({ id: 'remote-1', name: 'babygrowth-sync.json' }));

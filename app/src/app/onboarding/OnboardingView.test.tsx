@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exportAppSnapshot } from '@/features/sync/appSnapshot';
-import { useBabyStore } from '@/store/useBabyStore';
+import { resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import * as googleDriveSync from '@/features/sync';
 import { OnboardingView } from './OnboardingView';
 
@@ -19,7 +19,7 @@ vi.mock('@/features/sync', async (importOriginal) => ({
 describe('OnboardingView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     vi.mocked(googleDriveSync.isGoogleConfigured).mockReturnValue(true);
     vi.mocked(googleDriveSync.isGoogleConnected).mockReturnValue(false);
     vi.mocked(googleDriveSync.checkDriveBackup).mockResolvedValue({ found: false });
@@ -121,9 +121,9 @@ describe('OnboardingView', () => {
 
     expect(onComplete).toHaveBeenCalledTimes(1);
 
-    const state = useBabyStore.getState();
-    expect(state.familyData.isInitialized).toBe(true);
-    expect(state.familyData.childName).toBe('Bé Bơ');
+    const profile = useProfileStore.getState();
+    expect(profile.familyData.isInitialized).toBe(true);
+    expect(profile.familyData.childName).toBe('Bé Bơ');
     expect(googleDriveSync.syncWithGoogleDrive).toHaveBeenCalledWith({ interactive: false });
   });
 });

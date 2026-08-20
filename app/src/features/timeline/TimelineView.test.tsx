@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import type { GrowthHistoryRecord, TimelineItem } from '@/types';
@@ -24,7 +25,7 @@ describe('TimelineView', () => {
     vi.setSystemTime(new Date(2026, 7, 18, 10, 0, 0));
     useActivityStore.getState().resetTrackingData();
     useTimelineStore.getState().resetTrackingData();
-    useBabyStore.getState().resetToDefaults();
+    resetChildStoresToDefaults();
     useUIStore.setState({ profileMode: 'baby' });
   });
 
@@ -146,8 +147,8 @@ describe('TimelineView', () => {
       id: 'growth-edit-test', date: '2026-08-18', ageText: '8 tháng', weight: 9,
       height: 72, headCirc: 44.5, percentileLabel: '', status: 'optimal', note: 'Lần đo sáng',
     };
-    const state = useBabyStore.getState();
-    useBabyStore.setState({
+    const state = useGrowthStore.getState();
+    useGrowthStore.setState({
       stages: {
         ...state.stages,
         [state.currentStage]: { ...state.stages[state.currentStage], growthHistory: [growthRecord] },
@@ -161,9 +162,9 @@ describe('TimelineView', () => {
     fireEvent.change(screen.getByLabelText('Ghi chú'), { target: { value: 'Đã cập nhật số đo' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
 
-    const updated = useBabyStore.getState().currentStageData().growthHistory[0];
+    const updated = useGrowthStore.getState().currentStageData().growthHistory[0];
     expect(updated).toMatchObject({ id: growthRecord.id, weight: 9.4, note: 'Đã cập nhật số đo' });
-    expect(useBabyStore.getState().currentStageData().todayVitals.weight).toBe('9.4 kg');
+    expect(useGrowthStore.getState().currentStageData().todayVitals.weight).toBe('9.4 kg');
   });
 
   it('deletes a timeline activity after confirmation', () => {
@@ -188,8 +189,8 @@ describe('TimelineView', () => {
       id: 'growth-delete-test', date: '2026-08-18', ageText: '8 tháng', weight: 9,
       height: 72, headCirc: 44.5, percentileLabel: '', status: 'optimal', note: 'Số đo cần xóa',
     };
-    const state = useBabyStore.getState();
-    useBabyStore.setState({
+    const state = useGrowthStore.getState();
+    useGrowthStore.setState({
       stages: {
         ...state.stages,
         [state.currentStage]: {
@@ -208,8 +209,8 @@ describe('TimelineView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Xóa' }));
     fireEvent.click(screen.getByRole('button', { name: 'Xóa ghi nhận' }));
 
-    expect(useBabyStore.getState().currentStageData().growthHistory).toHaveLength(0);
-    expect(useBabyStore.getState().currentStageData().todayVitals).toMatchObject({
+    expect(useGrowthStore.getState().currentStageData().growthHistory).toHaveLength(0);
+    expect(useGrowthStore.getState().currentStageData().todayVitals).toMatchObject({
       weight: '', height: '', headCirc: '',
     });
   });
@@ -275,7 +276,7 @@ describe('TimelineView', () => {
   });
 
   it('assesses temperature by age, measurement site and symptoms while editing', () => {
-    useBabyStore.getState().updateFamilyData({ birthDate: '2026-06-18' });
+    useProfileStore.getState().updateFamilyData({ birthDate: '2026-06-18' });
     const temperature = useActivityStore.getState().addBabyActivity({
       owner: 'baby', type: 'temperature', occurredAt: new Date(2026, 7, 18, 8, 0, 0).toISOString(),
       temperatureC: 36.8,

@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
 import { GoogleSyncCard } from './GoogleSyncCard';
 import { ResetTrackingDataSection } from './ResetTrackingDataSection';
@@ -71,7 +71,7 @@ function displayValue(value?: string, fallback = 'Chưa cập nhật'): string {
 export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onOpenNotifications, onShowToast }) => {
   const navigate = useNavigate();
   const family = useFamily();
-  const currentStageData = useBabyStore((state) => state.currentStageData());
+  const currentStageData = useGrowthStore((state) => state.currentStageData());
   const latestGrowth = useMemo(
     () => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null,
     [currentStageData.growthHistory],

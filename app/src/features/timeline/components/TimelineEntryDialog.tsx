@@ -60,7 +60,8 @@ import {
   type NewBabyActivity,
   type NewMomActivity,
 } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type {
   ActivityRecord,
@@ -319,8 +320,8 @@ export function TimelineEntryEditor({
   const medicationCatalog = useActivityStore((state) => state.medicationCatalog);
   const upsertMedication = useActivityStore((state) => state.upsertMedication);
   const deleteMedication = useActivityStore((state) => state.deleteMedication);
-  const updateGrowthMeasurement = useBabyStore((state) => state.updateGrowthMeasurement);
-  const familyBirthDate = useBabyStore((state) => state.familyData.birthDate);
+  const updateGrowthMeasurement = useGrowthStore((state) => state.updateGrowthMeasurement);
+  const familyBirthDate = useProfileStore((state) => state.familyData.birthDate);
   const addTimelineItem = useTimelineStore((state) => state.addTimelineItem);
   const updateTimelineItem = useTimelineStore((state) => state.updateTimelineItem);
   const activity = source.kind === 'activity' ? source.record : null;
@@ -1422,7 +1423,7 @@ export function TimelineEntryDialog({
   const [editing, setEditing] = useState(initialEditing);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const deleteActivity = useActivityStore((state) => state.deleteActivity);
-  const deleteGrowthMeasurement = useBabyStore((state) => state.deleteGrowthMeasurement);
+  const deleteGrowthMeasurement = useGrowthStore((state) => state.deleteGrowthMeasurement);
   const deleteTimelineItem = useTimelineStore((state) => state.deleteTimelineItem);
 
   useEffect(() => {

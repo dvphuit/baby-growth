@@ -1,5 +1,5 @@
 import { Activity, Check, Circle, Clock, Footprints, RotateCw, Sparkles, User } from 'lucide-react';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 
 function getMilestoneIcon(id: string) {
   switch (id) {
@@ -17,8 +17,8 @@ function getMilestoneIcon(id: string) {
 }
 
 export const MilestoneRoadmap: React.FC = () => {
-  const currentStageData = useBabyStore((s) => s.currentStageData());
-  const toggleMilestone = useBabyStore((s) => s.toggleMilestone);
+  const currentStageData = useGrowthStore((s) => s.currentStageData());
+  const toggleMilestone = useGrowthStore((s) => s.toggleMilestone);
   const milestones = currentStageData.motorMilestones;
 
   if (!milestones || !milestones.items || milestones.items.length === 0) return null;

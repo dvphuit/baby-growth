@@ -4,7 +4,8 @@ import type { Reminder } from '@/types/reminder';
 import { isGoogleConfigured } from '@/features/sync';
 import { setLocalRecord } from '@/data/localDb';
 import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/features/activities/store/useActivityStore';
-import { useBabyStore } from '@/store/useBabyStore';
+import { initializeChildProfile } from '@/features/profile';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
@@ -189,13 +190,12 @@ const MOM_ACTIVITIES: NewMomActivity[] = [
 
 /** Pushes demo records into the current domain stores. Development only. */
 export function seedMockData(): void {
-  const baby = useBabyStore.getState();
-  baby.initializeChildProfile(MOCK_FAMILY, BIRTH_VITALS);
+  initializeChildProfile(MOCK_FAMILY, BIRTH_VITALS);
 
-  const babyAfter = useBabyStore.getState();
+  const growth = useGrowthStore.getState();
   GROWTH_RECORDS.forEach((record) => {
-    if (!babyAfter.stages[babyAfter.currentStage]?.growthHistory?.some((item) => item.id === record.id)) {
-      babyAfter.addGrowthMeasurement({
+    if (!growth.currentStageData().growthHistory.some((item) => item.id === record.id)) {
+      growth.addGrowthMeasurement({
         weight: record.weight,
         height: record.height,
         headCirc: record.headCirc,

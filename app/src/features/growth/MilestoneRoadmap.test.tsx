@@ -1,11 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MilestoneRoadmap } from './MilestoneRoadmap';
-import { useBabyStore } from '@/store/useBabyStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 
 describe('MilestoneRoadmap', () => {
   beforeEach(() => {
-    useBabyStore.getState().resetToDefaults();
+    useGrowthStore.getState().resetToDefaults();
   });
 
   it('renders milestone cards and allows toggling status', () => {
@@ -25,7 +25,7 @@ describe('MilestoneRoadmap', () => {
     fireEvent.click(toggleBtn);
 
     // Store was updated
-    const state = useBabyStore.getState();
+    const state = useGrowthStore.getState();
     const stage = state.currentStageData();
     expect(stage.motorMilestones.items[0].status).not.toBe('upcoming');
   });
