@@ -5,7 +5,8 @@ import { useBabyStore } from '@/store/useBabyStore';
 import * as googleDriveSync from '@/features/sync';
 import { OnboardingView } from './OnboardingView';
 
-vi.mock('@/features/sync', () => ({
+vi.mock('@/features/sync', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/sync')>()),
   isGoogleConfigured: vi.fn(() => true),
   isGoogleConnected: vi.fn(() => false),
   requestGoogleAccessToken: vi.fn().mockResolvedValue(undefined),
