@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Settings2 } from 'lucide-react';
-import { BottomSheet } from '../common/BottomSheet';
-import { ReminderList } from '@/components/reminders/ReminderList';
-import { ReminderSettings } from '@/components/reminders/ReminderSettings';
+import { BottomSheet } from '@/components/common/BottomSheet';
+import { ReminderList } from './ReminderList';
+import { ReminderSettings } from './ReminderSettings';
 
 interface NotificationModalProps {
   isOpen: boolean;

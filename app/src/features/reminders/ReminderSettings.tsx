@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Bell, BellOff, Trash2 } from 'lucide-react';
-import { HavenDatePicker } from '../common/HavenDatePicker';
-import { HavenDropdown } from '../common/HavenDropdown';
+import { HavenDatePicker } from '@/components/common/HavenDatePicker';
+import { HavenDropdown } from '@/components/common/HavenDropdown';
 import { getNotificationCapability, requestSystemNotificationPermission } from '@/services/notificationService';
 import { useReminderStore } from '@/store/useReminderStore';
-import type { ReminderMode, ReminderType } from '@/types/reminder';
+import type { ReminderMode, ReminderRepeat, ReminderType } from '@/types/reminder';
 
 function localDateTimeInputValue(date = new Date(Date.now() + 60 * 60_000)): string {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
@@ -20,11 +20,40 @@ const TYPE_LABELS: Record<ReminderType, string> = {
   custom: 'Tùy chỉnh',
 };
 
+const TYPE_OPTIONS: Array<{ value: ReminderType; label: string }> = [
+  { value: 'feeding', label: TYPE_LABELS.feeding },
+  { value: 'pumping', label: TYPE_LABELS.pumping },
+  { value: 'medicine', label: TYPE_LABELS.medicine },
+  { value: 'vaccination', label: TYPE_LABELS.vaccination },
+  { value: 'appointment', label: TYPE_LABELS.appointment },
+  { value: 'custom', label: TYPE_LABELS.custom },
+];
+
+const MODE_OPTIONS: Array<{ value: ReminderMode; label: string }> = [
+  { value: 'relative', label: 'Sau lần ghi gần nhất' },
+  { value: 'fixed', label: 'Theo giờ cố định' },
+];
+
+const REPEAT_OPTIONS: Array<{ value: ReminderRepeat; label: string }> = [
+  { value: 'none', label: 'Không lặp' },
+  { value: 'daily', label: 'Mỗi ngày' },
+];
+
 const QUICK_LOG_ACTION: Partial<Record<ReminderType, string>> = {
   feeding: 'feeding',
   pumping: 'pumping',
   medicine: 'medicine',
 };
+
+function fixedReminderTime(triggerAt: string | undefined): string {
+  if (!triggerAt) return 'Chưa có thời điểm';
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(triggerAt));
+}
 
 export function ReminderSettings() {
   const reminders = useReminderStore((state) => state.reminders);
@@ -39,7 +68,7 @@ export function ReminderSettings() {
   const [title, setTitle] = useState('Nhắc cữ bú');
   const [intervalMinutes, setIntervalMinutes] = useState('180');
   const [triggerAt, setTriggerAt] = useState(localDateTimeInputValue);
-  const [repeat, setRepeat] = useState<'none' | 'daily'>('none');
+  const [repeat, setRepeat] = useState<ReminderRepeat>('none');
   const [note, setNote] = useState('');
   const [permissionMessage, setPermissionMessage] = useState<string | null>(null);
 
@@ -122,14 +151,11 @@ export function ReminderSettings() {
         <div className="section-eyebrow">TẠO REMINDER</div>
         <div className="log-form-group">
           <label className="log-form-label">Loại</label>
-          <HavenDropdown
+          <HavenDropdown<ReminderType>
             label="Loại reminder"
             value={type}
-            onChange={(val) => handleTypeChange(val as ReminderType)}
-            options={Object.entries(TYPE_LABELS).map(([value, label]) => ({
-              value: value as ReminderType,
-              label,
-            }))}
+            onChange={handleTypeChange}
+            options={TYPE_OPTIONS}
           />
         </div>
         <div className="log-form-group">
@@ -140,14 +166,11 @@ export function ReminderSettings() {
         {relativeAllowed && (
           <div className="log-form-group">
             <label className="log-form-label">Cách nhắc</label>
-            <HavenDropdown
+            <HavenDropdown<ReminderMode>
               label="Cách nhắc"
               value={mode}
-              onChange={(val) => setMode(val as ReminderMode)}
-              options={[
-                { value: 'relative', label: 'Sau lần ghi gần nhất' },
-                { value: 'fixed', label: 'Theo giờ cố định' },
-              ]}
+              onChange={setMode}
+              options={MODE_OPTIONS}
             />
           </div>
         )}
@@ -171,14 +194,11 @@ export function ReminderSettings() {
             </div>
             <div className="log-form-group">
               <label className="log-form-label">Lặp lại</label>
-              <HavenDropdown
+              <HavenDropdown<ReminderRepeat>
                 label="Lặp lại"
                 value={repeat}
-                onChange={(val) => setRepeat(val as typeof repeat)}
-                options={[
-                  { value: 'none', label: 'Không lặp' },
-                  { value: 'daily', label: 'Mỗi ngày' },
-                ]}
+                onChange={setRepeat}
+                options={REPEAT_OPTIONS}
               />
             </div>
           </>
@@ -200,7 +220,7 @@ export function ReminderSettings() {
                 <div>
                   <strong>{reminder.title}</strong>
                   <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 3 }}>
-                    {TYPE_LABELS[reminder.type]} · {reminder.mode === 'relative' ? `sau ${reminder.intervalMinutes} phút` : new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(reminder.triggerAt!))}
+                    {TYPE_LABELS[reminder.type]} · {reminder.mode === 'relative' ? `sau ${reminder.intervalMinutes} phút` : fixedReminderTime(reminder.triggerAt)}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>

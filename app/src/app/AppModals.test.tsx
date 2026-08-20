@@ -23,7 +23,7 @@ vi.mock('@/components/modals/AddPumpingModal', () => ({ AddPumpingModal: () => <
 vi.mock('@/features/expenses', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
 vi.mock('@/components/modals/AddPostModal', () => ({ AddPostModal: () => <span>Add Post marker</span> }));
 vi.mock('@/components/modals/EditProfileModal', () => ({ EditProfileModal: () => <span>Edit Profile marker</span> }));
-vi.mock('@/components/modals/NotificationModal', () => ({
+vi.mock('@/features/reminders', () => ({
   NotificationModal: ({ onClose, onQuickLog }: { onClose: () => void; onQuickLog?: (action: string) => void }) => (
     <div><span>Notification marker</span><button onClick={onClose}>close notifications</button><button onClick={() => onQuickLog?.('feeding')}>notification quick log</button></div>
   ),

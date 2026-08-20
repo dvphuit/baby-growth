@@ -17,7 +17,7 @@ const AddPumpingModal = lazy(async () => ({ default: (await loadAddPumpingModal(
 const AddExpenseModal = lazy(async () => ({ default: (await loadAddExpenseModal()).AddExpenseModal }));
 const AddPostModal = lazy(async () => ({ default: (await loadAddPostModal()).AddPostModal }));
 const EditProfileModal = lazy(async () => ({ default: (await import('@/components/modals/EditProfileModal')).EditProfileModal }));
-const NotificationModal = lazy(async () => ({ default: (await import('@/components/modals/NotificationModal')).NotificationModal }));
+const NotificationModal = lazy(async () => ({ default: (await import('@/features/reminders')).NotificationModal }));
 
 const QUICK_LOG_SURFACE_ID = 'quick-log-surface';
 const MODAL_EXIT_RETENTION_MS = 280;
