@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Layers, Milk, Moon, Pill, Plus, Sparkles, Thermometer } from 'lucide-react';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
@@ -11,10 +11,8 @@ import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { buildBabyTimelineEntry } from '@/features/timeline/domain/timelineSelectors';
 import { NotebookStory } from '@/features/timeline';
 import { HomeMomentStoryItem } from '@/features/timeline';
-import { MomentMediaPreview, type MomentMediaPreviewState } from '@/features/timeline';
-import { TimelineEntryDialog, type JournalTimelineEntry } from '@/features/timeline';
-import { isTimelineMomentOnLocalDay, timelineMomentOccurredAt, timelineMomentOwner } from '@/features/timeline/domain/timelineMedia';
-import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
+import { MomentMediaPreview, TimelineEntryDialog } from '@/features/timeline';
+import { useHomeTimeline } from '../hooks/useHomeTimeline';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';
 import { formatClockTime, formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
 import type { BabyActivity } from '@/types';
@@ -52,40 +50,22 @@ function activityDisplay(record: BabyActivity): { summary: string; signs: string
 
 export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) => {
   const records = useActivityStore((state) => state.babyActivities);
-  const timelineItems = useTimelineStore((state) => state.timelineItems);
   const currentStageData = useGrowthStore((state) => state.currentStageData());
   const family = useFamily();
   const now = useLiveNow();
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
-  const [selectedMomentId, setSelectedMomentId] = useState<string | null>(null);
-  const [momentPreview, setMomentPreview] = useState<MomentMediaPreviewState | null>(null);
-  const selectedRecord = selectedRecordId
-    ? records.find((item) => item.id === selectedRecordId) ?? null
-    : null;
-
   const metrics = useMemo(() => selectBabyTodayMetrics(records, now), [records, now]);
   const dayActivities = useMemo(() => getBabyActivitiesForDay(records, now), [records, now]);
-  const dayMoments = useMemo(
-    () => timelineItems.filter((item) => timelineMomentOwner(item) === 'baby' && isTimelineMomentOnLocalDay(item, now)),
-    [now, timelineItems],
-  );
-  const timelineEntries = useMemo(() => [
-    ...dayActivities.map((record) => ({ kind: 'activity' as const, occurredAt: record.occurredAt, record })),
-    ...dayMoments.map((item) => ({ kind: 'moment' as const, occurredAt: timelineMomentOccurredAt(item), item })),
-  ].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()), [dayActivities, dayMoments]);
-  const selectedMoment = selectedMomentId
-    ? timelineItems.find((item) => item.id === selectedMomentId) ?? null
-    : null;
-  const selectedMomentEntry: JournalTimelineEntry | null = selectedMoment ? {
-    id: `moment-${selectedMoment.id}`,
-    occurredAt: timelineMomentOccurredAt(selectedMoment),
-    owner: timelineMomentOwner(selectedMoment),
-    type: 'moment',
-    title: selectedMoment.title,
-    detail: selectedMoment.content,
-    stats: selectedMoment.stats ?? [],
-    moment: selectedMoment,
-  } : null;
+  const {
+    timelineEntries,
+    selectedRecord,
+    selectedMomentEntry,
+    momentPreview,
+    openRecord,
+    openMoment,
+    openMomentMedia,
+    closeEntry,
+    closeMomentPreview,
+  } = useHomeTimeline({ owner: 'baby', records, dayActivities, now });
   const latestGrowth = useMemo(
     () => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null,
     [currentStageData.growthHistory],
@@ -192,13 +172,8 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
                         item={timelineEntry.item}
                         occurredAt={timelineEntry.occurredAt}
                         formattedTime={formatTimeOfDay(timelineEntry.occurredAt)}
-                        onOpenEntry={() => {
-                          setSelectedRecordId(null);
-                          setSelectedMomentId(timelineEntry.item.id);
-                        }}
-                        onOpenMedia={(items, initialIndex, title, layoutId, originSrc, getLayoutId) => setMomentPreview({
-                          items, initialIndex, title, layoutId, originSrc, getLayoutId,
-                        })}
+                        onOpenEntry={() => openMoment(timelineEntry.item.id)}
+                        onOpenMedia={openMomentMedia}
                       />
                     );
                   }
@@ -213,10 +188,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
                         <button
                           type="button"
                           className="journal-story-main"
-                          onClick={() => {
-                            setSelectedMomentId(null);
-                            setSelectedRecordId(record.id);
-                          }}
+                          onClick={() => openRecord(record.id)}
                           aria-label={`${label}, ${formatTimeOfDay(record.occurredAt)}`}
                         >
                           <span className="journal-story-heading">
@@ -243,15 +215,10 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
       <TimelineEntryDialog
         open={selectedRecord !== null || selectedMomentEntry !== null}
         entry={selectedMomentEntry ?? selectedRecord}
-        onClose={() => {
-          setSelectedRecordId(null);
-          setSelectedMomentId(null);
-        }}
-        onOpenMomentMedia={(items, initialIndex, title, layoutId, originSrc, getLayoutId) => setMomentPreview({
-          items, initialIndex, title, layoutId, originSrc, getLayoutId,
-        })}
+        onClose={closeEntry}
+        onOpenMomentMedia={openMomentMedia}
       />
-      <MomentMediaPreview preview={momentPreview} onClose={() => setMomentPreview(null)} />
+      <MomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
     </div>
   );
 };
