@@ -1,5 +1,4 @@
 import type { FamilyData, GrowthHistoryRecord, TimelineItem } from '@/types';
-import type { MomData } from '@/types';
 import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder } from '@/types/reminder';
 import { isGoogleConfigured } from '@/features/sync';
@@ -7,7 +6,6 @@ import { setLocalRecord } from '@/services/localDb';
 import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/store/useActivityStore';
 import { useBabyStore } from '@/store/useBabyStore';
 import { useExpenseStore } from '@/store/useExpenseStore';
-import { useMomStore } from '@/store/useMomStore';
 import { useReminderStore } from '@/store/useReminderStore';
 import { useTimelineStore } from '@/store/useTimelineStore';
 
@@ -189,34 +187,6 @@ const MOM_ACTIVITIES: NewMomActivity[] = [
   { owner: 'mom', type: 'recovery_note', occurredAt: todayAt(19, 0), note: 'Vết khâu đã khô, đi lại nhẹ nhàng được.' },
 ];
 
-const MOCK_MOM: Partial<MomData> = {
-  name: 'Mẹ Thảo',
-  postpartumDay: '13',
-  wellnessScore: 82,
-  mentalHealth: {
-    epdsScore: '4',
-    status: 'Tâm lý ổn định',
-    sleepDebt: '6h',
-  },
-  pumping: {
-    todayTotal: '420 ml',
-    sessionsToday: 3,
-    freezerStock: '2.6 L',
-    lastSession: '140 ml',
-    time: 'Lúc 18:30 (2 bên)',
-    history: [
-      { time: '18:30', amount: '140 ml', note: 'Hút bên: 2 bên' },
-      { time: '13:00', amount: '130 ml', note: 'Hút bên: 2 bên' },
-      { time: '07:45', amount: '150 ml', note: 'Hút bên: 2 bên' },
-    ],
-  },
-  recovery: {
-    uterusStatus: 'Hồi phục tốt',
-    lochia: 'Đã hết',
-    weightLoss: '-6 kg',
-  },
-};
-
 /** Pushes demo records into the current domain stores. Development only. */
 export function seedMockData(): void {
   const baby = useBabyStore.getState();
@@ -237,7 +207,6 @@ export function seedMockData(): void {
 
   useExpenseStore.getState().setMonthlyBudget(8_000_000);
   EXPENSES.forEach((entry) => useExpenseStore.getState().addExpense(entry));
-  useMomStore.getState().updateMomData(MOCK_MOM);
 
   TIMELINE_ITEMS.forEach((item) =>
     useTimelineStore.getState().addTimelineItem({
