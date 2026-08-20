@@ -52,6 +52,7 @@ describe('interaction performance audit', () => {
   });
 
   it('keeps the baby timeline runtime behind an idle lazy boundary', () => {
+    const homeView = source('features/home/components/HomeView.tsx');
     const babyHome = source('features/home/components/BabyHomeView.tsx');
     const idleTimeline = source('features/home/components/IdleHomeTimelinePreview.tsx');
     const lazyTimeline = source('features/home/components/LazyHomeTimelinePreview.tsx');
@@ -60,6 +61,8 @@ describe('interaction performance audit', () => {
     const lazyDialog = source('features/home/components/LazyTimelineEntryDialog.tsx');
     const lazyPreview = source('features/home/components/LazyMomentMediaPreview.tsx');
 
+    expect(homeView).not.toContain("import { MomHomeView } from './MomHomeView'");
+    expect(homeView).toContain("import('./MomHomeView')");
     expect(babyHome).toContain("from './IdleHomeTimelinePreview'");
     expect(babyHome).not.toContain("from '@/features/timeline/");
     expect(babyHome).not.toContain('useHomeTimeline');
