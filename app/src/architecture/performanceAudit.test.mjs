@@ -42,24 +42,34 @@ describe('interaction performance audit', () => {
     expect(mediaUrl).toContain("await import('@/features/sync/googleDriveSync')");
   });
 
-  it('keeps persistent sticky and fixed navigation surfaces free of backdrop filters', () => {
+  it('keeps persistent navigation and pull content free of permanent expensive compositing hints', () => {
     const header = source('shared/styles/header.css');
     const bottomNav = source('shared/styles/bottom-nav.css');
+    const pullToRefresh = source('shared/ui/PullToRefresh.css');
     expect(header).not.toContain('backdrop-filter');
     expect(bottomNav).not.toContain('backdrop-filter');
+    expect(pullToRefresh).not.toContain('will-change: transform');
   });
 
-  it('keeps the full timeline editor out of the Home runtime import path', () => {
+  it('keeps the full timeline editor and preview out of the Home runtime import path', () => {
     const babyHome = source('features/home/components/BabyHomeView.tsx');
     const momHome = source('features/home/components/MomHomeView.tsx');
     const homeTimeline = source('features/home/hooks/useHomeTimeline.ts');
+    const homeMoment = source('features/timeline/components/HomeMomentStoryItem.tsx');
     const lazyDialog = source('features/home/components/LazyTimelineEntryDialog.tsx');
+    const lazyPreview = source('features/home/components/LazyMomentMediaPreview.tsx');
     expect(babyHome).not.toContain("from '@/features/timeline'");
     expect(momHome).not.toContain("from '@/features/timeline'");
     expect(homeTimeline).not.toContain("from '@/features/timeline'");
+    expect(homeMoment).not.toContain("from './TimelineEntryDialog'");
+    expect(homeMoment).toContain("from '@/features/timeline/components/TimelineMediaButton'");
     expect(babyHome).toContain('LazyTimelineEntryDialog');
     expect(momHome).toContain('LazyTimelineEntryDialog');
+    expect(babyHome).toContain('LazyMomentMediaPreview');
+    expect(momHome).toContain('LazyMomentMediaPreview');
     expect(lazyDialog).toContain("import('@/features/timeline/components/TimelineEntryDialog')");
+    expect(lazyPreview).toContain("import('@/features/timeline/components/MomentMediaPreview')");
     expect(lazyDialog).toContain('DIALOG_EXIT_RETENTION_MS = 280');
+    expect(lazyPreview).toContain('PREVIEW_EXIT_RETENTION_MS = 280');
   });
 });
