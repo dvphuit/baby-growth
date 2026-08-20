@@ -6,7 +6,7 @@ const localMedia = vi.hoisted(() => ({ getLocalMedia: vi.fn() }));
 const driveMedia = vi.hoisted(() => ({ downloadTimelineMediaFromDrive: vi.fn() }));
 
 vi.mock('@/data/localDb', () => localMedia);
-vi.mock('@/features/sync', () => driveMedia);
+vi.mock('@/features/sync/googleDriveSync', () => driveMedia);
 
 describe('TimelineMediaAsset', () => {
   beforeEach(() => {
