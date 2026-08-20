@@ -12,7 +12,7 @@ const localDb = vi.hoisted(() => ({
 const drive = vi.hoisted(() => ({ uploadTimelineMediaToDrive: vi.fn() }));
 
 vi.mock('./localDb', () => localDb);
-vi.mock('./googleDriveSync', () => drive);
+vi.mock('@/features/sync/googleDriveSync', () => drive);
 
 import { useTimelineStore } from '@/store/useTimelineStore';
 import { syncTimelineMediaToDrive } from './timelineMediaDriveSync';
@@ -44,7 +44,7 @@ describe('syncTimelineMediaToDrive', () => {
     );
     expect(useTimelineStore.getState().timelineItems[0].mediaItems?.[0].driveFileId).toBe('drive-file-1');
     expect(getTimelineMediaSyncProgress('media-1')).toEqual({ status: 'synced', progress: 100, error: undefined });
-    expect(localDb.waitForLocalRecordWrites).toHaveBeenCalledWith(['babygrowth_v2_timeline']);
+    expect(localDb.waitForLocalRecordWrites).toHaveBeenCalledWith(['babygrowth_v4_timeline']);
   });
 
   it('publishes upload progress and keeps an error status when Drive rejects a file', async () => {

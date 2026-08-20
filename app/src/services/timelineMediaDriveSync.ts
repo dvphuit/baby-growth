@@ -1,11 +1,11 @@
 import { getLocalMedia, waitForLocalRecordWrites } from './localDb';
-import { uploadTimelineMediaToDrive } from './googleDriveSync';
+import { uploadTimelineMediaToDrive } from '@/features/sync/googleDriveSync';
 import { logDiagnostic } from './diagnosticLog';
 import { publishTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
 import { useTimelineStore } from '@/store/useTimelineStore';
 import type { TimelineItem, TimelineMediaItem } from '@/types';
 
-const TIMELINE_STORAGE_KEY = 'babygrowth_v2_timeline';
+const TIMELINE_STORAGE_KEY = 'babygrowth_v4_timeline';
 
 async function waitForTimelineHydration(): Promise<void> {
   if (useTimelineStore.persist.hasHydrated()) return;

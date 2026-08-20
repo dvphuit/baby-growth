@@ -15,7 +15,6 @@ import { useAutoSyncLifecycle } from './hooks/useAutoSyncLifecycle';
 import { useAppModals } from './hooks/useAppModals';
 import { useReminderLifecycle } from './hooks/useReminderLifecycle';
 import { useThemeColor } from './hooks/useThemeColor';
-import { runDataMigration } from './services/dataMigration';
 import { installGlobalDiagnosticLogging, logDiagnostic } from './services/diagnosticLog';
 import { useBabyStore } from './store/useBabyStore';
 import { OnboardingView } from './components/onboarding/OnboardingView';
@@ -28,7 +27,6 @@ export const AppContent: React.FC = () => {
   const isInitialized = Boolean(familyData?.isInitialized && familyData?.childName);
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  useEffect(() => { void runDataMigration(); }, []);
   useEffect(() => {
     logDiagnostic('app', 'info', 'App started', {
       version: import.meta.env.VITE_APP_VERSION,

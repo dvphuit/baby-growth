@@ -4,6 +4,15 @@ const DB_NAME = 'babygrowth-local';
 const STORE_NAME = 'zustand';
 const MEDIA_STORE_NAME = 'media';
 const DB_VERSION = 2;
+const PERSISTENCE_GENERATION = 4;
+
+const GENERATED_STORE_NAMES = new Set(['baby', 'mom', 'timeline', 'ui', 'activities', 'reminders']);
+
+function currentPersistenceKey(name: string): string {
+  const match = name.match(/^babygrowth_v\d+_(.+)$/);
+  if (!match || !GENERATED_STORE_NAMES.has(match[1])) return name;
+  return `babygrowth_v${PERSISTENCE_GENERATION}_${match[1]}`;
+}
 
 type LocalRecordChangeListener = (key: string) => void;
 const localRecordChangeListeners = new Set<LocalRecordChangeListener>();
@@ -36,12 +45,8 @@ function openDb(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-      if (!db.objectStoreNames.contains(MEDIA_STORE_NAME)) {
-        db.createObjectStore(MEDIA_STORE_NAME);
-      }
+      if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+      if (!db.objectStoreNames.contains(MEDIA_STORE_NAME)) db.createObjectStore(MEDIA_STORE_NAME);
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error('Không thể mở IndexedDB'));
@@ -68,9 +73,7 @@ async function trackRecordWrite(key: string, operation: () => Promise<void>): Pr
   try {
     await pendingWrite;
   } finally {
-    if (pendingRecordWrites.get(key) === pendingWrite) {
-      pendingRecordWrites.delete(key);
-    }
+    if (pendingRecordWrites.get(key) === pendingWrite) pendingRecordWrites.delete(key);
   }
 }
 
@@ -94,16 +97,12 @@ async function writeValue(key: string, value: string): Promise<void> {
   await trackRecordWrite(key, async () => {
     if (!hasIndexedDb()) {
       memoryFallback.set(key, value);
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, value);
-      }
+      if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(key, value);
       return;
     }
     const db = await openDb();
     await commitRecordMutation(db, STORE_NAME, (store) => { store.put(value, key); }, 'Không thể ghi IndexedDB');
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(key);
-    }
+    if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem(key);
   });
 }
 
@@ -111,29 +110,19 @@ async function removeValue(key: string): Promise<void> {
   await trackRecordWrite(key, async () => {
     if (!hasIndexedDb()) {
       memoryFallback.delete(key);
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem(key);
-      }
+      if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem(key);
       return;
     }
     const db = await openDb();
     await commitRecordMutation(db, STORE_NAME, (store) => { store.delete(key); }, 'Không thể xóa IndexedDB');
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(key);
-    }
+    if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem(key);
   });
 }
 
 export async function waitForLocalRecordWrites(keys: readonly string[]): Promise<void> {
-  await Promise.all(keys.map((key) => pendingRecordWrites.get(key) ?? Promise.resolve()));
+  await Promise.all(keys.map((key) => pendingRecordWrites.get(currentPersistenceKey(key)) ?? Promise.resolve()));
 }
 
-
-/**
- * Zustand storage backed by IndexedDB. Existing localStorage snapshots are
- * migrated lazily the first time each key is read, so current user data is
- * preserved during the upgrade.
- */
 export function subscribeLocalRecordChanges(listener: LocalRecordChangeListener): () => void {
   localRecordChangeListeners.add(listener);
   return () => localRecordChangeListeners.delete(listener);
@@ -143,25 +132,17 @@ function notifyLocalRecordChanged(key: string): void {
   localRecordChangeListeners.forEach((listener) => listener(key));
 }
 
+/** Zustand storage for the current persistence generation.
+ * Historical v2/v3 keys are intentionally not read or migrated. */
 export const indexedDbStorage: StateStorage = {
-  getItem: async (name) => {
-    const indexedValue = await readValue(name);
-    if (indexedValue !== null) return indexedValue;
-
-    const legacyValue = window.localStorage.getItem(name);
-    if (legacyValue !== null) {
-      await writeValue(name, legacyValue);
-      return legacyValue;
-    }
-
-    return null;
-  },
+  getItem: async (name) => readValue(currentPersistenceKey(name)),
   setItem: async (name, value) => {
-    await writeValue(name, value);
-    notifyLocalRecordChanged(name);
+    const key = currentPersistenceKey(name);
+    await writeValue(key, value);
+    notifyLocalRecordChanged(key);
   },
   removeItem: async (name) => {
-    await removeValue(name);
+    await removeValue(currentPersistenceKey(name));
   },
 };
 
@@ -179,9 +160,7 @@ export async function removeLocalRecord(key: string): Promise<void> {
 }
 
 export async function getAllLocalRecords(keys: string[]): Promise<Record<string, string>> {
-  const records = await Promise.all(
-    keys.map(async (key) => [key, await indexedDbStorage.getItem(key)] as const)
-  );
+  const records = await Promise.all(keys.map(async (key) => [key, await readValue(key)] as const));
   return Object.fromEntries(records.filter((entry): entry is [string, string] => entry[1] !== null));
 }
 
@@ -206,12 +185,7 @@ export async function getLocalMedia(id: string): Promise<Blob | null> {
 
 export async function listLocalMedia(): Promise<LocalMediaRecord[]> {
   if (!hasIndexedDb()) {
-    return [...memoryMediaFallback.entries()].map(([id, blob]) => ({
-      id,
-      blob,
-      size: blob.size,
-      mimeType: blob.type,
-    }));
+    return [...memoryMediaFallback.entries()].map(([id, blob]) => ({ id, blob, size: blob.size, mimeType: blob.type }));
   }
 
   const db = await openDb();

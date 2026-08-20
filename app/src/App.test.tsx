@@ -7,7 +7,6 @@ import { AppContent } from './App';
 const addToast = vi.fn();
 const useAutoSyncLifecycleMock = vi.fn();
 const useReminderLifecycleMock = vi.fn();
-const runDataMigrationMock = vi.fn().mockResolvedValue({ migrated: false, version: 1 });
 
 const modalController: AppModalController = {
   isAnyModalOpen: false,
@@ -43,7 +42,6 @@ const modalController: AppModalController = {
 vi.mock('@/hooks/useToast', () => ({ useToast: () => ({ toasts: [], addToast, dismissToast: vi.fn() }) }));
 vi.mock('@/hooks/useAutoSyncLifecycle', () => ({ useAutoSyncLifecycle: () => useAutoSyncLifecycleMock() }));
 vi.mock('@/hooks/useReminderLifecycle', () => ({ useReminderLifecycle: (options: unknown) => useReminderLifecycleMock(options) }));
-vi.mock('@/services/dataMigration', () => ({ runDataMigration: () => runDataMigrationMock() }));
 vi.mock('@/hooks/useAppModals', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/hooks/useAppModals')>();
   return { ...original, useAppModals: () => modalController };
