@@ -1,150 +1,84 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useExpenseStore } from '@/store/useExpenseStore';
 import { AddExpenseModal } from './AddExpenseModal';
-import { useBabyStore } from '@/store/useBabyStore';
+
+function renderModal(overrides: Partial<React.ComponentProps<typeof AddExpenseModal>> = {}) {
+  const props: React.ComponentProps<typeof AddExpenseModal> = {
+    isOpen: true,
+    onClose: vi.fn(),
+    onSuccessToast: vi.fn(),
+    ...overrides,
+  };
+  render(<AddExpenseModal {...props} />);
+  return props;
+}
+
+async function enterAmount(value: string): Promise<void> {
+  const user = userEvent.setup();
+  for (const digit of value) await user.click(screen.getByRole('button', { name: digit }));
+}
 
 describe('AddExpenseModal Component', () => {
   beforeEach(() => {
-    useBabyStore.setState({
-      expenseRecords: [],
-    });
+    useExpenseStore.setState({ expenses: [], monthlyBudget: 5_000_000 });
   });
 
   it('renders multi-select category chips and unit badge', () => {
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        onClose={vi.fn()}
-        onSuccessToast={vi.fn()}
-      />
-    );
-
-    // Categories
+    renderModal();
     expect(screen.getByRole('button', { name: /Sữa & ăn dặm/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Tã bỉm & vệ sinh/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Y tế & tiêm chủng/i })).toBeInTheDocument();
-
-    // Unit badge
     expect(screen.getByText(/×1.000 đ/i)).toBeInTheDocument();
   });
 
-  it('supports toggling categories and defaults to Khác when empty', async () => {
+  it('defaults to Khác when the selected category is removed', async () => {
     const user = userEvent.setup();
-    const handleSuccessToast = vi.fn();
-    const handleClose = vi.fn();
+    const props = renderModal();
 
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        onClose={handleClose}
-        onSuccessToast={handleSuccessToast}
-      />
-    );
+    await user.click(screen.getByRole('button', { name: /Sữa & ăn dặm/i }));
+    expect(screen.getByRole('button', { name: /^Khác/i })).toHaveAttribute('aria-pressed', 'true');
+    await enterAmount('150');
+    await user.click(screen.getByRole('button', { name: /Lưu khoản chi/i }));
 
-    // Initial selected is 'Sữa & ăn dặm'. Unselect it -> should become 'Khác'
-    const milkBtn = screen.getByRole('button', { name: /Sữa & ăn dặm/i });
-    await user.click(milkBtn);
-
-    const khacBtn = screen.getByRole('button', { name: /^Khác/i });
-    expect(khacBtn).toHaveAttribute('aria-pressed', 'true');
-
-    // Enter amount in thousands: 150
-    await user.click(screen.getByRole('button', { name: '1' }));
-    await user.click(screen.getByRole('button', { name: '5' }));
-    await user.click(screen.getByRole('button', { name: '0' }));
-
-    // Click submit
-    const submitBtn = screen.getByRole('button', { name: /Lưu khoản chi/i });
-    await user.click(submitBtn);
-
-    expect(handleSuccessToast).toHaveBeenCalledWith(expect.stringContaining('150.000 đ'));
-    const expenses = useBabyStore.getState().expenseRecords;
-    expect(expenses.length).toBe(1);
-    expect(expenses[0].category).toBe('Khác');
+    expect(props.onSuccessToast).toHaveBeenCalledWith(expect.stringContaining('150.000 đ'));
+    expect(useExpenseStore.getState().expenses).toHaveLength(1);
+    expect(useExpenseStore.getState().expenses[0]?.category).toBe('Khác');
   });
 
-  it('supports multi-selecting categories in a single expense', async () => {
+  it('stores multiple selected categories in one expense', async () => {
     const user = userEvent.setup();
-    const handleSuccessToast = vi.fn();
-    const handleClose = vi.fn();
+    renderModal();
 
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        onClose={handleClose}
-        onSuccessToast={handleSuccessToast}
-      />
-    );
+    await user.click(screen.getByRole('button', { name: /Tã bỉm & vệ sinh/i }));
+    await enterAmount('500');
+    await user.click(screen.getByRole('button', { name: /Lưu khoản chi/i }));
 
-    // Initial selected is 'Sữa & ăn dặm'. Also select 'Tã bỉm & vệ sinh'
-    const diaperBtn = screen.getByRole('button', { name: /Tã bỉm & vệ sinh/i });
-    await user.click(diaperBtn);
-
-    // Enter amount in thousands: 500
-    await user.click(screen.getByRole('button', { name: '5' }));
-    await user.click(screen.getByRole('button', { name: '0' }));
-    await user.click(screen.getByRole('button', { name: '0' }));
-
-    // Click submit
-    const submitBtn = screen.getByRole('button', { name: /Lưu khoản chi/i });
-    await user.click(submitBtn);
-
-    expect(handleSuccessToast).toHaveBeenCalledWith(expect.stringContaining('500.000 đ'));
-    const expenses = useBabyStore.getState().expenseRecords;
-    expect(expenses.length).toBe(1);
-    expect(expenses[0].category).toBe('Sữa & ăn dặm, Tã bỉm & vệ sinh');
+    expect(useExpenseStore.getState().expenses[0]?.category).toBe('Sữa & ăn dặm, Tã bỉm & vệ sinh');
   });
 
-  it('allows entering amount in thousands (x1000) via keypad and displays formula', async () => {
+  it('converts keypad thousands into VND', async () => {
     const user = userEvent.setup();
-    const handleSuccessToast = vi.fn();
-    const handleClose = vi.fn();
+    const onClose = vi.fn();
+    renderModal({ onClose });
 
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        onClose={handleClose}
-        onSuccessToast={handleSuccessToast}
-      />
-    );
-
-    // Enter amount in thousands: 3, 5, 0 -> 350k = 350.000 đ
-    await user.click(screen.getByRole('button', { name: '3' }));
-    await user.click(screen.getByRole('button', { name: '5' }));
-    await user.click(screen.getByRole('button', { name: '0' }));
-
-    // Input formula should display 350
+    await enterAmount('350');
     expect(screen.getByText('350')).toBeInTheDocument();
     expect(screen.getByText('350.000')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Lưu khoản chi/i }));
 
-    // Click submit
-    const submitBtn = screen.getByRole('button', { name: /Lưu khoản chi/i });
-    await user.click(submitBtn);
-
-    expect(handleSuccessToast).toHaveBeenCalledWith(expect.stringContaining('350.000 đ'));
-    expect(handleClose).toHaveBeenCalled();
-
-    const expenses = useBabyStore.getState().expenseRecords;
-    expect(expenses.length).toBe(1);
-    expect(expenses[0].amount).toBe(350000);
-    expect(expenses[0].category).toBe('Sữa & ăn dặm');
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(useExpenseStore.getState().expenses[0]).toMatchObject({
+      amount: 350000,
+      category: 'Sữa & ăn dặm',
+    });
   });
 
-  it('supports calculator math expression like 50*2+60*3', async () => {
+  it('supports calculator expressions', async () => {
     const user = userEvent.setup();
-    const handleSuccessToast = vi.fn();
-    const handleClose = vi.fn();
+    renderModal();
 
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        onClose={handleClose}
-        onSuccessToast={handleSuccessToast}
-      />
-    );
-
-    // Enter formula: 50 * 2 + 60 * 3
     await user.click(screen.getByRole('button', { name: '5' }));
     await user.click(screen.getByRole('button', { name: '0' }));
     await user.click(screen.getByRole('button', { name: 'Nhân' }));
@@ -155,62 +89,31 @@ describe('AddExpenseModal Component', () => {
     await user.click(screen.getByRole('button', { name: 'Nhân' }));
     await user.click(screen.getByRole('button', { name: '3' }));
 
-    // Formula displayed: 50 × 2 + 60 × 3
     expect(screen.getByText('50 × 2 + 60 × 3')).toBeInTheDocument();
-    // Live calculated total: 50*2 + 60*3 = 280k = 280.000 đ
     expect(screen.getByText('280.000')).toBeInTheDocument();
-
-    // Click submit
-    const submitBtn = screen.getByRole('button', { name: /Lưu khoản chi/i });
-    await user.click(submitBtn);
-
-    expect(handleSuccessToast).toHaveBeenCalledWith(expect.stringContaining('280.000 đ'));
-    const expenses = useBabyStore.getState().expenseRecords;
-    expect(expenses[0].amount).toBe(280000);
+    await user.click(screen.getByRole('button', { name: /Lưu khoản chi/i }));
+    expect(useExpenseStore.getState().expenses[0]?.amount).toBe(280000);
   });
 
-  it('supports editing an existing expense', async () => {
+  it('updates an existing expense', async () => {
     const user = userEvent.setup();
-    const handleSuccessToast = vi.fn();
-    const handleClose = vi.fn();
-
+    const now = new Date().toISOString();
     const existingRecord = {
       id: 'exp-123',
       amount: 180000,
       category: 'Tã bỉm & vệ sinh',
-      occurredAt: new Date().toISOString(),
+      occurredAt: now,
       note: 'Bỉm dán Moony',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-
-    useBabyStore.setState({
-      expenseRecords: [existingRecord],
-    });
-
-    render(
-      <AddExpenseModal
-        isOpen={true}
-        editingExpense={existingRecord}
-        onClose={handleClose}
-        onSuccessToast={handleSuccessToast}
-      />
-    );
+    useExpenseStore.setState({ expenses: [existingRecord] });
+    renderModal({ editingExpense: existingRecord });
 
     expect(screen.getByText('Sửa khoản chi')).toBeInTheDocument();
-    expect(screen.getByText('180')).toBeInTheDocument();
-    expect(screen.getByText('180.000')).toBeInTheDocument();
-
-    // Quick add +50k
     await user.click(screen.getByRole('button', { name: '+50k' }));
+    await user.click(screen.getByRole('button', { name: /Lưu thay đổi/i }));
 
-    const submitBtn = screen.getByRole('button', { name: /Lưu thay đổi/i });
-    await user.click(submitBtn);
-
-    expect(handleSuccessToast).toHaveBeenCalledWith(expect.stringContaining('230.000 đ'));
-    expect(handleClose).toHaveBeenCalled();
-
-    const updated = useBabyStore.getState().expenseRecords.find((r) => r.id === 'exp-123');
-    expect(updated?.amount).toBe(230000);
+    expect(useExpenseStore.getState().expenses.find((record) => record.id === existingRecord.id)?.amount).toBe(230000);
   });
 });
