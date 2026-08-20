@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { downloadTimelineMediaFromDrive } from '@/features/sync';
 import { getLocalMedia } from '@/data/localDb';
 import type { TimelineMediaItem } from '@/types';
 
 // Map of active object URLs with reference count
 const activeObjectUrls = new Map<string, { url: string; refCount: number }>();
+
+async function downloadDriveMedia(fileId: string): Promise<Blob | null> {
+  const { downloadTimelineMediaFromDrive } = await import('@/features/sync/googleDriveSync');
+  return downloadTimelineMediaFromDrive(fileId, { interactive: false });
+}
 
 export function getCachedTimelineMediaUrl(media?: TimelineMediaItem | null): string | null {
   if (!media) return null;
@@ -23,9 +27,7 @@ export function preloadTimelineMedia(media: TimelineMediaItem): Promise<string |
 
   return (async () => {
     const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
-    const blob = localBlob ?? (media.driveFileId
-      ? await downloadTimelineMediaFromDrive(media.driveFileId, { interactive: false })
-      : null);
+    const blob = localBlob ?? (media.driveFileId ? await downloadDriveMedia(media.driveFileId) : null);
     if (!blob) return null;
     const existing = activeObjectUrls.get(cacheKey);
     if (existing) return existing.url;
@@ -62,9 +64,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
     } else {
       void (async () => {
         const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
-        return localBlob ?? (media.driveFileId
-          ? downloadTimelineMediaFromDrive(media.driveFileId, { interactive: false })
-          : null);
+        return localBlob ?? (media.driveFileId ? downloadDriveMedia(media.driveFileId) : null);
       })().then((blob) => {
         if (!active) return;
         if (!blob) {
