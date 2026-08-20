@@ -4,14 +4,9 @@ const DB_NAME = 'babygrowth-local';
 const STORE_NAME = 'zustand';
 const MEDIA_STORE_NAME = 'media';
 const DB_VERSION = 2;
-const PERSISTENCE_GENERATION = 4;
-
-const GENERATED_STORE_NAMES = new Set(['baby', 'mom', 'timeline', 'ui', 'activities', 'reminders']);
 
 function currentPersistenceKey(name: string): string {
-  const match = name.match(/^babygrowth_v\d+_(.+)$/);
-  if (!match || !GENERATED_STORE_NAMES.has(match[1])) return name;
-  return `babygrowth_v${PERSISTENCE_GENERATION}_${match[1]}`;
+  return name;
 }
 
 type LocalRecordChangeListener = (key: string) => void;
@@ -132,8 +127,6 @@ function notifyLocalRecordChanged(key: string): void {
   localRecordChangeListeners.forEach((listener) => listener(key));
 }
 
-/** Zustand storage for the current persistence generation.
- * Historical v2/v3 keys are intentionally not read or migrated. */
 export const indexedDbStorage: StateStorage = {
   getItem: async (name) => readValue(currentPersistenceKey(name)),
   setItem: async (name, value) => {
