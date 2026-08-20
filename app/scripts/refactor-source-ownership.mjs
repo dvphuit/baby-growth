@@ -66,6 +66,7 @@ move('src/styles/refactorStyles.test.mjs', 'src/architecture/refactorStyles.test
 const legacyComponentsEntry = join(SRC, 'styles', 'components.css');
 if (!existsSync(legacyComponentsEntry)) throw new Error('Expected src/styles/components.css before ownership move.');
 rmSync(legacyComponentsEntry);
+rmSync(join(SRC, 'styles'), { recursive: true });
 
 writeFileSync(join(SRC, 'index.css'), [
   "@import './shared/styles/tokens.css';",
