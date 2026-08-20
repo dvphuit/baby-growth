@@ -1,0 +1,50 @@
+name: Refactor home timeline PR gate
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/refactor-home-timeline-pr.yml
+      - app/scripts/refactor-home-timeline-state.mjs
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/feature-first-architecture
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Apply and verify Home timeline consolidation
+        run: |
+          set -e
+          cd app
+          npm ci
+          node scripts/refactor-home-timeline-state.mjs
+          npm test
+          npm run lint
+          npm run build
+      - name: Commit verified Home timeline consolidation
+        run: |
+          rm -f .github/workflows/refactor-home-timeline-pr.yml app/scripts/refactor-home-timeline-state.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- app/src/features/home app/src/features/timeline/index.ts .github/workflows/refactor-home-timeline-pr.yml app/scripts/refactor-home-timeline-state.mjs
+          git diff --cached --check
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(app/src/features/home/|app/src/features/timeline/index\.ts$|app/scripts/refactor-home-timeline-state\.mjs$|\.github/workflows/refactor-home-timeline-pr\.yml$)' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected staged paths:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git commit -m "refactor: consolidate Home timeline state"
+          git push origin HEAD:refactor/feature-first-architecture
