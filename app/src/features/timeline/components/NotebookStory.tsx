@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
+import '../timeline-performance.css';
 
 export interface NotebookTimeEntry {
   occurredAt: string;
