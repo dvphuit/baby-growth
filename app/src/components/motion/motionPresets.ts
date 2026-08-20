@@ -78,6 +78,38 @@ export const havenDialogTransition: Transition = {
   },
 };
 
+export const havenPopupVariants: Variants = {
+  hidden: (placement: 'above' | 'below') => ({
+    opacity: 0,
+    y: placement === 'above' ? 6 : -6,
+    scale: 0.985,
+  }),
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: (placement: 'above' | 'below') => ({
+    opacity: 0,
+    y: placement === 'above' ? 4 : -4,
+    scale: 0.992,
+  }),
+};
+
+export const havenPopupTransition: Transition = {
+  duration: 0.16,
+  ease: [0.2, 0.75, 0.3, 1],
+};
+
+export const havenPickerVariants: Variants = {
+  hidden: { opacity: 0, y: 8, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: 6, scale: 0.98 },
+};
+
+export const havenPickerTransition: Transition = {
+  type: 'spring',
+  stiffness: 460,
+  damping: 38,
+  mass: 0.74,
+};
+
 export const havenToastVariants: Variants = {
   hidden: { opacity: 0, y: -14, scale: 0.96, filter: 'blur(4px)' },
   visible: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
