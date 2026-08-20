@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = process.cwd();
 const source = (path) => readFileSync(join(ROOT, 'src', path), 'utf8');
+const appFile = (path) => readFileSync(join(ROOT, path), 'utf8');
 
 describe('interaction performance audit', () => {
   it('keeps timeline pointer drag off the React state render path', () => {
@@ -21,11 +22,27 @@ describe('interaction performance audit', () => {
     expect(modals).not.toContain('if (!modals.isQuickLogOpen) return;\n    void Promise.all([');
   });
 
-  it('observes the notebook container instead of every story item', () => {
+  it('measures notebook layout only near the viewport', () => {
     const notebook = source('features/timeline/components/NotebookStory.tsx');
-    expect(notebook).toContain('resizeObserver?.observe(story)');
+    expect(notebook).toContain('resizeObserver.observe(story)');
     expect(notebook).not.toContain("querySelectorAll<HTMLElement>('.journal-story-item').forEach");
     expect(notebook).toContain('requestAnimationFrame');
+    expect(notebook).toContain('IntersectionObserver');
+    expect(notebook).toContain("rootMargin: '600px 0px'");
+  });
+
+  it('virtualizes offscreen timeline day rendering and enforces entry bundle budgets', () => {
+    const notebook = source('features/timeline/components/NotebookStory.tsx');
+    const virtualTimeline = source('features/timeline/timeline-performance.css');
+    const viteConfig = appFile('vite.config.ts');
+
+    expect(notebook).toContain("import '../timeline-performance.css'");
+    expect(virtualTimeline).toContain('content-visibility: auto');
+    expect(virtualTimeline).toContain('contain-intrinsic-size: auto 360px');
+    expect(viteConfig).toContain('ENTRY_CHUNK_BUDGET_BYTES = 500_000');
+    expect(viteConfig).toContain('ENTRY_GZIP_BUDGET_BYTES = 165_000');
+    expect(viteConfig).toContain('performanceBudgetPlugin()');
+    expect(viteConfig).toContain('this.error(');
   });
 
   it('keeps optional sync, reset, mock, and onboarding code off the startup import graph', () => {
