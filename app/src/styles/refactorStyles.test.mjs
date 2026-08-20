@@ -1,13 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-const css = [
-  'src/styles/shared.css',
-  'src/styles/home.css',
-  'src/styles/timeline.css',
-  'src/styles/modals.css',
-  'src/styles/refactor-primitives.css',
-].map((file) => readFileSync(file, 'utf8')).join('\n');
+const css = readFileSync('src/styles/refactor-primitives.css', 'utf8');
 
 describe('refactored tracker UI styles', () => {
   it('defines the shared primitives used by real-data views', () => {
