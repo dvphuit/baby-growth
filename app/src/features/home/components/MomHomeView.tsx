@@ -3,10 +3,11 @@ import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { SegmentClock } from './SegmentClock';
+import { LazyTimelineEntryDialog } from './LazyTimelineEntryDialog';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/features/activities/domain/activitySelectors';
-import { NotebookStory } from '@/features/timeline';
-import { HomeMomentStoryItem } from '@/features/timeline';
-import { MomentMediaPreview, TimelineEntryDialog } from '@/features/timeline';
+import { NotebookStory } from '@/features/timeline/components/NotebookStory';
+import { HomeMomentStoryItem } from '@/features/timeline/components/HomeMomentStoryItem';
+import { MomentMediaPreview } from '@/features/timeline/components/MomentMediaPreview';
 import { useHomeTimeline } from '../hooks/useHomeTimeline';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';
 import { formatClockTime, formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
@@ -170,7 +171,7 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
           </NotebookStory>
         )}
       </section>
-      <TimelineEntryDialog
+      <LazyTimelineEntryDialog
         open={selectedRecord !== null || selectedMomentEntry !== null}
         entry={selectedMomentEntry ?? selectedRecord}
         onClose={closeEntry}
