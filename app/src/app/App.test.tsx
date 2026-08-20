@@ -58,11 +58,11 @@ vi.mock('@/shared/ui/AppVersionBadge', () => ({ AppVersionBadge: () => <div>Vers
 vi.mock('@/PWABadge', () => ({ default: () => <div>PWA Badge marker</div> }));
 
 describe('AppContent', () => {
-  it('renders onboarding view when baby profile is not initialized', () => {
+  it('renders onboarding view when baby profile is not initialized', async () => {
     resetChildStoresToDefaults();
     render(<MemoryRouter initialEntries={['/']}><AppContent /></MemoryRouter>);
 
-    expect(screen.getByRole('heading', { name: /Đăng nhập Google Drive/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Đăng nhập Google Drive/i })).toBeInTheDocument();
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
   });
 
