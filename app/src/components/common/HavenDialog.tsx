@@ -10,6 +10,7 @@ import {
   havenOverlayVariants,
   havenPressStrong,
 } from '@/components/motion/motionPresets';
+import { useModalSurfaceLayoutId } from '@/components/motion/ModalMotionScope';
 
 interface HavenDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+  const surfaceLayoutId = useModalSurfaceLayoutId();
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +84,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
       {open && (
         <motion.div
           key="haven-dialog-backdrop"
+          layoutId={surfaceLayoutId ? `${surfaceLayoutId}-backdrop` : undefined}
           className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'}`.trim()}
           variants={havenOverlayVariants}
           initial="hidden"
@@ -97,6 +100,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
         >
           <motion.div
             layout
+            layoutId={surfaceLayoutId}
             ref={dialogRef}
             className={`haven-dialog ${className}`.trim()}
             role="dialog"
