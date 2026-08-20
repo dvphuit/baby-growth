@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Clock3, HeartPulse, Layers, Milk, Moon, Pill, Plus, Sparkles, Thermometer } from 'lucide-react';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { SegmentClock } from './SegmentClock';
+import { LazyMomentMediaPreview } from './LazyMomentMediaPreview';
 import { LazyTimelineEntryDialog } from './LazyTimelineEntryDialog';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
@@ -12,7 +13,6 @@ import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { buildBabyTimelineEntry } from '@/features/timeline/domain/timelineSelectors';
 import { NotebookStory } from '@/features/timeline/components/NotebookStory';
 import { HomeMomentStoryItem } from '@/features/timeline/components/HomeMomentStoryItem';
-import { MomentMediaPreview } from '@/features/timeline/components/MomentMediaPreview';
 import { useHomeTimeline } from '../hooks/useHomeTimeline';
 import { useLiveNow } from '@/shared/hooks/useLiveNow';
 import { formatClockTime, formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
@@ -219,7 +219,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
         onClose={closeEntry}
         onOpenMomentMedia={openMomentMedia}
       />
-      <MomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
+      <LazyMomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
     </div>
   );
 };
