@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OnboardingView } from './OnboardingView';
+import { exportAppSnapshot } from '@/features/sync/appSnapshot';
 import { useBabyStore } from '@/store/useBabyStore';
 import * as googleDriveSync from '@/services/googleDriveSync';
+import { OnboardingView } from './OnboardingView';
 
 vi.mock('@/services/googleDriveSync', () => ({
   isGoogleConfigured: vi.fn(() => true),
@@ -50,20 +51,21 @@ describe('OnboardingView', () => {
     });
   });
 
-  it('shows backup found screen and allows restoring data when remote backup exists', async () => {
+  it('shows backup found screen and allows restoring generation-2 data', async () => {
     const onComplete = vi.fn();
+    const backupDate = '2025-02-01T10:00:00Z';
     vi.mocked(googleDriveSync.checkDriveBackup).mockResolvedValue({
       found: true,
       remoteFileId: 'file-123',
       childName: 'Bé Đậu Đậu',
       birthDate: '2025-01-15',
-      updatedAt: '2025-02-01T10:00:00Z',
+      updatedAt: backupDate,
       snapshot: {
-        schemaVersion: 1,
-        updatedAt: '2025-02-01T10:00:00Z',
+        schemaVersion: 2,
+        updatedAt: backupDate,
         deviceId: 'device-1',
         fingerprint: 'fp-1',
-        records: {},
+        data: exportAppSnapshot(new Date(backupDate)),
       },
     });
 
@@ -82,7 +84,7 @@ describe('OnboardingView', () => {
 
     await waitFor(() => {
       expect(googleDriveSync.restoreDriveBackup).toHaveBeenCalledWith(
-        expect.objectContaining({ fingerprint: 'fp-1' }),
+        expect.objectContaining({ schemaVersion: 2, fingerprint: 'fp-1' }),
         'file-123',
       );
       expect(onComplete).toHaveBeenCalledTimes(1);
@@ -108,7 +110,6 @@ describe('OnboardingView', () => {
 
     render(<OnboardingView onComplete={onComplete} />);
 
-    // Starts directly on profile form since isGoogleConnected is true
     expect(screen.getByRole('heading', { name: /Khởi tạo hồ sơ Bé/i })).toBeInTheDocument();
 
     const nameInput = screen.getByLabelText(/Tên gọi ở nhà của Bé/i);

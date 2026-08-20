@@ -18,21 +18,17 @@ vi.mock('@/services/localDb', () => localDb);
 vi.mock('@/services/timelineMediaDriveSync', () => timelineMediaDriveSync);
 
 function jsonResponse(value: unknown): Response {
-  return {
-    ok: true,
+  return new Response(JSON.stringify(value), {
     status: 200,
-    json: vi.fn().mockResolvedValue(value),
-    text: vi.fn().mockResolvedValue(''),
-  } as Response;
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 function blobResponse(value: Blob): Response {
-  return {
-    ok: true,
+  return new Response(value, {
     status: 200,
-    blob: vi.fn().mockResolvedValue(value),
-    text: vi.fn().mockResolvedValue(''),
-  } as Response;
+    headers: { 'Content-Type': value.type || 'application/octet-stream' },
+  });
 }
 
 function installGoogleTokenClient(): void {
