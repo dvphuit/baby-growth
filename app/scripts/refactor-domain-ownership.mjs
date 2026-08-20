@@ -131,17 +131,22 @@ const replacements = new Map([
   ['@/services/timelineMediaDriveSync', '@/features/sync/timelineMediaDriveSync'],
   ['@/services/timelineMediaSyncProgress', '@/features/sync/timelineMediaSyncProgress'],
   ['@/services/googleDriveSync', '@/features/sync'],
+
+  ['./services/localDb', '@/data/localDb'],
+  ['./store/useActivityStore', '@/features/activities/store/useActivityStore'],
+  ['./store/useExpenseStore', '@/features/expenses/store/useExpenseStore'],
+  ['./store/useReminderStore', '@/features/reminders/store/useReminderStore'],
+  ['./store/useTimelineStore', '@/features/timeline/store/useTimelineStore'],
+  ['./useUIStore', '@/store/useUIStore'],
+  ['./useBabyStore', '@/store/useBabyStore'],
+  ['./localDb', '@/data/localDb'],
+  ['./diagnosticLog', '@/app/diagnostics/diagnosticLog'],
 ]);
 
 for (const file of sourceCodeFiles()) {
   let source = readFileSync(file, 'utf8');
   const original = source;
   for (const [from, to] of replacements) source = source.replaceAll(from, to);
-
-  if (file === join(SRC, 'app', 'lifecycle', 'trackingDataReset.ts')) {
-    source = source.replace("from './localDb'", "from '@/data/localDb'");
-  }
-
   if (source !== original) writeFileSync(file, source);
 }
 
@@ -188,6 +193,11 @@ const forbiddenImportTokens = [
   '@/services/notificationService',
   '@/services/timelineMediaDriveSync',
   '@/services/timelineMediaSyncProgress',
+  './services/localDb',
+  './store/useActivityStore',
+  './store/useExpenseStore',
+  './store/useReminderStore',
+  './store/useTimelineStore',
 ];
 for (const file of sourceCodeFiles()) {
   const source = readFileSync(file, 'utf8');
