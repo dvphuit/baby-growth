@@ -30,4 +30,21 @@ describe('interaction performance audit', () => {
     expect(notebook).not.toContain("querySelectorAll<HTMLElement>('.journal-story-item').forEach");
     expect(notebook).toContain('requestAnimationFrame');
   });
+
+  it('keeps optional sync, reset, mock, and onboarding code off the startup import graph', () => {
+    const main = source('main.tsx');
+    const app = source('app/App.tsx');
+    const mediaUrl = source('features/timeline/hooks/useTimelineMediaUrl.ts');
+
+    expect(main).not.toContain("from './data/mockData'");
+    expect(main).not.toContain("from './features/sync'");
+    expect(main).toContain("await import('./data/mockData')");
+    expect(main).toContain("await import('@/app/lifecycle/resetRequest')");
+
+    expect(app).not.toContain("import { OnboardingView } from '@/app/onboarding/OnboardingView'");
+    expect(app).toContain("await import('@/app/onboarding/OnboardingView')");
+
+    expect(mediaUrl).not.toContain("from '@/features/sync'");
+    expect(mediaUrl).toContain("await import('@/features/sync/googleDriveSync')");
+  });
 });
