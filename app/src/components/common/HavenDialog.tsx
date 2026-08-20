@@ -80,7 +80,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
   }, [modal, onClose, open]);
 
   return createPortal(
-    <AnimatePresence initial={false}>
+    <AnimatePresence>
       {open && (
         <motion.div
           key="haven-dialog-backdrop"
@@ -91,6 +91,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
           animate="visible"
           exit="exit"
           transition={havenOverlayTransition}
+          style={{ animation: 'none' }}
           onClick={(event) => {
             if (!modal || event.target !== event.currentTarget) return;
             event.preventDefault();
@@ -113,6 +114,7 @@ export function HavenDialog({ open, onClose, title, description, children, foote
             animate="visible"
             exit="exit"
             transition={havenDialogTransition}
+            style={{ animation: 'none' }}
           >
             <div className="haven-dialog-header">
               <div>
