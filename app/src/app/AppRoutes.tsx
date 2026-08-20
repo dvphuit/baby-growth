@@ -39,7 +39,7 @@ export function AppRoutes({
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="sync" initial={false}>
       <motion.div
         key={location.pathname}
         className="app-route-motion"
