@@ -25,12 +25,12 @@ jobs:
         run: npm ci
 
       - name: Run performance regression tests
-        run: npm test -- --runInBand
+        run: npm test
 
       - name: Check motion source regressions
         working-directory: .
         run: |
-          if grep -R "filter:\\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
+          if grep -R "filter:\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
             echo "Motion must not animate filter/backdrop-filter"
             exit 1
           fi
