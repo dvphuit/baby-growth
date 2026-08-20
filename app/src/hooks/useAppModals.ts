@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ActivityLogMode } from '@/components/modals/ActivityLogModal';
+import type { ActivityLogMode } from '@/features/activities/ActivityLogModal';
 
 export type AddToast = (message: string, icon?: string) => void;
 
@@ -116,8 +116,7 @@ export function useAppModals(): AppModalController {
     closeQuickLog: () => setIsQuickLogOpen(false),
     openAddGrowth: () => setIsAddGrowthOpen(true),
     closeAddGrowth: () => setIsAddGrowthOpen(false),
-    openAddPumping: () => setIsAddPumpingOpen(true),
-    closeAddPumping: () => setIsAddPumpingOpen(false),
+    openAddPumping: () => setIsAddPumpingOpen(false),
     openAddExpense: () => setIsAddExpenseOpen(true),
     closeAddExpense: () => setIsAddExpenseOpen(false),
     closeAddPost: () => setIsAddPostOpen(false),
