@@ -20,16 +20,26 @@ const EditProfileModal = lazy(async () => ({ default: (await import('@/component
 const NotificationModal = lazy(async () => ({ default: (await import('@/components/modals/NotificationModal')).NotificationModal }));
 
 const QUICK_LOG_SURFACE_ID = 'quick-log-surface';
+const MODAL_EXIT_RETENTION_MS = 280;
 
 const LazyModalFallback = () => (
   <div className="lazy-modal-loading" role="status" aria-live="polite">Đang mở…</div>
 );
 
-function useRetained(open: boolean): boolean {
+function useRetained(open: boolean, retentionMs = MODAL_EXIT_RETENTION_MS): boolean {
   const [mounted, setMounted] = useState(open);
+
   useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
+    if (open) {
+      setMounted(true);
+      return;
+    }
+
+    if (!mounted) return;
+    const timeoutId = window.setTimeout(() => setMounted(false), retentionMs);
+    return () => window.clearTimeout(timeoutId);
+  }, [mounted, open, retentionMs]);
+
   return open || mounted;
 }
 
