@@ -95,7 +95,8 @@ for (const file of sourceCodeFiles()) {
     .replaceAll('@/components/common/', '@/shared/ui/')
     .replaceAll('@/components/motion/', '@/shared/motion/')
     .replaceAll('@/components/onboarding/', '@/app/onboarding/')
-    .replaceAll('../common/HavenIcons', '@/shared/ui/HavenIcons');
+    .replace(/\.\.\/common\/([^'"\s]+)/g, (_match, modulePath) => `@/shared/ui/${modulePath}`)
+    .replace(/\.\.\/motion\/([^'"\s]+)/g, (_match, modulePath) => `@/shared/motion/${modulePath}`);
 
   const timelineOwned = file.startsWith(join(SRC, 'features', 'timeline'));
   source = source.replace(/@\/components\/timeline\/([^'"\s]+)/g, (_match, modulePath) => (
@@ -140,6 +141,8 @@ const forbiddenLegacyPaths = [
   '@/components/motion/',
   '@/components/timeline/',
   '@/components/onboarding/',
+  '../common/',
+  '../motion/',
 ];
 const unresolved = [];
 for (const file of sourceCodeFiles()) {
