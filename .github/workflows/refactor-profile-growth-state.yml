@@ -36,6 +36,7 @@ jobs:
             npm ci
             sed -i "/replaceExact('src\/features\/timeline\/TimelineView.test.tsx', \"useBabyStore.getState().updateFamilyData/d" scripts/refactor-profile-growth-state.mjs
             node scripts/refactor-profile-growth-state.mjs
+            sed -i "s#'../common/HavenIcons'#'@/shared/ui/HavenIcons'#; s#'../common/HavenDatePicker'#'@/shared/ui/HavenDatePicker'#; s#'../common/HavenDropdown'#'@/shared/ui/HavenDropdown'#" src/app/onboarding/OnboardingView.tsx
             npm test
             npm run lint
             npm run build
