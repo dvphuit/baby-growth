@@ -13,13 +13,17 @@ async function downloadDriveMedia(fileId: string): Promise<Blob | null> {
   return downloadTimelineMediaFromDrive(fileId, { interactive: false });
 }
 
-function loadMediaBlob(media: TimelineMediaItem, cacheKey: string): Promise<Blob | null> {
+function loadMediaBlob(
+  blobId: string | undefined,
+  driveFileId: string | undefined,
+  cacheKey: string,
+): Promise<Blob | null> {
   const existing = inFlightMediaLoads.get(cacheKey);
   if (existing) return existing;
 
   const pending = (async () => {
-    const localBlob = media.blobId ? await getLocalMedia(media.blobId) : null;
-    return localBlob ?? (media.driveFileId ? downloadDriveMedia(media.driveFileId) : null);
+    const localBlob = blobId ? await getLocalMedia(blobId) : null;
+    return localBlob ?? (driveFileId ? downloadDriveMedia(driveFileId) : null);
   })().finally(() => {
     inFlightMediaLoads.delete(cacheKey);
   });
@@ -42,7 +46,7 @@ export function preloadTimelineMedia(media: TimelineMediaItem): Promise<string |
   const cacheKey = media.blobId || media.driveFileId;
   if (!cacheKey) return Promise.resolve(null);
 
-  return loadMediaBlob(media, cacheKey).then((blob) => {
+  return loadMediaBlob(media.blobId, media.driveFileId, cacheKey).then((blob) => {
     if (!blob) return null;
     const existing = activeObjectUrls.get(cacheKey);
     if (existing) return existing.url;
@@ -54,7 +58,9 @@ export function preloadTimelineMedia(media: TimelineMediaItem): Promise<string |
 
 export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
   const remoteUrl = media.url?.trim() || null;
-  const cacheKey = media.blobId || media.driveFileId;
+  const blobId = media.blobId;
+  const driveFileId = media.driveFileId;
+  const cacheKey = blobId || driveFileId;
   const initialUrl = remoteUrl || (cacheKey ? activeObjectUrls.get(cacheKey)?.url || null : null);
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(initialUrl);
 
@@ -77,7 +83,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
       registeredKey = cacheKey;
       setResolvedUrl(existing.url);
     } else {
-      void loadMediaBlob(media, cacheKey).then((blob) => {
+      void loadMediaBlob(blobId, driveFileId, cacheKey).then((blob) => {
         if (!active) return;
         if (!blob) {
           setResolvedUrl(null);
@@ -112,7 +118,7 @@ export function useTimelineMediaUrl(media: TimelineMediaItem): string | null {
         }
       }
     };
-  }, [cacheKey, media.blobId, media.driveFileId, remoteUrl]);
+  }, [blobId, cacheKey, driveFileId, remoteUrl]);
 
   return resolvedUrl;
 }
