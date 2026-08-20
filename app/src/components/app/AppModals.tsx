@@ -30,7 +30,7 @@ function useRetained(open: boolean): boolean {
   useEffect(() => {
     if (open) setMounted(true);
   }, [open]);
-  return mounted;
+  return open || mounted;
 }
 
 export interface AppModalsProps {
