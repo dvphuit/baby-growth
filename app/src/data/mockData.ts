@@ -1,38 +1,32 @@
-import type {
-  FamilyData,
-  GrowthHistoryRecord,
-  TimelineItem,
-  ChatMessage,
-} from '@/types';
-import type { MomData } from '@/types';
+import type { FamilyData, GrowthHistoryRecord, TimelineItem } from '@/types';
+import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder } from '@/types/reminder';
-import { useBabyStore } from '@/store/useBabyStore';
-import { useMomStore } from '@/store/useMomStore';
-import { useTimelineStore } from '@/store/useTimelineStore';
-import { useReminderStore } from '@/store/useReminderStore';
-import { useChatStore } from '@/store/useChatStore';
-import { useActivityStore } from '@/store/useActivityStore';
-import type { NewBabyActivity, NewMomActivity } from '@/store/useActivityStore';
-import { setLocalRecord } from '@/services/localDb';
-import { isGoogleConfigured } from '@/services/googleDriveSync';
+import { isGoogleConfigured } from '@/features/sync';
+import { setLocalRecord } from '@/data/localDb';
+import { useActivityStore, type NewBabyActivity, type NewMomActivity } from '@/features/activities/store/useActivityStore';
+import { initializeChildProfile } from '@/features/profile';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
 function isoDate(yearsAgo = 0, monthsAgo = 0, daysAgo = 0): string {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - yearsAgo, d.getMonth() - monthsAgo, d.getDate() - daysAgo);
-  return d.toISOString().split('T')[0];
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - yearsAgo, date.getMonth() - monthsAgo, date.getDate() - daysAgo);
+  return date.toISOString().split('T')[0];
 }
 
 function viDate(iso: string): string {
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  const [, month, day] = iso.split('-');
+  return `${day}/${month}`;
 }
 
 const BIRTH_DATE = '2026-08-05';
 
 function addDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  const date = new Date(`${iso}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split('T')[0];
 }
 
 export const MOCK_FAMILY: Partial<FamilyData> = {
@@ -102,8 +96,8 @@ function timelineItem(
     date,
     timeFormatted: '20:15',
     time: `${viDate(date)} • 20:15`,
-    author: MOCK_FAMILY.momName!,
-    authorAvatar: MOCK_FAMILY.momAvatar!,
+    author: MOCK_FAMILY.momName ?? 'Mẹ',
+    authorAvatar: MOCK_FAMILY.momAvatar ?? '/assets/avatars/mom_avatar.jpg',
     title,
     content,
     mediaUrl: null,
@@ -124,7 +118,7 @@ const TIMELINE_ITEMS: TimelineItem[] = [
   timelineItem('tl_mock_3', isoDate(0, 0, 5), 'Mẹ hồi phục sau sinh', 'Vết khâu đã đỡ đau, Mẹ tập đi lại nhẹ nhàng và hợp tác cho con bú 💕', 'Tâm trạng Mẹ', 'mom', 'daily'),
 ];
 
-const EXPENSES: Array<Pick<import('@/types/expense').ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>> = [
+const EXPENSES: Array<Pick<ExpenseRecord, 'amount' | 'category' | 'occurredAt' | 'note'>> = [
   { amount: 850000, category: 'Sữa & ăn dặm', occurredAt: isoDate(0, 0, 4), note: 'Sữa công thức + bột ăn dặm' },
   { amount: 420000, category: 'Tã bỉm & vệ sinh', occurredAt: isoDate(0, 0, 6), note: 'Tã Merries size M' },
   { amount: 600000, category: 'Y tế & tiêm chủng', occurredAt: isoDate(0, 1, 2), note: 'Tiêm 6in1 mũi 2' },
@@ -134,10 +128,10 @@ const EXPENSES: Array<Pick<import('@/types/expense').ExpenseRecord, 'amount' | '
 ];
 
 function triggerAt(hour: number, minute: number, daysFromNow = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + daysFromNow);
-  d.setHours(hour, minute, 0, 0);
-  return d.toISOString();
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
 }
 
 function reminder(
@@ -170,25 +164,10 @@ const REMINDERS: Reminder[] = [
   reminder('rem_mock_4', 'appointment', 'Đo cân nặng tháng', triggerAt(19, 0, 10), 'none'),
 ];
 
-const CHAT_MESSAGES: ChatMessage[] = [
-  {
-    id: 'm_mock_1',
-    sender: 'user',
-    text: 'Bé đi ngoài phân hơi lỏng 3 lần hôm nay, có sao không ạ?',
-    time: '09:02',
-  },
-  {
-    id: 'm_mock_2',
-    sender: 'ai',
-    text: 'Phân lỏng 3 lần/ngày ở Bé sơ sinh thường là bình thường nếu Bé vẫn bú tốt, tiểu nhiều và không sốt. Mẹ hãy theo dõi thêm dấu hiệu mất nước (miệng khô, ít tã ướt). Nếu có sốt, phân có máu hoặc Bé lờ đờ, hãy gặp bác sĩ sớm.',
-    time: '09:03',
-  },
-];
-
 function todayAt(hour: number, minute: number): string {
-  const d = new Date();
-  d.setHours(hour, minute, 0, 0);
-  return d.toISOString();
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
 }
 
 const BABY_ACTIVITIES: NewBabyActivity[] = [
@@ -209,44 +188,14 @@ const MOM_ACTIVITIES: NewMomActivity[] = [
   { owner: 'mom', type: 'recovery_note', occurredAt: todayAt(19, 0), note: 'Vết khâu đã khô, đi lại nhẹ nhàng được.' },
 ];
 
-const MOCK_MOM: Partial<MomData> = {
-  name: 'Mẹ Thảo',
-  postpartumDay: '13',
-  wellnessScore: 82,
-  mentalHealth: {
-    epdsScore: '4',
-    status: 'Tâm lý ổn định',
-    sleepDebt: '6h',
-  },
-  pumping: {
-    todayTotal: '420 ml',
-    sessionsToday: 3,
-    freezerStock: '2.6 L',
-    lastSession: '140 ml',
-    time: 'Lúc 18:30 (2 bên)',
-    history: [
-      { time: '18:30', amount: '140 ml', note: 'Hút bên: 2 bên' },
-      { time: '13:00', amount: '130 ml', note: 'Hút bên: 2 bên' },
-      { time: '07:45', amount: '150 ml', note: 'Hút bên: 2 bên' },
-    ],
-  },
-  recovery: {
-    uterusStatus: 'Hồi phục tốt',
-    lochia: 'Đã hết',
-    weightLoss: '-6 kg',
-  },
-};
-
-/** Pushes a full set of demo records into every store. Intended for local
- * development only; never call this in production builds. */
+/** Pushes demo records into the current domain stores. Development only. */
 export function seedMockData(): void {
-  const baby = useBabyStore.getState();
-  baby.initializeChildProfile(MOCK_FAMILY, BIRTH_VITALS);
+  initializeChildProfile(MOCK_FAMILY, BIRTH_VITALS);
 
-  const babyAfter = useBabyStore.getState();
+  const growth = useGrowthStore.getState();
   GROWTH_RECORDS.forEach((record) => {
-    if (!babyAfter.stages[babyAfter.currentStage]?.growthHistory?.some((r) => r.id === record.id)) {
-      babyAfter.addGrowthMeasurement({
+    if (!growth.currentStageData().growthHistory.some((item) => item.id === record.id)) {
+      growth.addGrowthMeasurement({
         weight: record.weight,
         height: record.height,
         headCirc: record.headCirc,
@@ -255,10 +204,9 @@ export function seedMockData(): void {
       });
     }
   });
-  useBabyStore.getState().setMonthlyExpenseBudget(8_000_000);
-  EXPENSES.forEach((entry) => useBabyStore.getState().addExpenseRecord(entry));
 
-  useMomStore.getState().updateMomData(MOCK_MOM);
+  useExpenseStore.getState().setMonthlyBudget(8_000_000);
+  EXPENSES.forEach((entry) => useExpenseStore.getState().addExpense(entry));
 
   TIMELINE_ITEMS.forEach((item) =>
     useTimelineStore.getState().addTimelineItem({
@@ -271,31 +219,24 @@ export function seedMockData(): void {
     }),
   );
 
-  REMINDERS.forEach((r) =>
+  REMINDERS.forEach((item) =>
     useReminderStore.getState().createReminder({
-      type: r.type,
-      title: r.title,
-      enabled: r.enabled,
-      mode: r.mode,
-      triggerAt: r.triggerAt,
-      repeat: r.repeat,
-      quickLogAction: r.quickLogAction,
-      note: r.note,
+      type: item.type,
+      title: item.title,
+      enabled: item.enabled,
+      mode: item.mode,
+      triggerAt: item.triggerAt,
+      repeat: item.repeat,
+      quickLogAction: item.quickLogAction,
+      note: item.note,
     }),
   );
 
   BABY_ACTIVITIES.forEach((activity) => useActivityStore.getState().addBabyActivity(activity));
   MOM_ACTIVITIES.forEach((activity) => useActivityStore.getState().addMomActivity(activity));
 
-  const chat = useChatStore.getState();
-  if (chat.chatMessages.length <= 1) {
-    chat.clearChat();
-    CHAT_MESSAGES.forEach((m) => chat.addChatMessage(m.sender, m.text));
-  }
-
-  // Disable Google auto-sync so local dev never triggers a Drive login.
   void setLocalRecord(
-    'babygrowth_v2_sync_meta',
+    'babygrowth_v4_sync_meta',
     JSON.stringify({
       lastSyncedFingerprint: null,
       remoteFileId: null,
@@ -309,11 +250,10 @@ export function isMockDataEnabled(): boolean {
   if (!import.meta.env.DEV) return false;
 
   try {
-    // Explicit opt-out wins over everything.
     if (localStorage.getItem('babygrowth_mock') === '0') return false;
     if (new URLSearchParams(window.location.search).has('nomock')) return false;
   } catch {
-    // Ignore storage/URL access errors in restricted environments.
+    // Ignore storage and URL access errors in restricted environments.
   }
 
   if (import.meta.env.VITE_MOCK_DATA === 'true') return true;
@@ -321,12 +261,8 @@ export function isMockDataEnabled(): boolean {
     if (localStorage.getItem('babygrowth_mock') === '1') return true;
     if (new URLSearchParams(window.location.search).has('mock')) return true;
   } catch {
-    // Ignore storage/URL access errors in restricted environments.
+    // Ignore storage and URL access errors in restricted environments.
   }
 
-  // Default to mock data in local dev when Google Drive is not configured,
-  // so onboarding can be skipped without a real OAuth setup.
-  if (!isGoogleConfigured()) return true;
-
-  return false;
+  return !isGoogleConfigured();
 }

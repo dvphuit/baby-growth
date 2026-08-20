@@ -2,28 +2,27 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { LayoutGroup, MotionConfig } from 'motion/react';
-import './index.css';
-import App from './App.tsx';
+import App from './app/App';
 import { isMockDataEnabled, seedMockData } from './data/mockData';
-import { removeLocalRecord } from './services/localDb';
-import { SYNC_KEYS } from './services/googleDriveSync';
-import { useBabyStore } from './store/useBabyStore';
-import { useMomStore } from './store/useMomStore';
-import { useTimelineStore } from './store/useTimelineStore';
-import { useReminderStore } from './store/useReminderStore';
-import { useChatStore } from './store/useChatStore';
-import { useActivityStore } from './store/useActivityStore';
+import { SYNC_KEYS } from './features/sync';
+import './index.css';
+import { removeLocalRecord } from '@/data/localDb';
+import { useActivityStore } from '@/features/activities/store/useActivityStore';
+import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { useProfileStore } from '@/features/profile/store/useProfileStore';
+import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
+import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
-const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v2_sync_meta'];
+const STORE_KEYS = [...SYNC_KEYS, 'babygrowth_v4_expenses', 'babygrowth_v4_sync_meta'];
 
-/** Wipes all local data and reloads without the `reset` flag so the mock
- * bootstrap can re-seed from a clean state. Handy on devices without DevTools. */
+/** Wipes the current local persistence generation and reloads without reset. */
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);
   if (!params.has('reset')) return false;
 
   await Promise.all(STORE_KEYS.map((key) => removeLocalRecord(key)));
-  window.localStorage.removeItem('babygrowth_v2_device_id');
+  window.localStorage.removeItem('babygrowth_v4_device_id');
 
   params.delete('reset');
   const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
@@ -39,15 +38,15 @@ async function bootstrapMockData(): Promise<void> {
 
   try {
     await Promise.all([
-      useBabyStore.persist.rehydrate(),
-      useMomStore.persist.rehydrate(),
+      useProfileStore.persist.rehydrate(),
+      useGrowthStore.persist.rehydrate(),
       useTimelineStore.persist.rehydrate(),
       useReminderStore.persist.rehydrate(),
-      useChatStore.persist.rehydrate(),
       useActivityStore.persist.rehydrate(),
+      useExpenseStore.persist.rehydrate(),
     ]);
 
-    const family = useBabyStore.getState().familyData;
+    const family = useProfileStore.getState().familyData;
     if (family?.isInitialized && family?.childName) return;
 
     seedMockData();
@@ -59,7 +58,10 @@ async function bootstrapMockData(): Promise<void> {
 void handleResetRequest().then((didReset) => {
   if (didReset) return;
   void bootstrapMockData().finally(() => {
-    createRoot(document.getElementById('root')!).render(
+    const root = document.getElementById('root');
+    if (!root) throw new Error('Missing #root application element.');
+
+    createRoot(root).render(
       <StrictMode>
         <BrowserRouter>
           <MotionConfig reducedMotion="user">
