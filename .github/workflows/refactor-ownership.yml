@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   refactor:
@@ -24,22 +26,39 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: app/package-lock.json
-      - name: Apply ownership codemod
-        working-directory: app
-        run: node scripts/refactor-source-ownership.mjs
-      - name: Install dependencies
-        working-directory: app
-        run: npm ci
-      - name: Test
-        working-directory: app
-        run: npm test
-      - name: Lint
-        working-directory: app
-        run: npm run lint
-      - name: Build
-        working-directory: app
-        run: npm run build
+      - name: Apply and validate ownership migration
+        id: migrate
+        run: |
+          set +e
+          (
+            cd app
+            node scripts/refactor-source-ownership.mjs
+            npm ci
+            npm test
+            npm run lint
+            npm run build
+          ) 2>&1 | tee /tmp/refactor-ownership.log
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
+      - name: Report migration failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Ownership codemod failed for \`$GITHUB_SHA\`."
+            echo
+            echo "<details><summary>Failure log tail</summary>"
+            echo
+            echo '```text'
+            tail -n 120 /tmp/refactor-ownership.log || true
+            echo '```'
+            echo "</details>"
+          } > /tmp/refactor-ownership-comment.md
+          gh pr comment 16 --repo "$GITHUB_REPOSITORY" --body-file /tmp/refactor-ownership-comment.md
       - name: Commit ownership migration
+        if: success()
         run: |
           rm .github/workflows/refactor-ownership.yml app/scripts/refactor-source-ownership.mjs
           git config user.name "github-actions[bot]"
