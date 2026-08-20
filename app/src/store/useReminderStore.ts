@@ -49,6 +49,6 @@ export const useReminderStore = create<ReminderStoreState>()(
       setSystemNotificationsEnabled: (enabled) => set({ systemNotificationsEnabled: enabled }),
       resetTrackingData: () => set({ reminders: [], occurrenceStates: {}, systemNotificationsEnabled: false }),
     }),
-    { name: 'babygrowth_v3_reminders', storage: createJSONStorage(() => indexedDbStorage), partialize: (state) => ({ reminders: state.reminders, occurrenceStates: state.occurrenceStates, systemNotificationsEnabled: state.systemNotificationsEnabled }) },
+    { name: 'babygrowth_v4_reminders', storage: createJSONStorage(() => indexedDbStorage), partialize: (state) => ({ reminders: state.reminders, occurrenceStates: state.occurrenceStates, systemNotificationsEnabled: state.systemNotificationsEnabled }) },
   ),
 );
