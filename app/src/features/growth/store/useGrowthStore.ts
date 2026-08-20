@@ -4,6 +4,7 @@ import { INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
 import { indexedDbStorage } from '@/data/localDb';
 import type { DailyHabit, FamilyData, GrowthHistoryRecord, StageData, StageKey } from '@/types';
 import { generateId } from '@/utils/format';
+import { exportGrowthFacts, hydrateGrowthFacts, isGrowthFacts, type GrowthFacts } from './growthPersistence';
 
 export interface GrowthStoreState {
   currentStage: StageKey;
@@ -43,7 +44,7 @@ function getStageForBirthDate(birthDate: string): StageKey {
 }
 
 export const useGrowthStore = create<GrowthStoreState>()(
-  persist(
+  persist<GrowthStoreState, [], [], GrowthFacts>(
     (set, get) => ({
       currentStage: 'stage_0_1',
       stages: structuredClone(INITIAL_STAGES),
@@ -341,6 +342,8 @@ export const useGrowthStore = create<GrowthStoreState>()(
     {
       name: 'babygrowth_v4_growth',
       storage: createJSONStorage(() => indexedDbStorage),
+      partialize: exportGrowthFacts,
+      merge: (persisted, current) => ({ ...current, ...(isGrowthFacts(persisted) ? hydrateGrowthFacts(persisted) : {}) }),
     },
   ),
 );

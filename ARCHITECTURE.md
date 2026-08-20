@@ -58,11 +58,11 @@ The activity registry may hold stable metadata such as labels and icons. Forms a
 
 The snapshot does not expose Zustand storage keys. `applyAppSnapshot` writes semantic data into the current stores.
 
-The current growth store still contains some historical derived fields inside `StageData`. Those fields remain in the snapshot until the growth feature is split into raw measurements and calculated selectors. New code must not add another derived field to persistence.
+`GrowthFacts` persists only measurement facts, milestone progress, the active stage, and completed habit IDs. `StageData` is an in-memory projection rebuilt from those facts plus static reference data. WHO chart series, vitals summaries, scores, labels, and other calculated presentation are not persisted.
 
 ## Local persistence
 
-`services/localDb.ts` maps Zustand store names to the current physical namespace, `babygrowth_v4_*`.
+`data/localDb.ts` provides the current physical persistence boundary for `babygrowth_v4_*` records.
 
 The adapter does not read v2 or v3 store records. The app has no migration step for those generations.
 

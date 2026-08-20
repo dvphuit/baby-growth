@@ -1,6 +1,7 @@
 import type { MedicationCatalogItem } from '@/features/activities/domain/medicationCatalog';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
+import { exportGrowthFacts, hydrateGrowthFacts, isGrowthFacts, type GrowthFacts } from '@/features/growth/store/growthPersistence';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
@@ -8,12 +9,9 @@ import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import type {
   BabyActivity,
-  DailyHabit,
   FamilyData,
   MomActivity,
   ProfileMode,
-  StageData,
-  StageKey,
   TimelineItem,
 } from '@/types';
 import type { ExpenseRecord } from '@/types/expense';
@@ -33,11 +31,7 @@ export interface AppSnapshot {
     mom: MomActivity[];
     medicationCatalog: MedicationCatalogItem[];
   };
-  growth: {
-    currentStage: StageKey;
-    stages: Record<string, StageData>;
-    dailyHabits: DailyHabit[];
-  };
+  growth: GrowthFacts;
   timeline: {
     items: TimelineItem[];
   };
@@ -73,11 +67,7 @@ export function exportAppSnapshot(now = new Date()): AppSnapshot {
       mom: structuredClone(activities.momActivities),
       medicationCatalog: structuredClone(activities.medicationCatalog),
     },
-    growth: {
-      currentStage: growth.currentStage,
-      stages: structuredClone(growth.stages),
-      dailyHabits: structuredClone(growth.dailyHabits),
-    },
+    growth: exportGrowthFacts(growth),
     timeline: {
       items: structuredClone(timeline.timelineItems),
     },
@@ -115,10 +105,7 @@ export function isAppSnapshot(value: unknown): value is AppSnapshot {
     && Array.isArray(activities.baby)
     && Array.isArray(activities.mom)
     && Array.isArray(activities.medicationCatalog)
-    && isRecord(growth)
-    && typeof growth.currentStage === 'string'
-    && isRecord(growth.stages)
-    && Array.isArray(growth.dailyHabits)
+    && isGrowthFacts(growth)
     && isRecord(timeline)
     && Array.isArray(timeline.items)
     && isRecord(expenses)
@@ -141,11 +128,7 @@ export function applyAppSnapshot(snapshot: AppSnapshot): void {
   const parsed = parseAppSnapshot(snapshot);
 
   useProfileStore.setState({ familyData: structuredClone(parsed.profile.familyData) });
-  useGrowthStore.setState({
-    currentStage: parsed.growth.currentStage,
-    stages: structuredClone(parsed.growth.stages),
-    dailyHabits: structuredClone(parsed.growth.dailyHabits),
-  });
+  useGrowthStore.setState(hydrateGrowthFacts(parsed.growth));
   useUIStore.setState({ profileMode: parsed.profile.profileMode });
   useActivityStore.setState({
     babyActivities: structuredClone(parsed.activities.baby),
