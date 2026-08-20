@@ -8,7 +8,7 @@ const loadActivityLogModal = () => import('@/components/modals/ActivityLogModal'
 const loadAddGrowthModal = () => import('@/components/modals/AddGrowthModal');
 const loadAddPumpingModal = () => import('@/components/modals/AddPumpingModal');
 const loadAddExpenseModal = () => import('@/features/expenses');
-const loadAddPostModal = () => import('@/components/modals/AddPostModal');
+const loadAddPostModal = () => import('@/features/timeline');
 
 const QuickLogModal = lazy(async () => ({ default: (await loadQuickLogModal()).QuickLogModal }));
 const ActivityLogModal = lazy(async () => ({ default: (await loadActivityLogModal()).ActivityLogModal }));
