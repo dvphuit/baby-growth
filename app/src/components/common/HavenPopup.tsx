@@ -125,6 +125,7 @@ export function HavenPopup({
                 width: `${coords.width}px`,
                 zIndex: 2500,
                 transformOrigin: coords.placement === 'above' ? 'bottom center' : 'top center',
+                animation: 'none',
               }}
             >
               {children}
