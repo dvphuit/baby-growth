@@ -9,6 +9,7 @@ import {
   havenSheetVariants,
   havenSnappySpring,
 } from '@/components/motion/motionPresets';
+import { useModalSurfaceLayoutId } from '@/components/motion/ModalMotionScope';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const dragControls = useDragControls();
+  const surfaceLayoutId = useModalSurfaceLayoutId();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -116,6 +118,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {isOpen && (
         <motion.div
           key="haven-bottom-sheet"
+          layoutId={surfaceLayoutId ? `${surfaceLayoutId}-backdrop` : undefined}
           className="modal-backdrop open"
           variants={havenOverlayVariants}
           initial="hidden"
@@ -127,6 +130,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           }}
         >
           <motion.div
+            layout
+            layoutId={surfaceLayoutId}
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
