@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = process.cwd();
@@ -50,11 +50,14 @@ function buildReport() {
 
   const summary = files.map((file) => {
     const selectors = selectorsByFile.get(file) ?? new Set();
+    const used = [...selectors].filter((selector) => source.includes(selector));
     const unused = [...selectors].filter((selector) => !source.includes(selector));
     return {
       file,
       selectors: selectors.size,
+      used: used.length,
       unused: unused.length,
+      usedSelectors: used.length <= 50 ? used : used.slice(0, 20),
       unusedSample: unused.slice(0, 12),
     };
   });
