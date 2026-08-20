@@ -1,13 +1,20 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { ModalMotionScope } from '@/components/motion/ModalMotionScope';
 import type { AddToast, AppModalController } from '@/hooks/useAppModals';
 
-const QuickLogModal = lazy(async () => ({ default: (await import('@/components/modals/QuickLogModal')).QuickLogModal }));
-const ActivityLogModal = lazy(async () => ({ default: (await import('@/components/modals/ActivityLogModal')).ActivityLogModal }));
-const AddGrowthModal = lazy(async () => ({ default: (await import('@/components/modals/AddGrowthModal')).AddGrowthModal }));
-const AddPumpingModal = lazy(async () => ({ default: (await import('@/components/modals/AddPumpingModal')).AddPumpingModal }));
-const AddExpenseModal = lazy(async () => ({ default: (await import('@/components/modals/AddExpenseModal')).AddExpenseModal }));
-const AddPostModal = lazy(async () => ({ default: (await import('@/components/modals/AddPostModal')).AddPostModal }));
+const loadQuickLogModal = () => import('@/components/modals/QuickLogModal');
+const loadActivityLogModal = () => import('@/components/modals/ActivityLogModal');
+const loadAddGrowthModal = () => import('@/components/modals/AddGrowthModal');
+const loadAddPumpingModal = () => import('@/components/modals/AddPumpingModal');
+const loadAddExpenseModal = () => import('@/components/modals/AddExpenseModal');
+const loadAddPostModal = () => import('@/components/modals/AddPostModal');
+
+const QuickLogModal = lazy(async () => ({ default: (await loadQuickLogModal()).QuickLogModal }));
+const ActivityLogModal = lazy(async () => ({ default: (await loadActivityLogModal()).ActivityLogModal }));
+const AddGrowthModal = lazy(async () => ({ default: (await loadAddGrowthModal()).AddGrowthModal }));
+const AddPumpingModal = lazy(async () => ({ default: (await loadAddPumpingModal()).AddPumpingModal }));
+const AddExpenseModal = lazy(async () => ({ default: (await loadAddExpenseModal()).AddExpenseModal }));
+const AddPostModal = lazy(async () => ({ default: (await loadAddPostModal()).AddPostModal }));
 const EditProfileModal = lazy(async () => ({ default: (await import('@/components/modals/EditProfileModal')).EditProfileModal }));
 const NotificationModal = lazy(async () => ({ default: (await import('@/components/modals/NotificationModal')).NotificationModal }));
 
@@ -23,6 +30,17 @@ export interface AppModalsProps {
 }
 
 export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
+  useEffect(() => {
+    if (!modals.isQuickLogOpen) return;
+    void Promise.all([
+      loadActivityLogModal(),
+      loadAddGrowthModal(),
+      loadAddPumpingModal(),
+      loadAddExpenseModal(),
+      loadAddPostModal(),
+    ]);
+  }, [modals.isQuickLogOpen]);
+
   return (
     <Suspense fallback={<LazyModalFallback />}>
       {modals.isQuickLogOpen && (
