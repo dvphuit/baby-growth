@@ -1,0 +1,67 @@
+name: Scoped Motion layout groups migration gate
+
+on:
+  push:
+    branches:
+      - perf/scoped-motion-layout-groups
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/scoped-motion-layout-groups
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Apply deterministic migration and inventory shared layout owners
+        run: node scripts/migrate-scoped-motion-layout-groups.mjs
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Test
+        working-directory: app
+        run: npm test
+
+      - name: Lint
+        working-directory: app
+        run: npm run lint
+
+      - name: Build
+        working-directory: app
+        run: npm run build
+        env:
+          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_BUILD_SHA: ${{ github.sha }}
+          VITE_BUILD_REF: perf/scoped-motion-layout-groups
+          VITE_BUILD_TIME: ${{ github.run_started_at }}
+
+      - name: Commit verified production diff
+        run: |
+          set -e
+          rm .github/workflows/scoped-motion-layout-groups-migration.yml
+          rm scripts/migrate-scoped-motion-layout-groups.mjs
+          git add -A
+          git diff --cached --check
+
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(app/src/main\.tsx|app/src/app/AppModals\.tsx|app/src/features/home/components/TimelinePreviewContent\.tsx|app/src/features/timeline/TimelineView\.tsx|app/src/architecture/performanceAudit\.test\.mjs|\.github/workflows/scoped-motion-layout-groups-migration\.yml|scripts/migrate-scoped-motion-layout-groups\.mjs)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected files in staged diff:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "perf: scope Motion layout groups"
+          git push origin HEAD:perf/scoped-motion-layout-groups
