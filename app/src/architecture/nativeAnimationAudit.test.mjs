@@ -63,4 +63,13 @@ describe('native animation architecture', () => {
     expect(packageLock.packages?.['node_modules/motion-utils']).toBeUndefined();
     expect(existsSync(join(SRC_ROOT, 'shared', 'motion'))).toBe(false);
   });
+
+  it('wires native animation styles from the shared styles boundary', () => {
+    const indexCss = readFileSync(join(SRC_ROOT, 'index.css'), 'utf8');
+    const nativeStyles = join(SRC_ROOT, 'shared', 'styles', 'native-animations.css');
+
+    expect(existsSync(nativeStyles)).toBe(true);
+    expect(indexCss).toContain("@import './shared/styles/native-animations.css';");
+    expect(indexCss).not.toContain("@import './shared/motion/animations.css';");
+  });
 });
