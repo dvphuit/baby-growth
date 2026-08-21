@@ -1,9 +1,9 @@
 name: Scoped Motion layout groups migration gate
 
 on:
-  push:
+  pull_request:
     branches:
-      - perf/scoped-motion-layout-groups
+      - master
 
 permissions:
   contents: write
