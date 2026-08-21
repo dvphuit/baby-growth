@@ -1265,3 +1265,8 @@
     font-size: 12px;
   }
 }
+
+.haven-timeline-day-group {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}

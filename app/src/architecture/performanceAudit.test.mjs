@@ -134,6 +134,28 @@ describe('interaction performance audit', () => {
     expect((babyHome.match(/decoding="async"/g) ?? [])).toHaveLength(4);
   });
 
+  it('progressively mounts long timeline, expense, and growth lists', () => {
+    const timeline = source('features/timeline/TimelineView.tsx');
+    const expenses = source('features/expenses/ExpensesView.tsx');
+    const growthHistory = source('features/growth/GrowthHistory.tsx');
+    const progressiveList = source('shared/hooks/useProgressiveList.ts');
+    const expenseCss = source('features/expenses/expenses.css');
+    const growthCss = source('features/growth/growth-view.css');
+
+    expect(progressiveList).toContain('IntersectionObserver');
+    expect(progressiveList).toContain("rootMargin = '720px 0px'");
+    expect(timeline).toContain('initialCount: 7');
+    expect(timeline).toContain('renderedEntryGroups');
+    expect(expenses).toContain('initialCount: 10');
+    expect(expenses).toContain('renderedTimelineDateGroups');
+    expect(growthHistory).toContain('initialCount: 12');
+    expect(growthHistory).toContain('renderedHistory');
+    expect(expenseCss).toContain('.haven-timeline-day-group');
+    expect(expenseCss).toContain('content-visibility: auto');
+    expect(growthCss).toContain('.haven-growth-history-row');
+    expect(growthCss).toContain('content-visibility: auto');
+  });
+
   it('keeps mobile interaction feedback and scrolling on lightweight paths', () => {
     const app = source('app/App.tsx');
     const routes = source('app/AppRoutes.tsx');

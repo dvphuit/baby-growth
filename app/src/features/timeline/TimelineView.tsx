@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { HavenAlert } from '@/shared/ui/HavenAlert';
 import { HavenCalendar, type HavenDateRange } from '@/shared/ui/HavenCalendar';
+import { ProgressiveListBoundary } from '@/shared/ui/ProgressiveListBoundary';
+import { useProgressiveList } from '@/shared/hooks/useProgressiveList';
 import { NotebookStory } from '@/features/timeline/components/NotebookStory';
 import { MomentMediaPreview, type MomentMediaPreviewState } from '@/features/timeline/components/MomentMediaPreview';
 import {
@@ -168,6 +170,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
     });
     return [...groups.entries()].map(([key, groupEntries]) => ({ key, entries: groupEntries }));
   }, [visibleEntries]);
+  const timelineWindow = useProgressiveList({
+    totalCount: entryGroups.length,
+    initialCount: 7,
+    batchSize: 7,
+    resetKey: `${ownerFilter}:${selectedRange.start}:${selectedRange.end ?? ''}`,
+  });
+  const renderedEntryGroups = entryGroups.slice(0, timelineWindow.visibleCount);
   const calendarBounds = useMemo(() => {
     const entryDates = ownerEntries.map((entry) => localDateKey(new Date(entry.occurredAt)));
     const normalizedBirthDate = dateInputValue(birthDate);
@@ -343,7 +352,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
               Ghi nhận mới sẽ được thêm từ Trang chủ.
             </HavenAlert>
           </>
-        ) : entryGroups.map((group) => (
+        ) : renderedEntryGroups.map((group) => (
           <section className="journal-day-group" key={group.key}>
             <header className="journal-day-header">
               <h2>{formatFullDate(group.key)}</h2>
@@ -420,6 +429,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
             </NotebookStory>
           </section>
         ))}
+        <ProgressiveListBoundary
+          autoLoadAvailable={timelineWindow.autoLoadAvailable}
+          fallbackLabel="Xem thêm nhật ký"
+          hasMore={timelineWindow.hasMore}
+          onLoadMore={timelineWindow.revealMore}
+          sentinelRef={timelineWindow.sentinelRef}
+        />
       </section>
 
       <TimelineEntryDialog

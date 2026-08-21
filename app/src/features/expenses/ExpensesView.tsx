@@ -3,6 +3,8 @@
  * category filters, and a daily transaction stream.
  */
 import React, { useMemo, useState } from 'react';
+import { useProgressiveList } from '@/shared/hooks/useProgressiveList';
+import { ProgressiveListBoundary } from '@/shared/ui/ProgressiveListBoundary';
 import {
   CalendarDays,
   Check,
@@ -163,6 +165,14 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense, on
       })
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [displayedExpenses]);
+
+  const expenseWindow = useProgressiveList({
+    totalCount: timelineDateGroups.length,
+    initialCount: 10,
+    batchSize: 10,
+    resetKey: `${currentDate.getFullYear()}-${currentDate.getMonth()}-${selectedCategoryFilter ?? 'all'}`,
+  });
+  const renderedTimelineDateGroups = timelineDateGroups.slice(0, expenseWindow.visibleCount);
 
   const monthLabel = `Tháng ${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
   const topCategoryEntry = categoryTotals[0];
@@ -393,7 +403,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense, on
           </div>
         ) : (
           <div className="haven-timeline-stream">
-            {timelineDateGroups.map((group) => (
+            {renderedTimelineDateGroups.map((group) => (
               <div key={group.dateKey} className="haven-timeline-day-group">
                 <div className="haven-day-header">
                   <div className="haven-day-header-left"><CalendarDays size={13} className="haven-day-icon" /><span className="haven-day-label">{group.dateLabel}</span></div>
@@ -455,6 +465,13 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense, on
                 </div>
               </div>
             ))}
+            <ProgressiveListBoundary
+              autoLoadAvailable={expenseWindow.autoLoadAvailable}
+              fallbackLabel="Xem thêm khoản chi"
+              hasMore={expenseWindow.hasMore}
+              onLoadMore={expenseWindow.revealMore}
+              sentinelRef={expenseWindow.sentinelRef}
+            />
           </div>
         )}
       </section>
