@@ -6,10 +6,10 @@ import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
-import { useLiveNow } from '@/shared/hooks/useLiveNow';
-import { formatClockTime, formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
+import { useLocalDayReference } from '@/shared/hooks/useLiveNow';
+import { formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
 import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
-import { SegmentClock } from './SegmentClock';
+import { LiveSegmentClock } from './SegmentClock';
 
 export interface BabyHomeViewProps {
   onOpenQuickLog: () => void;
@@ -24,8 +24,8 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
   const records = useActivityStore((state) => state.babyActivities);
   const currentStageData = useGrowthStore((state) => state.currentStageData());
   const family = useFamily();
-  const now = useLiveNow();
-  const metrics = useMemo(() => selectBabyTodayMetrics(records, now), [records, now]);
+  const dayReference = useLocalDayReference();
+  const metrics = useMemo(() => selectBabyTodayMetrics(records, dayReference), [records, dayReference]);
   const latestGrowth = useMemo(
     () => getRealGrowthHistory(currentStageData.growthHistory)[0] ?? null,
     [currentStageData.growthHistory],
@@ -34,8 +34,8 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
     || Number.parseFloat(currentStageData.todayVitals.weight)
     || Number.parseFloat(family.birthWeight || '')
     || null;
-  const milkTarget = getMilkTarget(family.birthDate, weightKg, now);
-  const sleepTarget = getSleepTarget(family.birthDate, now);
+  const milkTarget = getMilkTarget(family.birthDate, weightKg, dayReference);
+  const sleepTarget = getSleepTarget(family.birthDate, dayReference);
   const milkProgress = progressPercent(metrics.feedingAmountMl, milkTarget.targetMl);
   const sleepProgress = progressPercent(metrics.sleepMinutes, sleepTarget.minMinutes);
 
@@ -45,7 +45,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-clock-row">
           <div className="haven-daily-hero-copy">
-            <h2 id="baby-daily-title" className="haven-live-clock"><SegmentClock time={formatClockTime(now)} /></h2>
+            <h2 id="baby-daily-title" className="haven-live-clock"><LiveSegmentClock /></h2>
           </div>
           <button type="button" className="haven-daily-add-btn" aria-label="+ Ghi nhanh" onClick={onOpenQuickLog}>
             <span><Plus size={22} strokeWidth={2.8} /></span>

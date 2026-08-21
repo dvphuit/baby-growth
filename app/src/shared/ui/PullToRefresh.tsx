@@ -71,7 +71,6 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
         return;
       }
 
-      event.preventDefault();
       const nextDistance = Math.min(dy * RESISTANCE, MAX_PULL);
       distance.current = nextDistance;
       pullY.set(nextDistance);
@@ -96,7 +95,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
     };
 
     root.addEventListener('touchstart', onTouchStart, { passive: true });
-    root.addEventListener('touchmove', onTouchMove, { passive: false });
+    root.addEventListener('touchmove', onTouchMove, { passive: true });
     root.addEventListener('touchend', onTouchEnd, { passive: true });
     root.addEventListener('touchcancel', onTouchCancel, { passive: true });
 

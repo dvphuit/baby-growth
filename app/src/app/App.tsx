@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AppVersionBadge } from '@/shared/ui/AppVersionBadge';
 import { BottomNav } from '@/shared/ui/BottomNav';
@@ -16,11 +16,19 @@ import PWABadge from '@/PWABadge';
 import { installGlobalDiagnosticLogging, logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { AppModals } from './AppModals';
-import { AppRoutes } from './AppRoutes';
+import { AppRoutes, preloadAppRoute } from './AppRoutes';
 
 const OnboardingView = lazy(async () => ({
   default: (await import('@/app/onboarding/OnboardingView')).OnboardingView,
 }));
+
+function reloadApp(): void {
+  window.location.reload();
+}
+
+function preloadProfileRoute(): void {
+  preloadAppRoute('/profile');
+}
 
 export const AppContent: React.FC = () => {
   const location = useLocation();
@@ -44,6 +52,10 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals();
+  const openAddTimelineEntry = useCallback(
+    () => modals.handleQuickAction('diary'),
+    [modals.handleQuickAction],
+  );
 
   useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen });
   useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
@@ -63,15 +75,20 @@ export const AppContent: React.FC = () => {
   return (
     <div className="app-container" id="appContainer">
       <ToastContainer toasts={toasts} />
-      {!isProfilePage && <Header onOpenNotifications={modals.openNotifications} />}
+      {!isProfilePage && (
+        <Header
+          onOpenNotifications={modals.openNotifications}
+          onProfileIntent={preloadProfileRoute}
+        />
+      )}
       <main id="appMainContent" className="view-content-wrapper">
-        <PullToRefresh onRefresh={() => window.location.reload()}>
+        <PullToRefresh onRefresh={reloadApp}>
           <AppRoutes
             onOpenQuickLog={modals.openQuickLog}
             onOpenPumping={modals.openAddPumping}
             onShowToast={addToast}
             onOpenLightbox={modals.openLightbox}
-            onOpenAddTimelineEntry={() => modals.handleQuickAction('diary')}
+            onOpenAddTimelineEntry={openAddTimelineEntry}
             onOpenAddGrowth={modals.openAddGrowth}
             onOpenAddExpense={modals.openAddExpense}
             onOpenEditProfile={modals.openEditProfile}
@@ -82,7 +99,7 @@ export const AppContent: React.FC = () => {
         </PullToRefresh>
       </main>
       <AppVersionBadge />
-      <BottomNav onOpenQuickLog={modals.openQuickLog} />
+      <BottomNav onOpenQuickLog={modals.openQuickLog} onRouteIntent={preloadAppRoute} />
       <Lightbox mediaSrc={modals.lightboxSrc} isVideo={modals.lightboxIsVideo} onClose={modals.closeLightbox} />
       <AppModals modals={modals} onSuccessToast={addToast} />
       <PWABadge />

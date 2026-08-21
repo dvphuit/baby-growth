@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { Clock3, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/features/activities/domain/activitySelectors';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useLiveNow } from '@/shared/hooks/useLiveNow';
-import { formatClockTime, formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
+import { useLocalDayReference } from '@/shared/hooks/useLiveNow';
+import { formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
 import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
-import { SegmentClock } from './SegmentClock';
+import { LiveSegmentClock } from './SegmentClock';
 
 export interface MomHomeViewProps {
   onOpenPumping: () => void;
@@ -24,9 +24,9 @@ function moodLabel(value: string | undefined): string {
 
 export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
   const records = useActivityStore((state) => state.momActivities);
-  const now = useLiveNow();
-  const metrics = useMemo(() => selectMomTodayMetrics(records, now), [records, now]);
-  const dayActivityCount = useMemo(() => getMomActivitiesForDay(records, now).length, [records, now]);
+  const dayReference = useLocalDayReference();
+  const metrics = useMemo(() => selectMomTodayMetrics(records, dayReference), [records, dayReference]);
+  const dayActivityCount = useMemo(() => getMomActivitiesForDay(records, dayReference).length, [records, dayReference]);
   const latestMood = metrics.latestMood?.type === 'mood' ? metrics.latestMood.mood : undefined;
   const pumpingTotal = metrics.pumpingCount ? `${metrics.pumpingAmountMl} ml` : 'Chưa ghi nhận';
 
@@ -54,14 +54,14 @@ export const MomHomeView: React.FC<MomHomeViewProps> = ({ onOpenPumping }) => {
       <section className="haven-daily-summary-card haven-daily-summary-card-mom" aria-labelledby="mom-today-title">
         <div className="haven-daily-ambient" aria-hidden="true" />
         <div className="haven-daily-topline">
-          <span className="haven-daily-date"><UserRound size={13} /> {formatLocalDay(now)}</span>
+          <span className="haven-daily-date"><UserRound size={13} /> {formatLocalDay(dayReference)}</span>
           <span className="haven-daily-count">{dayActivityCount} hoạt động</span>
         </div>
 
         <div className="haven-clock-row">
           <div className="haven-daily-hero-copy">
             <span className="haven-daily-eyebrow"><Sparkles size={11} /> NHỊP CỦA MẸ</span>
-            <h2 id="mom-today-title" className="haven-live-clock"><SegmentClock time={formatClockTime(now)} /></h2>
+            <h2 id="mom-today-title" className="haven-live-clock"><LiveSegmentClock /></h2>
           </div>
           <button type="button" className="haven-daily-add-btn" aria-label="+ Hút sữa" onClick={onOpenPumping}>
             <span><Plus size={22} strokeWidth={2.8} /></span>

@@ -119,6 +119,7 @@ describe('interaction performance audit', () => {
     expect(lazyDialog).toContain('DIALOG_EXIT_RETENTION_MS = 280');
     expect(lazyPreview).toContain('PREVIEW_EXIT_RETENTION_MS = 280');
   });
+
   it('keeps large public images out of precache and optimizes Home decor delivery', () => {
     const viteConfig = appFile('vite.config.ts');
     const serviceWorker = source('sw.ts');
@@ -133,4 +134,38 @@ describe('interaction performance audit', () => {
     expect((babyHome.match(/decoding="async"/g) ?? [])).toHaveLength(4);
   });
 
+  it('keeps mobile interaction feedback and scrolling on lightweight paths', () => {
+    const app = source('app/App.tsx');
+    const routes = source('app/AppRoutes.tsx');
+    const modals = source('app/hooks/useAppModals.ts');
+    const bottomNav = source('shared/ui/BottomNav.tsx');
+    const bottomNavCss = source('shared/styles/bottom-nav.css');
+    const pullToRefresh = source('shared/ui/PullToRefresh.tsx');
+    const header = source('shared/ui/Header.tsx');
+    const babyHome = source('features/home/components/BabyHomeView.tsx');
+    const momHome = source('features/home/components/MomHomeView.tsx');
+    const segmentClock = source('features/home/components/SegmentClock.tsx');
+
+    expect(pullToRefresh).toContain("root.addEventListener('touchmove', onTouchMove, { passive: true });");
+    expect(pullToRefresh).not.toContain('event.preventDefault()');
+    expect(pullToRefresh).not.toContain('passive: false');
+
+    expect(bottomNav).not.toContain("from 'motion/react'");
+    expect(bottomNav).not.toContain('layoutId=');
+    expect(bottomNav).toContain('onPointerDown={handleRouteIntent}');
+    expect(bottomNavCss).toContain('.nav-tab-item:active');
+    expect(bottomNavCss).toContain('.fab-center-btn:active');
+
+    expect(routes).toContain('export function preloadAppRoute');
+    expect(routes).toContain('memo(function AppRoutes');
+    expect(app).toContain('onRouteIntent={preloadAppRoute}');
+    expect(modals).toContain('useCallback');
+    expect(header).toContain('useUIStore((state) => state.profileMode)');
+
+    expect(babyHome).not.toContain('useLiveNow');
+    expect(momHome).not.toContain('useLiveNow');
+    expect(babyHome).toContain('<LiveSegmentClock />');
+    expect(momHome).toContain('<LiveSegmentClock />');
+    expect(segmentClock).toContain('LiveSegmentClock');
+  });
 });

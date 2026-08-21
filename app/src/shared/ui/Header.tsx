@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/store/useUIStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
@@ -7,6 +8,7 @@ import { AppBar } from './AppBar';
 
 interface HeaderProps {
   onOpenNotifications: () => void;
+  onProfileIntent?: () => void;
 }
 
 function formatAge(birthDate: string): string {
@@ -22,9 +24,10 @@ function formatAge(birthDate: string): string {
   return restMonths ? `${years} tuổi ${restMonths} tháng` : `${years} tuổi`;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
+export const Header = memo(function Header({ onOpenNotifications, onProfileIntent }: HeaderProps) {
   const navigate = useNavigate();
-  const { profileMode, setProfileMode } = useUIStore();
+  const profileMode = useUIStore((state) => state.profileMode);
+  const setProfileMode = useUIStore((state) => state.setProfileMode);
   const family = useFamily();
   const isMom = profileMode === 'mom';
   const name = isMom ? family.momName : family.childName;
@@ -44,6 +47,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
           type="button"
           className="header-profile-main"
           onClick={() => navigate('/profile')}
+          onPointerDown={onProfileIntent}
+          onPointerEnter={onProfileIntent}
+          onFocus={onProfileIntent}
           title="Xem hồ sơ"
           id="btnHeaderProfile"
         >
@@ -89,4 +95,4 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
       )}
     />
   );
-};
+});
