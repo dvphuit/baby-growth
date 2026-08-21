@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { LayoutGroup, MotionConfig } from 'motion/react';
+import { MotionConfig } from 'motion/react';
 import App from './app/App';
 import './index.css';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
@@ -56,9 +56,7 @@ void handleResetRequest().then((didReset) => {
       <StrictMode>
         <BrowserRouter>
           <MotionConfig reducedMotion="user">
-            <LayoutGroup id="haven-app">
-              <App />
-            </LayoutGroup>
+            <App />
           </MotionConfig>
         </BrowserRouter>
       </StrictMode>,
