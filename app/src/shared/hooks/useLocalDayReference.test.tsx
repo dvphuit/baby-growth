@@ -19,7 +19,8 @@ describe('useLocalDayReference', () => {
     act(() => vi.advanceTimersByTime(500));
     expect(result.current).toBe(initial);
 
-    act(() => vi.advanceTimersByTime(100));
+    vi.setSystemTime(new Date(2026, 7, 22, 0, 0, 0, 100));
+    act(() => vi.advanceTimersToNextTimer());
     expect(result.current).not.toBe(initial);
     expect(result.current.getDate()).toBe(22);
 
