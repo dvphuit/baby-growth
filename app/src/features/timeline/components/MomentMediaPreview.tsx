@@ -12,7 +12,7 @@ import {
 } from 'motion/react';
 import { havenLayoutTransition } from '@/shared/motion/motionPresets';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
-import { preloadTimelineMedia, useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
+import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import type { TimelineMediaItem } from '@/types';
 
 export interface MomentMediaPreviewState {
@@ -33,6 +33,8 @@ interface MomentMediaPreviewContentProps extends MomentMediaPreviewState {
   onClose: () => void;
 }
 
+const MEDIA_WINDOW_RADIUS = 1;
+
 const pagerTransition = {
   type: 'spring' as const,
   stiffness: 500,
@@ -45,7 +47,7 @@ const dismissTransition = {
   ease: 'easeIn' as const,
 };
 
-function MomentMediaSlideItem({
+function MomentMediaSlideAsset({
   media,
   title,
   index,
@@ -71,34 +73,79 @@ function MomentMediaSlideItem({
   const isVideo = media.type === 'video';
 
   return (
-    <div className="moment-media-preview-slide">
-      <motion.div
-        className="moment-media-preview-slide-content"
-        style={isActive ? { y: activeY, scale: activeScale } : undefined}
-      >
-        {isVideo ? (
-          <motion.video
-            layoutId={isActive ? layoutId : undefined}
-            data-layout-id={isActive ? layoutId : undefined}
-            className="moment-media-preview-asset"
-            src={src || undefined}
-            controls={isActive}
-            playsInline
-            preload="auto"
-            style={{ borderRadius: 0 }}
-          />
-        ) : (
-          <motion.img
-            layoutId={isActive ? layoutId : undefined}
-            data-layout-id={isActive ? layoutId : undefined}
-            className="moment-media-preview-asset"
-            src={src || undefined}
-            alt={`${title}, ảnh ${index + 1}`}
-            draggable={false}
-            style={{ borderRadius: 0 }}
-          />
-        )}
-      </motion.div>
+    <motion.div
+      className="moment-media-preview-slide-content"
+      style={isActive ? { y: activeY, scale: activeScale } : undefined}
+    >
+      {isVideo ? (
+        <motion.video
+          layoutId={isActive ? layoutId : undefined}
+          data-layout-id={isActive ? layoutId : undefined}
+          className="moment-media-preview-asset"
+          src={src || undefined}
+          controls={isActive}
+          playsInline
+          preload={isActive ? 'metadata' : 'none'}
+          style={{ borderRadius: 0 }}
+        />
+      ) : (
+        <motion.img
+          layoutId={isActive ? layoutId : undefined}
+          data-layout-id={isActive ? layoutId : undefined}
+          className="moment-media-preview-asset"
+          src={src || undefined}
+          alt={`${title}, ảnh ${index + 1}`}
+          draggable={false}
+          loading={isActive ? 'eager' : 'lazy'}
+          decoding="async"
+          style={{ borderRadius: 0 }}
+        />
+      )}
+    </motion.div>
+  );
+}
+
+function MomentMediaSlideItem({
+  media,
+  title,
+  index,
+  isActive,
+  isInitial,
+  shouldMount,
+  originSrc,
+  layoutId,
+  activeY,
+  activeScale,
+}: {
+  media: TimelineMediaItem;
+  title: string;
+  index: number;
+  isActive: boolean;
+  isInitial: boolean;
+  shouldMount: boolean;
+  originSrc?: string;
+  layoutId?: string;
+  activeY: MotionValue<number>;
+  activeScale: MotionValue<number>;
+}) {
+  return (
+    <div
+      className="moment-media-preview-slide"
+      data-media-mounted={shouldMount ? 'true' : 'false'}
+    >
+      {shouldMount && (
+        <MomentMediaSlideAsset
+          media={media}
+          title={title}
+          index={index}
+          isActive={isActive}
+          isInitial={isInitial}
+          originSrc={originSrc}
+          layoutId={layoutId}
+          activeY={activeY}
+          activeScale={activeScale}
+        />
+      )}
     </div>
   );
 }
@@ -133,20 +180,21 @@ function MomentMediaPreviewContent({
   const closingRef = useRef(false);
   const dismissingRef = useRef(false);
 
-  useEffect(() => {
-    items.forEach((item) => {
-      void preloadTimelineMedia(item);
-    });
-  }, [items]);
-
   const goTo = useCallback((index: number) => {
     const nextIndex = Math.max(0, Math.min(items.length - 1, index));
+    const previousIndex = activeIndexRef.current;
     const width = containerWidth || stageRef.current?.clientWidth || window.innerWidth;
     activeIndexRef.current = nextIndex;
     setActiveIndex(nextIndex);
     if (width > 0) {
+      const targetX = -nextIndex * width;
       trackAnimationRef.current?.stop();
-      trackAnimationRef.current = animate(x, -nextIndex * width, pagerTransition);
+      trackAnimationRef.current = null;
+      if (Math.abs(nextIndex - previousIndex) > 1) {
+        x.set(targetX);
+      } else {
+        trackAnimationRef.current = animate(x, targetX, pagerTransition);
+      }
     }
   }, [containerWidth, items.length, x]);
 
@@ -336,20 +384,25 @@ function MomentMediaPreviewContent({
             onPan={handlePan}
             onPanEnd={handlePanEnd}
           >
-            {items.map((media, index) => (
-              <MomentMediaSlideItem
-                key={media.id ?? media.blobId ?? index}
-                media={media}
-                title={title}
-                index={index}
-                isActive={index === activeIndex}
-                isInitial={index === safeInitialIndex}
-                originSrc={originSrc}
-                layoutId={index === safeInitialIndex ? layoutId : getLayoutId?.(index, media)}
-                activeY={y}
-                activeScale={dragScale}
-              />
-            ))}
+            {items.map((media, index) => {
+              const isActive = index === activeIndex;
+              const shouldMount = Math.abs(index - activeIndex) <= MEDIA_WINDOW_RADIUS;
+              return (
+                <MomentMediaSlideItem
+                  key={media.id ?? media.blobId ?? index}
+                  media={media}
+                  title={title}
+                  index={index}
+                  isActive={isActive}
+                  isInitial={index === safeInitialIndex}
+                  shouldMount={shouldMount}
+                  originSrc={originSrc}
+                  layoutId={index === safeInitialIndex ? layoutId : getLayoutId?.(index, media)}
+                  activeY={y}
+                  activeScale={dragScale}
+                />
+              );
+            })}
           </motion.div>
 
           {items.length > 1 && (
@@ -394,15 +447,13 @@ function MomentMediaPreviewContent({
           <TimelineMediaSyncBadge media={activeMedia} className="in-preview" />
           <div className="moment-media-preview-indicator" aria-label={`Media ${activeIndex + 1} trên ${items.length}`}>
             {items.length <= 9 ? items.map((media, index) => (
-              <motion.button
-                layout
+              <button
                 type="button"
                 key={media.id ?? media.blobId ?? media.driveFileId ?? `${media.url}-${index}`}
                 className={index === activeIndex ? 'is-active' : ''}
                 aria-label={`Xem media ${index + 1}`}
                 aria-current={index === activeIndex ? 'true' : undefined}
                 onClick={() => goTo(index)}
-                transition={havenLayoutTransition}
               />
             )) : <span>{activeIndex + 1} / {items.length}</span>}
           </div>
