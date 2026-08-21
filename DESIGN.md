@@ -71,13 +71,11 @@ Fields share label, input, error, help text, disabled state, and focus styles. D
 
 An empty state says what is missing and gives one useful next action. Avoid demo numbers that look like real user data.
 
-## Motion
+## Native animation
 
-Use Motion for enter and exit transitions, transforms, opacity changes, and gestures.
+Use browser-native animation primitives. Prefer CSS transitions/keyframes for simple enter, exit, opacity, transform, hover, and press feedback. Use the View Transition API for route-level transitions, Pointer Events for direct manipulation, and the Web Animations API for gesture settle/dismiss sequences.
 
-CSS owns static layout and visual styling. Do not define a CSS keyframe and a Motion transform for the same element state.
-
-Animations must respect reduced-motion preferences. Motion must not delay a required care action or hide information while it runs.
+Keep per-frame gesture values out of React state and avoid animating layout-heavy properties, filters, or permanent compositing hints. Every animation must respect `prefers-reduced-motion`.
 
 ## Layout
 

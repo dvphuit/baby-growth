@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react';
-import { LayoutGroup } from 'motion/react';
 import {
   CalendarDays, ChevronDown, ChevronUp,
   NotebookPen,
@@ -341,8 +340,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
           </div>
         </div>
       </section>
-
-      <LayoutGroup id="timeline-media-page">
       <section className="journal-feed" key={`${ownerFilter}-${selectedRange.start}-${selectedRange.end ?? 'open'}`} aria-live="polite">
         {visibleEntries.length === 0 ? (
           <>
@@ -455,7 +452,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenLightbox }) =>
         initialEditing={editingEntry}
       />
       <MomentMediaPreview preview={momentPreview} onClose={() => setMomentPreview(null)} />
-      </LayoutGroup>
     </main>
   );
 };

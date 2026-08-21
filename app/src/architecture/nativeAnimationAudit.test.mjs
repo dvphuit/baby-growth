@@ -1,0 +1,75 @@
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const ROOT = process.cwd();
+const SRC_ROOT = join(ROOT, 'src');
+
+function walk(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    return entry.isDirectory() ? walk(path) : [path];
+  });
+}
+
+function sourceFiles() {
+  return walk(SRC_ROOT).filter((path) => /\.(?:ts|tsx)$/.test(path));
+}
+
+function productionSourceFiles() {
+  return sourceFiles().filter((path) => {
+    if (/\.(?:test|spec)\.(?:ts|tsx)$/.test(path)) return false;
+    return !path.includes(`${join('src', 'architecture')}`);
+  });
+}
+
+const MOTION_RUNTIME_RESIDUE = [
+  /from\s+['"]motion(?:\/react)?['"]/,
+  /import\s*\(['"]motion(?:\/react)?['"]\)/,
+  /\bmotion\.[A-Za-z]/,
+  /\bAnimatePresence\b/,
+  /\bLayoutGroup\b/,
+  /\bMotionConfig\b/,
+];
+
+const MOTION_IMPORT = /(?:from\s+|import\s*\()['"]motion(?:\/react)?['"]/;
+
+describe('native animation architecture', () => {
+  it('keeps production source free of the Motion runtime API', () => {
+    const residues = productionSourceFiles().flatMap((path) => {
+      const contents = readFileSync(path, 'utf8');
+      if (!MOTION_RUNTIME_RESIDUE.some((pattern) => pattern.test(contents))) return [];
+      return [relative(ROOT, path)];
+    });
+
+    expect(residues, `Motion residues:\n${residues.join('\n')}`).toEqual([]);
+  });
+
+  it('keeps every source module free of Motion package imports', () => {
+    const residues = sourceFiles().flatMap((path) => (
+      MOTION_IMPORT.test(readFileSync(path, 'utf8')) ? [relative(ROOT, path)] : []
+    ));
+    expect(residues, `Motion imports:\n${residues.join('\n')}`).toEqual([]);
+  });
+
+  it('keeps Motion out of dependencies and the shared source tree', () => {
+    const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+    const packageLock = JSON.parse(readFileSync(join(ROOT, 'package-lock.json'), 'utf8'));
+
+    expect(packageJson.dependencies?.motion).toBeUndefined();
+    expect(packageJson.devDependencies?.motion).toBeUndefined();
+    expect(packageLock.packages?.['node_modules/motion']).toBeUndefined();
+    expect(packageLock.packages?.['node_modules/motion-dom']).toBeUndefined();
+    expect(packageLock.packages?.['node_modules/motion-utils']).toBeUndefined();
+    expect(existsSync(join(SRC_ROOT, 'shared', 'motion'))).toBe(false);
+  });
+
+  it('wires native animation styles from the shared styles boundary', () => {
+    const indexCss = readFileSync(join(SRC_ROOT, 'index.css'), 'utf8');
+    const nativeStyles = join(SRC_ROOT, 'shared', 'styles', 'native-animations.css');
+
+    expect(existsSync(nativeStyles)).toBe(true);
+    expect(indexCss).toContain("@import './shared/styles/native-animations.css';");
+    expect(indexCss).not.toContain("@import './shared/motion/animations.css';");
+  });
+});

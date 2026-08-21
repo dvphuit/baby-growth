@@ -1,15 +1,7 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
-import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
-import {
-  havenOverlayTransition,
-  havenOverlayVariants,
-  havenPressStrong,
-  havenSheetTransition,
-  havenSheetVariants,
-  havenSnappySpring,
-} from '@/shared/motion/motionPresets';
-import { useModalSurfaceLayoutId } from '@/shared/motion/modalMotionContext';
+import { animateElement, cancelElementAnimations } from '@/shared/lib/nativeAnimation';
+import { useNativePresence } from '@/shared/hooks/useNativePresence';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -18,6 +10,15 @@ interface BottomSheetProps {
   dismissible?: boolean;
   children: React.ReactNode;
   footer?: React.ReactNode;
+}
+
+interface DragState {
+  pointerId: number;
+  startY: number;
+  lastY: number;
+  lastAt: number;
+  offsetY: number;
+  velocityY: number;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -29,6 +30,9 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+const DRAG_DISMISS_DISTANCE = 80;
+const DRAG_DISMISS_VELOCITY = 450;
+
 export const BottomSheet: React.FC<BottomSheetProps> = ({
   isOpen,
   onClose,
@@ -38,14 +42,23 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   footer,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const dragRef = useRef<DragState | null>(null);
+  const dragDismissedRef = useRef(false);
   const titleId = useId();
-  const dragControls = useDragControls();
-  const surfaceLayoutId = useModalSurfaceLayoutId();
+  const presence = useNativePresence(isOpen, 180);
 
   useEffect(() => {
     if (!isOpen) return;
+    dragDismissedRef.current = false;
+    if (sheetRef.current) {
+      sheetRef.current.style.transform = '';
+      sheetRef.current.style.opacity = '';
+    }
+    if (backdropRef.current) backdropRef.current.style.opacity = '';
+
     previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
@@ -102,101 +115,164 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dismissible, isOpen, onClose]);
 
-  const handleDragStart = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dismissible || (contentRef.current?.scrollTop ?? 0) > 0) return;
-    dragControls.start(event);
+  const applyDrag = (offsetY: number) => {
+    const sheet = sheetRef.current;
+    const backdrop = backdropRef.current;
+    if (!sheet) return;
+
+    const resisted = offsetY <= 0 ? offsetY * 0.04 : offsetY;
+    sheet.style.transform = `translate3d(0, ${resisted}px, 0)`;
+    if (backdrop) backdrop.style.opacity = String(Math.max(0.35, 1 - Math.max(0, offsetY) / 360));
   };
 
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (!dismissible) return;
-    const shouldDismiss = info.offset.y > 80 || (info.velocity.y > 450 && info.offset.y > 20);
-    if (shouldDismiss) onClose();
+  const settleDrag = () => {
+    const current = dragRef.current?.offsetY ?? 0;
+    dragRef.current = null;
+    void Promise.all([
+      animateElement(
+        sheetRef.current,
+        [{ transform: `translate3d(0, ${current}px, 0)` }, { transform: 'translate3d(0, 0, 0)' }],
+        { duration: 220, easing: 'cubic-bezier(0.2, 0.75, 0.3, 1)', fill: 'both' },
+      ),
+      animateElement(
+        backdropRef.current,
+        [{ opacity: backdropRef.current?.style.opacity || '1' }, { opacity: 1 }],
+        { duration: 180, easing: 'ease-out', fill: 'both' },
+      ),
+    ]);
   };
+
+  const dismissFromDrag = () => {
+    const current = Math.max(0, dragRef.current?.offsetY ?? 0);
+    dragRef.current = null;
+    dragDismissedRef.current = true;
+    const distance = Math.max(window.innerHeight, sheetRef.current?.clientHeight ?? 0) + 80;
+
+    void Promise.all([
+      animateElement(
+        sheetRef.current,
+        [{ transform: `translate3d(0, ${current}px, 0)` }, { transform: `translate3d(0, ${distance}px, 0)` }],
+        { duration: 180, easing: 'cubic-bezier(0.32, 0, 0.67, 0)', fill: 'both' },
+      ),
+      animateElement(
+        backdropRef.current,
+        [{ opacity: backdropRef.current?.style.opacity || '1' }, { opacity: 0 }],
+        { duration: 160, easing: 'ease-out', fill: 'both' },
+      ),
+    ]).then(onClose);
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dismissible || !isOpen || (contentRef.current?.scrollTop ?? 0) > 0) return;
+    cancelElementAnimations(sheetRef.current);
+    cancelElementAnimations(backdropRef.current);
+    const now = performance.now();
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      lastY: event.clientY,
+      lastAt: now,
+      offsetY: 0,
+      velocityY: 0,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const now = performance.now();
+    const elapsed = Math.max(1, now - drag.lastAt);
+    const nextOffset = Math.max(0, event.clientY - drag.startY);
+    drag.velocityY = ((event.clientY - drag.lastY) / elapsed) * 1000;
+    drag.lastY = event.clientY;
+    drag.lastAt = now;
+    drag.offsetY = nextOffset;
+    applyDrag(nextOffset);
+  };
+
+  const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    const shouldDismiss = drag.offsetY > DRAG_DISMISS_DISTANCE
+      || (drag.velocityY > DRAG_DISMISS_VELOCITY && drag.offsetY > 20);
+    if (shouldDismiss) dismissFromDrag();
+    else settleDrag();
+  };
+
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    settleDrag();
+  };
+
+  if (!presence.mounted) return null;
+  const phaseClass = presence.phase === 'open' ? 'native-open' : 'native-closing';
+  const sheetPhaseClass = dragDismissedRef.current && !isOpen
+    ? `${phaseClass} native-drag-dismissed`
+    : phaseClass;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          key="haven-bottom-sheet"
-          className="modal-backdrop open"
-          variants={havenOverlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          transition={havenOverlayTransition}
-          onClick={(event) => {
-            if (dismissible && event.target === event.currentTarget) onClose();
-          }}
+    <div
+      ref={backdropRef}
+      className={`modal-backdrop ${isOpen ? 'open' : 'closing'} ${phaseClass}`}
+      aria-hidden={isOpen ? undefined : true}
+      onClick={(event) => {
+        if (isOpen && dismissible && event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : 'Hộp thoại'}
+        tabIndex={-1}
+        className={`bottom-sheet ${sheetPhaseClass}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div
+          className="sheet-drag-handle-area"
+          tabIndex={-1}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerCancel}
+          style={{ touchAction: 'none', cursor: dismissible ? 'grab' : 'default' }}
         >
-          <motion.div
-            layoutId={surfaceLayoutId}
-            ref={sheetRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={title ? titleId : undefined}
-            aria-label={title ? undefined : 'Hộp thoại'}
+          <div
+            className="sheet-handle-bar"
             tabIndex={-1}
-            className="bottom-sheet"
-            variants={havenSheetVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={havenSheetTransition}
-            drag={dismissible ? 'y' : false}
-            dragControls={dragControls}
-            dragListener={false}
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0.02, bottom: 0.7 }}
-            dragMomentum={false}
-            onDragEnd={handleDragEnd}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div
-              className="sheet-drag-handle-area"
-              tabIndex={-1}
-              onPointerDown={handleDragStart}
-              style={{ touchAction: 'none', cursor: dismissible ? 'grab' : 'default' }}
-            >
-              <motion.div
-                className="sheet-handle-bar"
-                tabIndex={-1}
-                title={dismissible ? 'Kéo xuống hoặc chạm để đóng' : undefined}
-                whileHover={dismissible ? { scaleX: 1.12 } : undefined}
-                whileTap={dismissible ? { scaleX: 0.94 } : undefined}
-                transition={havenSnappySpring}
+            title={dismissible ? 'Kéo xuống hoặc chạm để đóng' : undefined}
+            onClick={() => {
+              if (dismissible) onClose();
+            }}
+          />
+
+          {title && (
+            <div className="sheet-header-row">
+              <h3 className="sheet-title" id={titleId}>{title}</h3>
+              <button
+                type="button"
+                className="sheet-close-btn"
                 onClick={() => {
                   if (dismissible) onClose();
                 }}
-              />
-
-              {title && (
-                <div className="sheet-header-row">
-                  <h3 className="sheet-title" id={titleId}>{title}</h3>
-                  <motion.button
-                    type="button"
-                    className="sheet-close-btn"
-                    onClick={() => {
-                      if (dismissible) onClose();
-                    }}
-                    title="Đóng"
-                    aria-label="Đóng"
-                    disabled={!dismissible}
-                    whileTap={dismissible ? havenPressStrong : undefined}
-                    whileHover={dismissible ? { scale: 1.06 } : undefined}
-                    transition={havenSnappySpring}
-                    onPointerDown={(event) => event.stopPropagation()}
-                  >
-                    <X size={14} />
-                  </motion.button>
-                </div>
-              )}
+                title="Đóng"
+                aria-label="Đóng"
+                disabled={!dismissible}
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                <X size={14} />
+              </button>
             </div>
+          )}
+        </div>
 
-            <div ref={contentRef} className="sheet-content-body">{children}</div>
-            {footer && <motion.div layout="position" className="sheet-footer">{footer}</motion.div>}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <div ref={contentRef} className="sheet-content-body">{children}</div>
+        {footer && <div className="sheet-footer">{footer}</div>}
+      </div>
+    </div>
   );
 };

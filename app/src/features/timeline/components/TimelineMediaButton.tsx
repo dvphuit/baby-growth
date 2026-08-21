@@ -1,9 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Image as ImageIcon, Play, Video } from 'lucide-react';
-import { motion } from 'motion/react';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
-import { havenLayoutTransition } from '@/shared/motion/motionPresets';
 import type { TimelineMediaItem } from '@/types';
 
 export interface TimelineMediaButtonProps {
@@ -45,10 +43,9 @@ export function TimelineMediaButton({
       {src && (
         media.type === 'video' ? (
           <>
-            <motion.video
-              layoutId={layoutId}
+            <video
               data-layout-id={layoutId}
-              transition={havenLayoutTransition}
+              data-native-transition-id={layoutId}
               src={src}
               preload="metadata"
               style={{ borderRadius: 11 }}
@@ -64,10 +61,9 @@ export function TimelineMediaButton({
           </>
         ) : (
           <>
-            <motion.img
-              layoutId={layoutId}
+            <img
               data-layout-id={layoutId}
-              transition={havenLayoutTransition}
+              data-native-transition-id={layoutId}
               src={src}
               alt={alt}
               loading="lazy"
