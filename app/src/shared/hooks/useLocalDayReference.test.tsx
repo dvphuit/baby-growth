@@ -16,10 +16,10 @@ describe('useLocalDayReference', () => {
     const { result, unmount } = renderHook(() => useLocalDayReference());
     const initial = result.current;
 
-    act(() => vi.advanceTimersByTime(900));
+    act(() => vi.advanceTimersByTime(500));
     expect(result.current).toBe(initial);
 
-    act(() => vi.advanceTimersByTime(200));
+    act(() => vi.advanceTimersByTime(100));
     expect(result.current).not.toBe(initial);
     expect(result.current.getDate()).toBe(22);
 
