@@ -145,6 +145,7 @@ describe('interaction performance audit', () => {
     const babyHome = source('features/home/components/BabyHomeView.tsx');
     const momHome = source('features/home/components/MomHomeView.tsx');
     const segmentClock = source('features/home/components/SegmentClock.tsx');
+    const dayReference = source('shared/hooks/useLocalDayReference.ts');
 
     expect(pullToRefresh).toContain("root.addEventListener('touchmove', onTouchMove, { passive: true });");
     expect(pullToRefresh).not.toContain('event.preventDefault()');
@@ -162,10 +163,11 @@ describe('interaction performance audit', () => {
     expect(modals).toContain('useCallback');
     expect(header).toContain('useUIStore((state) => state.profileMode)');
 
-    expect(babyHome).not.toContain('useLiveNow');
-    expect(momHome).not.toContain('useLiveNow');
+    expect(babyHome).not.toContain("from '@/shared/hooks/useLiveNow'");
+    expect(momHome).not.toContain("from '@/shared/hooks/useLiveNow'");
     expect(babyHome).toContain('<LiveSegmentClock />');
     expect(momHome).toContain('<LiveSegmentClock />');
     expect(segmentClock).toContain('LiveSegmentClock');
+    expect(dayReference).toContain('scheduleMidnightCheck');
   });
 });

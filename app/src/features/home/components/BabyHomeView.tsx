@@ -6,7 +6,7 @@ import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
-import { useLocalDayReference } from '@/shared/hooks/useLiveNow';
+import { useLocalDayReference } from '@/shared/hooks/useLocalDayReference';
 import { formatDurationMinutes, formatTimeOfDay } from '@/shared/lib/time';
 import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
 import { LiveSegmentClock } from './SegmentClock';

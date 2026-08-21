@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Clock3, Milk, Moon, Plus, Smile, Sparkles, UserRound } from 'lucide-react';
 import { getMomActivitiesForDay, selectMomTodayMetrics } from '@/features/activities/domain/activitySelectors';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
-import { useLocalDayReference } from '@/shared/hooks/useLiveNow';
+import { useLocalDayReference } from '@/shared/hooks/useLocalDayReference';
 import { formatDurationMinutes, formatLocalDay, formatTimeOfDay } from '@/shared/lib/time';
 import { IdleHomeTimelinePreview } from './IdleHomeTimelinePreview';
 import { LiveSegmentClock } from './SegmentClock';

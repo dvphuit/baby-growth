@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useLocalDayReference } from './useLiveNow';
+import { useLocalDayReference } from './useLocalDayReference';
 
 describe('useLocalDayReference', () => {
   beforeEach(() => {
