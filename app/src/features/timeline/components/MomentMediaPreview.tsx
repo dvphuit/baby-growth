@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type Ref,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useMotionValue,
-  useTransform,
-  type MotionValue,
-  type PanInfo,
-} from 'motion/react';
-import { havenLayoutTransition } from '@/shared/motion/motionPresets';
+import { animateElement, cancelElementAnimations, prefersReducedMotion } from '@/shared/lib/nativeAnimation';
+import { useNativePresence } from '@/shared/hooks/useNativePresence';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
 import type { TimelineMediaItem } from '@/types';
@@ -31,21 +31,24 @@ interface MomentMediaPreviewProps {
 
 interface MomentMediaPreviewContentProps extends MomentMediaPreviewState {
   onClose: () => void;
+  externalClosing: boolean;
+}
+
+interface PointerGesture {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  lastX: number;
+  lastY: number;
+  lastAt: number;
+  velocityX: number;
+  velocityY: number;
+  direction: 'horizontal' | 'vertical' | null;
 }
 
 const MEDIA_WINDOW_RADIUS = 1;
-
-const pagerTransition = {
-  type: 'spring' as const,
-  stiffness: 500,
-  damping: 42,
-  mass: 0.8,
-};
-
-const dismissTransition = {
-  duration: 0.22,
-  ease: 'easeIn' as const,
-};
+const TRACK_SETTLE_MS = 240;
+const DISMISS_MS = 220;
 
 function MomentMediaSlideAsset({
   media,
@@ -55,8 +58,7 @@ function MomentMediaSlideAsset({
   isInitial,
   originSrc,
   layoutId,
-  activeY,
-  activeScale,
+  contentRef,
 }: {
   media: TimelineMediaItem;
   title: string;
@@ -65,22 +67,18 @@ function MomentMediaSlideAsset({
   isInitial: boolean;
   originSrc?: string;
   layoutId?: string;
-  activeY: MotionValue<number>;
-  activeScale: MotionValue<number>;
+  contentRef?: Ref<HTMLDivElement>;
 }) {
   const resolvedUrl = useTimelineMediaUrl(media);
   const src = (isInitial && originSrc) || resolvedUrl || media.url || '';
   const isVideo = media.type === 'video';
 
   return (
-    <motion.div
-      className="moment-media-preview-slide-content"
-      style={isActive ? { y: activeY, scale: activeScale } : undefined}
-    >
+    <div ref={contentRef} className="moment-media-preview-slide-content">
       {isVideo ? (
-        <motion.video
-          layoutId={isActive ? layoutId : undefined}
+        <video
           data-layout-id={isActive ? layoutId : undefined}
+          data-native-transition-id={isActive ? layoutId : undefined}
           className="moment-media-preview-asset"
           src={src || undefined}
           controls={isActive}
@@ -89,9 +87,9 @@ function MomentMediaSlideAsset({
           style={{ borderRadius: 0 }}
         />
       ) : (
-        <motion.img
-          layoutId={isActive ? layoutId : undefined}
+        <img
           data-layout-id={isActive ? layoutId : undefined}
+          data-native-transition-id={isActive ? layoutId : undefined}
           className="moment-media-preview-asset"
           src={src || undefined}
           alt={`${title}, ảnh ${index + 1}`}
@@ -101,7 +99,7 @@ function MomentMediaSlideAsset({
           style={{ borderRadius: 0 }}
         />
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -114,8 +112,7 @@ function MomentMediaSlideItem({
   shouldMount,
   originSrc,
   layoutId,
-  activeY,
-  activeScale,
+  activeContentRef,
 }: {
   media: TimelineMediaItem;
   title: string;
@@ -125,12 +122,11 @@ function MomentMediaSlideItem({
   shouldMount: boolean;
   originSrc?: string;
   layoutId?: string;
-  activeY: MotionValue<number>;
-  activeScale: MotionValue<number>;
+  activeContentRef: Ref<HTMLDivElement>;
 }) {
   return (
     <div
-      className="moment-media-preview-slide"
+      className={`moment-media-preview-slide ${isActive ? 'is-active' : ''}`}
       data-media-mounted={shouldMount ? 'true' : 'false'}
     >
       {shouldMount && (
@@ -142,8 +138,7 @@ function MomentMediaSlideItem({
           isInitial={isInitial}
           originSrc={originSrc}
           layoutId={layoutId}
-          activeY={activeY}
-          activeScale={activeScale}
+          contentRef={isActive ? activeContentRef : undefined}
         />
       )}
     </div>
@@ -158,73 +153,102 @@ function MomentMediaPreviewContent({
   originSrc,
   getLayoutId,
   onClose,
+  externalClosing,
 }: MomentMediaPreviewContentProps) {
   const safeInitialIndex = Math.max(0, Math.min(items.length - 1, initialIndex));
   const [activeIndex, setActiveIndex] = useState(safeInitialIndex);
-  const [isClosing, setIsClosing] = useState(false);
-  const [isDismissing, setIsDismissing] = useState(false);
+  const [localClosing, setLocalClosing] = useState(false);
   const activeIndexRef = useRef(safeInitialIndex);
-  activeIndexRef.current = activeIndex;
-
+  const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const backdropOpacity = useTransform(y, [0, 240], [1, 0.25]);
-  const dragScale = useTransform(y, [0, 240], [1, 0.88]);
-
-  const panDirection = useRef<'horizontal' | 'vertical' | null>(null);
-  const panStartX = useRef(0);
-  const trackAnimationRef = useRef<{ stop: () => void } | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const activeContentRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef<PointerGesture | null>(null);
+  const trackXRef = useRef(0);
   const closingRef = useRef(false);
-  const dismissingRef = useRef(false);
+
+  const stageWidth = useCallback(
+    () => stageRef.current?.clientWidth || window.innerWidth || 320,
+    [],
+  );
+
+  const setTrackX = useCallback((value: number, animated: boolean) => {
+    trackXRef.current = value;
+    const track = trackRef.current;
+    if (!track) return;
+    track.style.transition = animated && !prefersReducedMotion()
+      ? `transform ${TRACK_SETTLE_MS}ms cubic-bezier(0.2, 0.75, 0.3, 1)`
+      : 'none';
+    track.style.transform = `translate3d(${value}px, 0, 0)`;
+  }, []);
+
+  const setVerticalVisuals = useCallback((offsetY: number, animated: boolean) => {
+    const content = activeContentRef.current;
+    const backdrop = backdropRef.current;
+    const transition = animated && !prefersReducedMotion()
+      ? 'transform 220ms cubic-bezier(0.2, 0.75, 0.3, 1)'
+      : 'none';
+    const opacityTransition = animated && !prefersReducedMotion() ? 'opacity 180ms ease-out' : 'none';
+    const progress = Math.min(1, Math.max(0, offsetY) / 240);
+    const scale = 1 - progress * 0.12;
+    if (content) {
+      content.style.transition = transition;
+      content.style.transform = `translate3d(0, ${Math.max(0, offsetY)}px, 0) scale(${scale})`;
+    }
+    if (backdrop) {
+      backdrop.style.transition = opacityTransition;
+      backdrop.style.opacity = String(1 - progress * 0.75);
+    }
+  }, []);
 
   const goTo = useCallback((index: number) => {
     const nextIndex = Math.max(0, Math.min(items.length - 1, index));
-    const previousIndex = activeIndexRef.current;
-    const width = containerWidth || stageRef.current?.clientWidth || window.innerWidth;
     activeIndexRef.current = nextIndex;
     setActiveIndex(nextIndex);
-    if (width > 0) {
-      const targetX = -nextIndex * width;
-      trackAnimationRef.current?.stop();
-      trackAnimationRef.current = null;
-      if (Math.abs(nextIndex - previousIndex) > 1) {
-        x.set(targetX);
-      } else {
-        trackAnimationRef.current = animate(x, targetX, pagerTransition);
-      }
-    }
-  }, [containerWidth, items.length, x]);
-
-  const dismiss = useCallback(() => {
-    if (closingRef.current || dismissingRef.current) return;
-
-    dismissingRef.current = true;
-    setIsDismissing(true);
-    const dismissDistance = Math.max(window.innerHeight, stageRef.current?.clientHeight ?? 0) + 120;
-    void animate(y, dismissDistance, dismissTransition).then(onClose);
-  }, [onClose, y]);
+    setTrackX(-nextIndex * stageWidth(), true);
+    requestAnimationFrame(() => setVerticalVisuals(0, false));
+  }, [items.length, setTrackX, setVerticalVisuals, stageWidth]);
 
   const requestClose = useCallback(() => {
-    if (closingRef.current || dismissingRef.current) return;
-
+    if (closingRef.current) return;
     closingRef.current = true;
-    setIsClosing(true);
-  }, []);
+    setLocalClosing(true);
+    void animateElement(
+      rootRef.current,
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 180, easing: 'ease-out', fill: 'both' },
+    ).then(onClose);
+  }, [onClose]);
+
+  const dismissDown = useCallback((offsetY: number) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setLocalClosing(true);
+    const distance = Math.max(window.innerHeight, stageRef.current?.clientHeight ?? 0) + 120;
+    void Promise.all([
+      animateElement(
+        activeContentRef.current,
+        [
+          { transform: `translate3d(0, ${Math.max(0, offsetY)}px, 0) scale(0.94)` },
+          { transform: `translate3d(0, ${distance}px, 0) scale(0.88)` },
+        ],
+        { duration: DISMISS_MS, easing: 'cubic-bezier(0.32, 0, 0.67, 0)', fill: 'both' },
+      ),
+      animateElement(
+        backdropRef.current,
+        [{ opacity: backdropRef.current?.style.opacity || '1' }, { opacity: 0 }],
+        { duration: DISMISS_MS, easing: 'ease-out', fill: 'both' },
+      ),
+    ]).then(onClose);
+  }, [onClose]);
 
   useLayoutEffect(() => {
-    const updateWidth = () => {
-      if (!stageRef.current) return;
-      const newWidth = stageRef.current.clientWidth;
-      setContainerWidth(newWidth);
-      if (newWidth > 0) x.set(-activeIndexRef.current * newWidth);
-    };
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, [x]);
+    setTrackX(-safeInitialIndex * stageWidth(), false);
+    const handleResize = () => setTrackX(-activeIndexRef.current * stageWidth(), false);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [safeInitialIndex, setTrackX, stageWidth]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -241,149 +265,128 @@ function MomentMediaPreviewContent({
     };
   }, [goTo, items.length, requestClose]);
 
-  const handlePanStart = () => {
-    panDirection.current = null;
-    trackAnimationRef.current?.stop();
-    trackAnimationRef.current = null;
-    panStartX.current = x.get();
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (closingRef.current) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, video')) return;
+    cancelElementAnimations(activeContentRef.current);
+    cancelElementAnimations(backdropRef.current);
+    if (trackRef.current) trackRef.current.style.transition = 'none';
+    if (activeContentRef.current) activeContentRef.current.style.transition = 'none';
+    if (backdropRef.current) backdropRef.current.style.transition = 'none';
+    const now = performance.now();
+    pointerRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      lastAt: now,
+      velocityX: 0,
+      velocityY: 0,
+      direction: null,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
-  const handlePan = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
-  ) => {
-    const width = containerWidth || stageRef.current?.clientWidth || window.innerWidth;
-    if (width <= 0) return;
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = pointerRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const now = performance.now();
+    const elapsed = Math.max(1, now - gesture.lastAt);
+    gesture.velocityX = ((event.clientX - gesture.lastX) / elapsed) * 1000;
+    gesture.velocityY = ((event.clientY - gesture.lastY) / elapsed) * 1000;
+    gesture.lastX = event.clientX;
+    gesture.lastY = event.clientY;
+    gesture.lastAt = now;
 
-    if (!panDirection.current && (Math.abs(info.offset.x) > 6 || Math.abs(info.offset.y) > 6)) {
-      if (Math.abs(info.offset.x) >= Math.abs(info.offset.y)) {
-        panDirection.current = 'horizontal';
-      } else if (info.offset.y > 0) {
-        panDirection.current = 'vertical';
-      }
+    const offsetX = event.clientX - gesture.startX;
+    const offsetY = event.clientY - gesture.startY;
+    if (!gesture.direction && (Math.abs(offsetX) > 6 || Math.abs(offsetY) > 6)) {
+      if (Math.abs(offsetX) >= Math.abs(offsetY)) gesture.direction = 'horizontal';
+      else if (offsetY > 0) gesture.direction = 'vertical';
     }
 
-    if (panDirection.current === 'horizontal') {
-      let offset = info.offset.x;
-      if (
-        (activeIndexRef.current === 0 && offset > 0)
-        || (activeIndexRef.current === items.length - 1 && offset < 0)
-      ) {
-        offset *= 0.35;
+    if (gesture.direction === 'horizontal') {
+      let resistedOffset = offsetX;
+      if ((activeIndexRef.current === 0 && offsetX > 0)
+        || (activeIndexRef.current === items.length - 1 && offsetX < 0)) {
+        resistedOffset *= 0.35;
       }
-      x.set(panStartX.current + offset);
-    } else if (panDirection.current === 'vertical') {
-      y.set(Math.max(0, info.offset.y));
+      setTrackX(-activeIndexRef.current * stageWidth() + resistedOffset, false);
+    } else if (gesture.direction === 'vertical') {
+      setVerticalVisuals(Math.max(0, offsetY), false);
     }
   };
 
-  const handlePanEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
-  ) => {
-    const width = containerWidth || stageRef.current?.clientWidth || window.innerWidth;
-    const currentDirection = panDirection.current;
-    panDirection.current = null;
+  const finishPointer = (event: ReactPointerEvent<HTMLDivElement>, cancelled = false) => {
+    const gesture = pointerRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    pointerRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
 
-    if (currentDirection === 'vertical') {
-      if (info.offset.y > 80 || info.velocity.y > 350) {
-        dismiss();
-      } else {
-        animate(y, 0, havenLayoutTransition);
-        if (width > 0) {
-          trackAnimationRef.current = animate(x, -activeIndexRef.current * width, pagerTransition);
-        }
-      }
+    const offsetX = event.clientX - gesture.startX;
+    const offsetY = event.clientY - gesture.startY;
+    if (!cancelled && gesture.direction === 'vertical'
+      && (offsetY > 80 || gesture.velocityY > 350)) {
+      dismissDown(offsetY);
       return;
     }
 
-    if (currentDirection === 'horizontal' && width > 0) {
+    if (!cancelled && gesture.direction === 'horizontal') {
+      const width = stageWidth();
       const swipeThreshold = Math.min(width * 0.18, 60);
-      const velocityThreshold = 220;
-
       let targetIndex = activeIndexRef.current;
-      if (
-        (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold)
-        && activeIndexRef.current < items.length - 1
-      ) {
-        targetIndex = activeIndexRef.current + 1;
-      } else if (
-        (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold)
-        && activeIndexRef.current > 0
-      ) {
-        targetIndex = activeIndexRef.current - 1;
-      }
-
+      if ((offsetX < -swipeThreshold || gesture.velocityX < -220) && targetIndex < items.length - 1) targetIndex += 1;
+      else if ((offsetX > swipeThreshold || gesture.velocityX > 220) && targetIndex > 0) targetIndex -= 1;
       activeIndexRef.current = targetIndex;
       setActiveIndex(targetIndex);
-      trackAnimationRef.current = animate(x, -targetIndex * width, pagerTransition);
-      return;
+      setTrackX(-targetIndex * width, true);
+    } else {
+      setTrackX(-activeIndexRef.current * stageWidth(), true);
     }
-
-    if (width > 0) {
-      trackAnimationRef.current = animate(x, -activeIndexRef.current * width, pagerTransition);
-    }
-    animate(y, 0, havenLayoutTransition);
+    setVerticalVisuals(0, true);
   };
 
   const activeMedia = items[activeIndex] ?? items[0];
+  const closing = localClosing || externalClosing;
 
   return (
-    <motion.div
-      className="moment-media-preview-page"
+    <div
+      ref={rootRef}
+      className={`moment-media-preview-page ${closing ? 'native-closing' : 'native-open'}`}
       role="dialog"
       aria-modal="true"
       aria-label={`Xem media ${title}`}
-      initial={{ opacity: 1 }}
-      animate={{ opacity: isDismissing || isClosing ? 0 : 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
-      onAnimationComplete={() => {
-        if (closingRef.current) onClose();
-      }}
+      aria-hidden={externalClosing ? true : undefined}
     >
-      <motion.button
+      <button
+        ref={backdropRef}
         type="button"
         className="moment-media-preview-backdrop"
         aria-label="Đóng xem media"
         onClick={requestClose}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        style={{ opacity: backdropOpacity }}
-        transition={{ duration: 0.22, ease: 'easeOut' }}
       />
       <section className="moment-media-preview-frame">
-        <motion.header
-          className="moment-media-preview-header"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-        >
+        <header className="moment-media-preview-header">
           <div>
             <strong>{title}</strong>
             <span>{activeIndex + 1} / {items.length}</span>
           </div>
-          <motion.button
-            type="button"
-            aria-label="Đóng preview"
-            onClick={requestClose}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.92 }}
-          >
+          <button type="button" aria-label="Đóng preview" onClick={requestClose}>
             <X size={19} />
-          </motion.button>
-        </motion.header>
+          </button>
+        </header>
 
-        <div className="moment-media-preview-stage" ref={stageRef}>
-          <motion.div
-            className="moment-media-preview-track"
-            style={{ x }}
-            onPanStart={handlePanStart}
-            onPan={handlePan}
-            onPanEnd={handlePanEnd}
-          >
+        <div
+          className="moment-media-preview-stage"
+          ref={stageRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={(event) => finishPointer(event)}
+          onPointerCancel={(event) => finishPointer(event, true)}
+        >
+          <div ref={trackRef} className="moment-media-preview-track">
             {items.map((media, index) => {
               const isActive = index === activeIndex;
               const shouldMount = Math.abs(index - activeIndex) <= MEDIA_WINDOW_RADIUS;
@@ -398,12 +401,11 @@ function MomentMediaPreviewContent({
                   shouldMount={shouldMount}
                   originSrc={originSrc}
                   layoutId={index === safeInitialIndex ? layoutId : getLayoutId?.(index, media)}
-                  activeY={y}
-                  activeScale={dragScale}
+                  activeContentRef={activeContentRef}
                 />
               );
             })}
-          </motion.div>
+          </div>
 
           {items.length > 1 && (
             <>
@@ -414,7 +416,7 @@ function MomentMediaPreviewContent({
                   aria-label="Media trước"
                   onClick={(event) => {
                     event.stopPropagation();
-                    goTo(activeIndex - 1);
+                    goTo(activeIndexRef.current - 1);
                   }}
                 >
                   <ChevronLeft size={24} />
@@ -427,7 +429,7 @@ function MomentMediaPreviewContent({
                   aria-label="Media kế tiếp"
                   onClick={(event) => {
                     event.stopPropagation();
-                    goTo(activeIndex + 1);
+                    goTo(activeIndexRef.current + 1);
                   }}
                 >
                   <ChevronRight size={24} />
@@ -437,13 +439,7 @@ function MomentMediaPreviewContent({
           )}
         </div>
 
-        <motion.footer
-          className="moment-media-preview-footer"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 12 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-        >
+        <footer className="moment-media-preview-footer">
           <TimelineMediaSyncBadge media={activeMedia} className="in-preview" />
           <div className="moment-media-preview-indicator" aria-label={`Media ${activeIndex + 1} trên ${items.length}`}>
             {items.length <= 9 ? items.map((media, index) => (
@@ -457,25 +453,27 @@ function MomentMediaPreviewContent({
               />
             )) : <span>{activeIndex + 1} / {items.length}</span>}
           </div>
-        </motion.footer>
+        </footer>
       </section>
-    </motion.div>
+    </div>
   );
 }
 
 export function MomentMediaPreview({ preview, onClose }: MomentMediaPreviewProps) {
-  if (typeof document === 'undefined') return null;
+  const lastPreviewRef = useRef<MomentMediaPreviewState | null>(preview);
+  if (preview) lastPreviewRef.current = preview;
+  const presence = useNativePresence(Boolean(preview), DISMISS_MS);
+  const renderedPreview = preview ?? lastPreviewRef.current;
+
+  if (typeof document === 'undefined' || !presence.mounted || !renderedPreview || renderedPreview.items.length === 0) return null;
 
   return createPortal(
-    <AnimatePresence initial={false} mode="sync">
-      {preview && preview.items.length > 0 && (
-        <MomentMediaPreviewContent
-          key={preview.layoutId}
-          {...preview}
-          onClose={onClose}
-        />
-      )}
-    </AnimatePresence>,
+    <MomentMediaPreviewContent
+      key={renderedPreview.layoutId}
+      {...renderedPreview}
+      externalClosing={presence.phase === 'closing'}
+      onClose={onClose}
+    />,
     document.body,
   );
 }

@@ -1,0 +1,118 @@
+/* Browser-native animation primitives. Keep per-frame gesture work on the compositor. */
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fadeInBackdrop { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOutBackdrop { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slideUpSheet { from { transform: translate3d(0, 100%, 0); opacity: 0.85; } to { transform: translate3d(0, 0, 0); opacity: 1; } }
+@keyframes slideDownSheet { from { transform: translate3d(0, 0, 0); opacity: 1; } to { transform: translate3d(0, 100%, 0); opacity: 0; } }
+@keyframes nativeDialogIn { from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.98); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+@keyframes nativeDialogOut { from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } to { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.99); } }
+@keyframes nativeDialogMobileOut { from { opacity: 1; transform: translate3d(0, 0, 0); } to { opacity: 0; transform: translate3d(0, 100%, 0); } }
+@keyframes nativePopupBelowOut { from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } to { opacity: 0; transform: translate3d(0, -2px, 0) scale(0.995); } }
+@keyframes nativePopupAboveOut { from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } to { opacity: 0; transform: translate3d(0, 2px, 0) scale(0.995); } }
+@keyframes nativePreviewIn { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
+@keyframes nativePreviewBarInTop { from { opacity: 0; transform: translate3d(0, -12px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes nativePreviewBarInBottom { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@keyframes toastSlideDown { from { opacity: 0; transform: translate3d(0, -10px, 0) scale(0.98); } to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
+@keyframes ptrSpin { to { transform: rotate(360deg); } }
+@keyframes pulseRing { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 0.35; } 100% { transform: scale(0.95); opacity: 0.8; } }
+@keyframes livePulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.55; } }
+@keyframes heartBeat { 0% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
+
+.animate-heart { animation: heartBeat 0.4s cubic-bezier(0.34, 1.5, 0.64, 1); }
+
+.modal-backdrop.native-open { animation: fadeInBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.modal-backdrop.native-closing { animation: fadeOutBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.bottom-sheet.native-open { animation: slideUpSheet 180ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.bottom-sheet.native-closing { animation: slideDownSheet 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.bottom-sheet.native-drag-dismissed { animation: none !important; transform: translate3d(0, 100%, 0); opacity: 0; }
+.sheet-handle-bar { transition: transform 140ms cubic-bezier(0.2, 0.75, 0.3, 1), background-color 160ms ease; }
+.sheet-handle-bar:hover { transform: scaleX(1.12); }
+.sheet-handle-bar:active { transform: scaleX(0.94); }
+.sheet-close-btn { transition: transform 140ms cubic-bezier(0.2, 0.75, 0.3, 1), background-color 160ms ease, color 160ms ease; }
+.sheet-close-btn:hover { transform: scale(1.06); }
+.sheet-close-btn:active { transform: scale(0.94); }
+
+.haven-dialog-backdrop.native-open { animation: fadeInBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.haven-dialog-backdrop.native-closing { animation: fadeOutBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.haven-dialog.native-open { animation: nativeDialogIn 190ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.haven-dialog.native-closing { animation: nativeDialogOut 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.haven-dialog-close { transition: transform 140ms cubic-bezier(0.2, 0.75, 0.3, 1); }
+.haven-dialog-close:hover { transform: scale(1.06); }
+.haven-dialog-close:active { transform: scale(0.94); }
+
+.haven-popup-panel.native-closing.open-below { animation: nativePopupBelowOut 140ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.haven-popup-panel.native-closing.open-above { animation: nativePopupAboveOut 140ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+
+.media-lightbox.native-open { animation: fadeInBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.media-lightbox.native-closing { animation: fadeOutBackdrop 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
+.native-lightbox-content { animation: nativeDialogIn 190ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.media-lightbox.native-closing .native-lightbox-content { animation: nativeDialogOut 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.lightbox-close-btn { transition: transform 140ms cubic-bezier(0.2, 0.75, 0.3, 1); }
+.lightbox-close-btn:hover { transform: scale(1.06); }
+.lightbox-close-btn:active { transform: scale(0.94); }
+
+.toast-container { animation: fadeIn 140ms ease-out both; }
+.toast-item { animation: toastSlideDown 180ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+
+.ptr-root.ptr-settling .ptr-content,
+.ptr-root.ptr-settling .ptr-indicator,
+.ptr-root.ptr-settling .ptr-pull-icon {
+  transition: transform 220ms cubic-bezier(0.2, 0.75, 0.3, 1), opacity 180ms ease-out;
+}
+.ptr-root.is-refreshing .ptr-spinner-wrap { animation: ptrSpin 800ms linear infinite; }
+
+.moment-media-preview-page.native-open { animation: nativePreviewIn 180ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
+.moment-media-preview-page.native-closing { animation: fadeOut 180ms ease-out both; pointer-events: none; }
+.moment-media-preview-page.native-open .moment-media-preview-header { animation: nativePreviewBarInTop 200ms ease-out both; }
+.moment-media-preview-page.native-open .moment-media-preview-footer { animation: nativePreviewBarInBottom 200ms ease-out both; }
+.moment-media-preview-stage { touch-action: none; }
+.moment-media-preview-track { transform: translate3d(0, 0, 0); }
+.moment-media-preview-slide-content { transform-origin: 50% 50%; }
+.moment-media-preview-page button { -webkit-tap-highlight-color: transparent; }
+.moment-media-preview-header button:active,
+.moment-media-preview-nav:active,
+.moment-media-preview-indicator button:active { transform: scale(0.94); }
+
+@media (max-width: 480px) {
+  .haven-dialog.native-closing { animation-name: nativeDialogMobileOut; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+  }
+  .modal-backdrop.native-open,
+  .modal-backdrop.native-closing,
+  .bottom-sheet.native-open,
+  .bottom-sheet.native-closing,
+  .haven-dialog-backdrop.native-open,
+  .haven-dialog-backdrop.native-closing,
+  .haven-dialog.native-open,
+  .haven-dialog.native-closing,
+  .haven-popup-panel,
+  .media-lightbox.native-open,
+  .media-lightbox.native-closing,
+  .native-lightbox-content,
+  .toast-container,
+  .toast-item,
+  .moment-media-preview-page.native-open,
+  .moment-media-preview-page.native-closing,
+  .moment-media-preview-header,
+  .moment-media-preview-footer,
+  .animate-heart,
+  .ptr-spinner-wrap {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .sheet-handle-bar,
+  .sheet-close-btn,
+  .haven-dialog-close,
+  .lightbox-close-btn,
+  .ptr-content,
+  .ptr-indicator,
+  .ptr-pull-icon {
+    transition-duration: 1ms !important;
+  }
+}

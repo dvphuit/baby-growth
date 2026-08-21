@@ -27,21 +27,21 @@ jobs:
       - name: Run performance regression tests
         run: npm test
 
-      - name: Check motion source regressions
+      - name: Check native animation source regressions
         working-directory: .
         run: |
-          if grep -R "filter:\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "motion|animate|transition"; then
-            echo "Motion must not animate filter/backdrop-filter"
-            exit 1
-          fi
-
-          if grep -R "layout=" app/src --include='*.tsx' | grep -v "layout=\"position\""; then
-            echo "Unexpected layout animation usage detected"
+          if grep -R -E "from ['\"]motion(/react)?['\"]|import\(['\"]motion(/react)?['\"]\)" app/src --include='*.tsx' --include='*.ts'; then
+            echo "Motion runtime imports must not return"
             exit 1
           fi
 
           if grep -R "will-change" app/src --include='*.tsx' --include='*.ts' | grep -E "transform|opacity"; then
             echo "Avoid permanent will-change hints in React components"
+            exit 1
+          fi
+
+          if grep -R "filter:\|backdrop-filter:" app/src --include='*.tsx' --include='*.ts' | grep -E "animate|transition"; then
+            echo "Native animation code must not animate filter/backdrop-filter"
             exit 1
           fi
 

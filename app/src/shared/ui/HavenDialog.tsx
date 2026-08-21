@@ -1,16 +1,7 @@
 import { X } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
-import {
-  havenDialogTransition,
-  havenDialogVariants,
-  havenLayoutTransition,
-  havenOverlayTransition,
-  havenOverlayVariants,
-  havenPressStrong,
-} from '@/shared/motion/motionPresets';
-import { useModalSurfaceLayoutId } from '@/shared/motion/modalMotionContext';
+import { useNativePresence } from '@/shared/hooks/useNativePresence';
 
 interface HavenDialogProps {
   open: boolean;
@@ -24,37 +15,12 @@ interface HavenDialogProps {
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-const MOBILE_DIALOG_MEDIA = '(max-width: 480px)';
-const MOBILE_DIALOG_EXIT = {
-  opacity: 0,
-  y: '100%',
-  transition: {
-    duration: 0.16,
-    ease: [0.2, 0.75, 0.3, 1],
-  },
-} as const;
-
-function matchesMobileDialog(): boolean {
-  return typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia(MOBILE_DIALOG_MEDIA).matches;
-}
 
 export function HavenDialog({ open, onClose, title, description, children, footer, modal = true, className = '' }: HavenDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
-  const surfaceLayoutId = useModalSurfaceLayoutId();
-  const [isMobile, setIsMobile] = useState(matchesMobileDialog);
-
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const media = window.matchMedia(MOBILE_DIALOG_MEDIA);
-    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
-    setIsMobile(media.matches);
-    media.addEventListener?.('change', handleChange);
-    return () => media.removeEventListener?.('change', handleChange);
-  }, []);
+  const presence = useNativePresence(open, 180);
 
   useEffect(() => {
     if (!open) return;
@@ -104,67 +70,47 @@ export function HavenDialog({ open, onClose, title, description, children, foote
     };
   }, [modal, onClose, open]);
 
+  if (!presence.mounted || typeof document === 'undefined') return null;
+  const phaseClass = presence.phase === 'open' ? 'native-open' : 'native-closing';
+
   return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          key="haven-dialog-backdrop"
-          className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'}`.trim()}
-          variants={havenOverlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          transition={havenOverlayTransition}
-          style={{ animation: 'none' }}
-          onClick={(event) => {
-            if (!modal || event.target !== event.currentTarget) return;
-            event.preventDefault();
-            event.stopPropagation();
-            onClose();
-          }}
-        >
-          <motion.div
-            layoutId={surfaceLayoutId}
-            ref={dialogRef}
-            className={`haven-dialog ${className}`.trim()}
-            role="dialog"
-            aria-modal={modal}
-            aria-labelledby={titleId}
-            aria-describedby={description ? descriptionId : undefined}
-            tabIndex={-1}
-            variants={havenDialogVariants}
-            initial="hidden"
-            animate="visible"
-            exit={isMobile ? MOBILE_DIALOG_EXIT : 'exit'}
-            transition={havenDialogTransition}
-            style={{ animation: 'none' }}
+    <div
+      className={`haven-dialog-backdrop ${modal ? '' : 'non-modal'} ${phaseClass}`.trim()}
+      aria-hidden={open ? undefined : true}
+      onClick={(event) => {
+        if (!open || !modal || event.target !== event.currentTarget) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className={`haven-dialog ${phaseClass} ${className}`.trim()}
+        role="dialog"
+        aria-modal={modal}
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        tabIndex={-1}
+      >
+        <div className="haven-dialog-header">
+          <div>
+            <h2 id={titleId}>{title}</h2>
+            {description && <p id={descriptionId}>{description}</p>}
+          </div>
+          <button
+            type="button"
+            className="haven-dialog-close"
+            aria-label="Đóng"
+            onClick={onClose}
           >
-            <div className="haven-dialog-header">
-              <div>
-                <h2 id={titleId}>{title}</h2>
-                {description && <p id={descriptionId}>{description}</p>}
-              </div>
-              <motion.button
-                type="button"
-                className="haven-dialog-close"
-                aria-label="Đóng"
-                onClick={onClose}
-                whileHover={{ scale: 1.06 }}
-                whileTap={havenPressStrong}
-              >
-                <X size={18} />
-              </motion.button>
-            </div>
-            <div className="haven-dialog-body">{children}</div>
-            {footer && (
-              <motion.div layout="position" className="haven-dialog-footer" transition={havenLayoutTransition}>
-                {footer}
-              </motion.div>
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+            <X size={18} />
+          </button>
+        </div>
+        <div className="haven-dialog-body">{children}</div>
+        {footer && <div className="haven-dialog-footer">{footer}</div>}
+      </div>
+    </div>,
     document.body,
   );
 }

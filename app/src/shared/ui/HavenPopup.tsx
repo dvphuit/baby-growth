@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
-import { havenPopupTransition, havenPopupVariants } from '@/shared/motion/motionPresets';
+import { useNativePresence } from '@/shared/hooks/useNativePresence';
 
 interface PopupTriggerProps {
   'aria-controls': string;
@@ -41,6 +40,7 @@ export function HavenPopup({
   const panelRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<Coords | null>(null);
   const panelId = useId();
+  const presence = useNativePresence(open && coords !== null, 140);
 
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
@@ -49,7 +49,6 @@ export function HavenPopup({
     const viewportWidth = window.innerWidth;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
-
     const placement = spaceBelow < 220 && spaceAbove > spaceBelow ? 'above' : 'below';
     const width = rect.width;
     let left = align === 'end' ? rect.right - width : rect.left;
@@ -74,11 +73,9 @@ export function HavenPopup({
       if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
       onOpenChange(false);
     };
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onOpenChange(false);
     };
-
     const handleScrollOrResize = () => updatePosition();
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -94,6 +91,8 @@ export function HavenPopup({
     };
   }, [onOpenChange, open, updatePosition]);
 
+  const phaseClass = presence.phase === 'open' ? 'native-open' : 'native-closing';
+
   return (
     <div ref={triggerRef} className={`haven-popup-root ${className}`.trim()}>
       {trigger({
@@ -102,36 +101,26 @@ export function HavenPopup({
         'aria-haspopup': 'listbox',
         onClick: () => onOpenChange(!open),
       })}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {open && coords && (
-            <motion.div
-              ref={panelRef}
-              id={panelId}
-              className={`haven-popup-panel align-${align} open-${coords.placement}`}
-              role="region"
-              aria-label={ariaLabel}
-              custom={coords.placement}
-              variants={havenPopupVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={havenPopupTransition}
-              style={{
-                position: 'fixed',
-                top: coords.top !== undefined ? `${coords.top}px` : 'auto',
-                bottom: coords.bottom !== undefined ? `${coords.bottom}px` : 'auto',
-                left: `${coords.left}px`,
-                width: `${coords.width}px`,
-                zIndex: 2500,
-                transformOrigin: coords.placement === 'above' ? 'bottom center' : 'top center',
-                animation: 'none',
-              }}
-            >
-              {children}
-            </motion.div>
-          )}
-        </AnimatePresence>,
+      {typeof document !== 'undefined' && presence.mounted && coords && createPortal(
+        <div
+          ref={panelRef}
+          id={panelId}
+          className={`haven-popup-panel align-${align} open-${coords.placement} ${phaseClass}`}
+          role="region"
+          aria-label={ariaLabel}
+          aria-hidden={open ? undefined : true}
+          style={{
+            position: 'fixed',
+            top: coords.top !== undefined ? `${coords.top}px` : 'auto',
+            bottom: coords.bottom !== undefined ? `${coords.bottom}px` : 'auto',
+            left: `${coords.left}px`,
+            width: `${coords.width}px`,
+            zIndex: 2500,
+            transformOrigin: coords.placement === 'above' ? 'bottom center' : 'top center',
+          }}
+        >
+          {children}
+        </div>,
         document.body,
       )}
     </div>

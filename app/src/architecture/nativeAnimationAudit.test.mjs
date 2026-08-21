@@ -12,15 +12,18 @@ function walk(directory) {
   });
 }
 
+function sourceFiles() {
+  return walk(SRC_ROOT).filter((path) => /\.(?:ts|tsx)$/.test(path));
+}
+
 function productionSourceFiles() {
-  return walk(SRC_ROOT).filter((path) => {
-    if (!/\.(?:ts|tsx)$/.test(path)) return false;
+  return sourceFiles().filter((path) => {
     if (/\.(?:test|spec)\.(?:ts|tsx)$/.test(path)) return false;
     return !path.includes(`${join('src', 'architecture')}`);
   });
 }
 
-const MOTION_RESIDUE = [
+const MOTION_RUNTIME_RESIDUE = [
   /from\s+['"]motion(?:\/react)?['"]/,
   /import\s*\(['"]motion(?:\/react)?['"]\)/,
   /\bmotion\.[A-Za-z]/,
@@ -29,15 +32,24 @@ const MOTION_RESIDUE = [
   /\bMotionConfig\b/,
 ];
 
+const MOTION_IMPORT = /(?:from\s+|import\s*\()['"]motion(?:\/react)?['"]/;
+
 describe('native animation architecture', () => {
   it('keeps production source free of the Motion runtime API', () => {
     const residues = productionSourceFiles().flatMap((path) => {
       const contents = readFileSync(path, 'utf8');
-      if (!MOTION_RESIDUE.some((pattern) => pattern.test(contents))) return [];
+      if (!MOTION_RUNTIME_RESIDUE.some((pattern) => pattern.test(contents))) return [];
       return [relative(ROOT, path)];
     });
 
     expect(residues, `Motion residues:\n${residues.join('\n')}`).toEqual([]);
+  });
+
+  it('keeps every source module free of Motion package imports', () => {
+    const residues = sourceFiles().flatMap((path) => (
+      MOTION_IMPORT.test(readFileSync(path, 'utf8')) ? [relative(ROOT, path)] : []
+    ));
+    expect(residues, `Motion imports:\n${residues.join('\n')}`).toEqual([]);
   });
 
   it('keeps Motion out of dependencies and the shared source tree', () => {
@@ -47,6 +59,8 @@ describe('native animation architecture', () => {
     expect(packageJson.dependencies?.motion).toBeUndefined();
     expect(packageJson.devDependencies?.motion).toBeUndefined();
     expect(packageLock.packages?.['node_modules/motion']).toBeUndefined();
+    expect(packageLock.packages?.['node_modules/motion-dom']).toBeUndefined();
+    expect(packageLock.packages?.['node_modules/motion-utils']).toBeUndefined();
     expect(existsSync(join(SRC_ROOT, 'shared', 'motion'))).toBe(false);
   });
 });
