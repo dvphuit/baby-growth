@@ -1,4 +1,6 @@
 import { memo } from 'react';
+import { useLiveNow } from '@/shared/hooks/useLiveNow';
+import { formatClockTime } from '@/shared/lib/time';
 
 type SegmentDefinition = {
   x: number;
@@ -96,4 +98,9 @@ export const SegmentClock = memo(function SegmentClock({ time }: { time: string 
       {cells}
     </svg>
   );
+});
+
+export const LiveSegmentClock = memo(function LiveSegmentClock() {
+  const now = useLiveNow();
+  return <SegmentClock time={formatClockTime(now)} />;
 });

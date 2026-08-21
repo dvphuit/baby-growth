@@ -1,20 +1,22 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/store/useUIStore';
 import { useFamily } from '@/features/profile/hooks/useFamily';
+import { useLocalDayReference } from '@/shared/hooks/useLocalDayReference';
 import { formatVietnameseDate } from '@/utils/date';
 import { Baby, Bell, Calendar, ChevronRight, Heart } from 'lucide-react';
 import { AppBar } from './AppBar';
 
 interface HeaderProps {
   onOpenNotifications: () => void;
+  onProfileIntent?: () => void;
 }
 
-function formatAge(birthDate: string): string {
+function formatAge(birthDate: string, referenceDate: Date): string {
   const birth = new Date(birthDate);
   if (!Number.isFinite(birth.getTime())) return '';
-  const now = new Date();
-  let months = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth();
-  if (now.getDate() < birth.getDate()) months -= 1;
+  let months = (referenceDate.getFullYear() - birth.getFullYear()) * 12 + referenceDate.getMonth() - birth.getMonth();
+  if (referenceDate.getDate() < birth.getDate()) months -= 1;
   if (months < 0) return '';
   if (months < 24) return `${months} tháng`;
   const years = Math.floor(months / 12);
@@ -22,15 +24,17 @@ function formatAge(birthDate: string): string {
   return restMonths ? `${years} tuổi ${restMonths} tháng` : `${years} tuổi`;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
+export const Header = memo(function Header({ onOpenNotifications, onProfileIntent }: HeaderProps) {
   const navigate = useNavigate();
-  const { profileMode, setProfileMode } = useUIStore();
+  const profileMode = useUIStore((state) => state.profileMode);
+  const setProfileMode = useUIStore((state) => state.setProfileMode);
   const family = useFamily();
+  const dayReference = useLocalDayReference();
   const isMom = profileMode === 'mom';
   const name = isMom ? family.momName : family.childName;
   const avatar = isMom ? family.momAvatar : family.childAvatar;
-  const todayFormatted = formatVietnameseDate(new Date());
-  const ageText = !isMom ? formatAge(family.birthDate) : '';
+  const todayFormatted = formatVietnameseDate(dayReference);
+  const ageText = !isMom ? formatAge(family.birthDate, dayReference) : '';
 
   return (
     <AppBar
@@ -44,6 +48,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
           type="button"
           className="header-profile-main"
           onClick={() => navigate('/profile')}
+          onPointerDown={onProfileIntent}
+          onPointerEnter={onProfileIntent}
+          onFocus={onProfileIntent}
           title="Xem hồ sơ"
           id="btnHeaderProfile"
         >
@@ -89,4 +96,4 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
       )}
     />
   );
-};
+});

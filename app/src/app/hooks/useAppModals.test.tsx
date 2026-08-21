@@ -65,4 +65,19 @@ describe('useAppModals', () => {
     expect(result.current.lightboxIsVideo).toBe(true);
     expect(result.current.isAnyModalOpen).toBe(false);
   });
+
+  it('keeps action references stable while modal state changes', () => {
+    const { result } = renderHook(() => useAppModals());
+    const openQuickLog = result.current.openQuickLog;
+    const closeQuickLog = result.current.closeQuickLog;
+    const handleQuickAction = result.current.handleQuickAction;
+    const openLightbox = result.current.openLightbox;
+
+    act(() => result.current.openQuickLog());
+
+    expect(result.current.openQuickLog).toBe(openQuickLog);
+    expect(result.current.closeQuickLog).toBe(closeQuickLog);
+    expect(result.current.handleQuickAction).toBe(handleQuickAction);
+    expect(result.current.openLightbox).toBe(openLightbox);
+  });
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { ActivityLogMode } from '@/features/activities/ActivityLogModal';
 
 export type AddToast = (message: string, icon?: string) => void;
@@ -46,12 +46,27 @@ export function useAppModals(): AppModalController {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [lightboxIsVideo, setLightboxIsVideo] = useState(false);
 
-  const openLightbox = (src: string, isVideo?: boolean) => {
+  const openNotifications = useCallback(() => setIsNotificationOpen(true), []);
+  const closeNotifications = useCallback(() => setIsNotificationOpen(false), []);
+  const openQuickLog = useCallback(() => setIsQuickLogOpen(true), []);
+  const closeQuickLog = useCallback(() => setIsQuickLogOpen(false), []);
+  const openAddGrowth = useCallback(() => setIsAddGrowthOpen(true), []);
+  const closeAddGrowth = useCallback(() => setIsAddGrowthOpen(false), []);
+  const openAddPumping = useCallback(() => setIsAddPumpingOpen(true), []);
+  const closeAddPumping = useCallback(() => setIsAddPumpingOpen(false), []);
+  const openAddExpense = useCallback(() => setIsAddExpenseOpen(true), []);
+  const closeAddExpense = useCallback(() => setIsAddExpenseOpen(false), []);
+  const closeAddPost = useCallback(() => setIsAddPostOpen(false), []);
+  const openEditProfile = useCallback(() => setIsEditProfileOpen(true), []);
+  const closeEditProfile = useCallback(() => setIsEditProfileOpen(false), []);
+  const closeActivityLog = useCallback(() => setActivityLogMode(null), []);
+  const openLightbox = useCallback((src: string, isVideo?: boolean) => {
     setLightboxSrc(src);
     setLightboxIsVideo(Boolean(isVideo));
-  };
+  }, []);
+  const closeLightbox = useCallback(() => setLightboxSrc(null), []);
 
-  const handleQuickAction = (actionType: string) => {
+  const handleQuickAction = useCallback((actionType: string) => {
     switch (actionType) {
       case 'growth':
         setIsAddGrowthOpen(true);
@@ -84,7 +99,7 @@ export function useAppModals(): AppModalController {
         setIsQuickLogOpen(true);
         break;
     }
-  };
+  }, []);
 
   const isAnyModalOpen = Boolean(
     isNotificationOpen ||
@@ -110,22 +125,22 @@ export function useAppModals(): AppModalController {
     activityLogMode,
     lightboxSrc,
     lightboxIsVideo,
-    openNotifications: () => setIsNotificationOpen(true),
-    closeNotifications: () => setIsNotificationOpen(false),
-    openQuickLog: () => setIsQuickLogOpen(true),
-    closeQuickLog: () => setIsQuickLogOpen(false),
-    openAddGrowth: () => setIsAddGrowthOpen(true),
-    closeAddGrowth: () => setIsAddGrowthOpen(false),
-    openAddPumping: () => setIsAddPumpingOpen(true),
-    closeAddPumping: () => setIsAddPumpingOpen(false),
-    openAddExpense: () => setIsAddExpenseOpen(true),
-    closeAddExpense: () => setIsAddExpenseOpen(false),
-    closeAddPost: () => setIsAddPostOpen(false),
-    openEditProfile: () => setIsEditProfileOpen(true),
-    closeEditProfile: () => setIsEditProfileOpen(false),
-    closeActivityLog: () => setActivityLogMode(null),
+    openNotifications,
+    closeNotifications,
+    openQuickLog,
+    closeQuickLog,
+    openAddGrowth,
+    closeAddGrowth,
+    openAddPumping,
+    closeAddPumping,
+    openAddExpense,
+    closeAddExpense,
+    closeAddPost,
+    openEditProfile,
+    closeEditProfile,
+    closeActivityLog,
     openLightbox,
-    closeLightbox: () => setLightboxSrc(null),
+    closeLightbox,
     handleQuickAction,
   };
 }
