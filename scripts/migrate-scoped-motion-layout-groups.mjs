@@ -132,6 +132,9 @@ const layoutIdFiles = productionTsx
   .map((path) => relative(root, path).replaceAll('\\', '/'))
   .sort();
 const expectedLayoutIdFiles = [
+  'app/src/app/AppModals.tsx',
+  'app/src/features/timeline/TimelineView.tsx',
+  'app/src/features/timeline/components/HomeMomentStoryItem.tsx',
   'app/src/features/timeline/components/MomentMediaPreview.tsx',
   'app/src/features/timeline/components/TimelineEntryDialog.tsx',
   'app/src/features/timeline/components/TimelineMediaButton.tsx',
