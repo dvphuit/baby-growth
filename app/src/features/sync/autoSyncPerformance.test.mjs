@@ -16,4 +16,17 @@ describe('auto-sync performance contract', () => {
     expect(sync).toContain('cancelAutoSyncIdle = scheduleIdleTask');
     expect(sync).toContain('clearPendingAutoSync();');
   });
+
+  it('moves local snapshot serialization and fingerprinting off the main thread', () => {
+    const sync = source('features/sync/googleDriveSync.ts');
+    const adapter = source('features/sync/syncSnapshotWorker.ts');
+    const worker = source('features/sync/syncSnapshot.worker.ts');
+
+    expect(sync).toContain('serializeSyncSnapshotOffMainThread');
+    expect(sync).toContain('preparedLocal.payload');
+    expect(sync).not.toContain('fingerprint: hash(JSON.stringify(data))');
+    expect(sync).not.toContain('JSON.stringify(snapshot)');
+    expect(adapter).toContain("new Worker(new URL('./syncSnapshot.worker.ts', import.meta.url)");
+    expect(worker).toContain('serializeSyncSnapshotPayload');
+  });
 });

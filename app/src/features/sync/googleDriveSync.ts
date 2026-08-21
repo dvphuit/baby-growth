@@ -1,4 +1,6 @@
 import { exportAppSnapshot, parseAppSnapshot, applyAppSnapshot, subscribeAppSnapshotChanges, type AppSnapshot } from './appSnapshot';
+import { serializeSyncSnapshotPayload, type SyncSnapshotSerializationInput } from './syncSnapshotSerialization';
+import { serializeSyncSnapshotOffMainThread } from './syncSnapshotWorker';
 import { getLocalRecord, setLocalRecord } from '@/data/localDb';
 import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { scheduleIdleTask } from '@/shared/lib/idleTask';
@@ -58,6 +60,11 @@ export interface SyncSnapshot {
   deviceId: string;
   fingerprint: string;
   data: AppSnapshot;
+}
+
+interface PreparedSyncSnapshot {
+  snapshot: SyncSnapshot;
+  payload: Blob;
 }
 
 interface SyncMeta {
@@ -174,23 +181,32 @@ function getDeviceId(): string {
   return created;
 }
 
-function hash(value: string): string {
-  let result = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    result ^= value.charCodeAt(index);
-    result = Math.imul(result, 16777619);
-  }
-  return (result >>> 0).toString(16).padStart(8, '0');
-}
-
-export function createSyncSnapshot(data: AppSnapshot = exportAppSnapshot()): SyncSnapshot {
+function createSyncSnapshotInput(data: AppSnapshot): SyncSnapshotSerializationInput {
   return {
     schemaVersion: 2,
     updatedAt: new Date().toISOString(),
     deviceId: getDeviceId(),
-    fingerprint: hash(JSON.stringify(data)),
     data,
   };
+}
+
+function syncSnapshotFromInput(
+  input: SyncSnapshotSerializationInput,
+  fingerprint: string,
+): SyncSnapshot {
+  return {
+    schemaVersion: input.schemaVersion,
+    updatedAt: input.updatedAt,
+    deviceId: input.deviceId,
+    fingerprint,
+    data: input.data,
+  };
+}
+
+export function createSyncSnapshot(data: AppSnapshot = exportAppSnapshot()): SyncSnapshot {
+  const input = createSyncSnapshotInput(data);
+  const serialized = serializeSyncSnapshotPayload(input);
+  return syncSnapshotFromInput(input, serialized.fingerprint);
 }
 
 async function readMeta(): Promise<SyncMeta> {
@@ -542,23 +558,18 @@ async function readRemoteSnapshot(fileId: string, interactive: boolean): Promise
   return parseSyncSnapshot(result);
 }
 
-async function writeRemoteSnapshot(snapshot: SyncSnapshot, file: DriveFile | null, interactive: boolean): Promise<DriveFile> {
+async function writeRemoteSnapshot(payload: Blob, file: DriveFile | null, interactive: boolean): Promise<DriveFile> {
   const metadata = file
     ? { name: SYNC_FILE_NAME, mimeType: 'application/json' }
     : { name: SYNC_FILE_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
   const boundary = `babygrowth-${Date.now()}`;
-  const body = [
-    `--${boundary}`,
-    'Content-Type: application/json; charset=UTF-8',
-    '',
-    JSON.stringify(metadata),
-    `--${boundary}`,
-    'Content-Type: application/json',
-    '',
-    JSON.stringify(snapshot),
-    `--${boundary}--`,
-    '',
-  ].join('\r\n');
+  const contentType = `multipart/related; boundary=${boundary}`;
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+    `--${boundary}\r\nContent-Type: application/json\r\n\r\n`,
+    payload,
+    `\r\n--${boundary}--\r\n`,
+  ], { type: contentType });
 
   return driveRequest<DriveFile>(
     file
@@ -566,15 +577,20 @@ async function writeRemoteSnapshot(snapshot: SyncSnapshot, file: DriveFile | nul
       : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime',
     {
       method: file ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      headers: { 'Content-Type': contentType },
       body,
     },
     interactive,
   );
 }
 
-async function getLocalSnapshot(): Promise<SyncSnapshot> {
-  return createSyncSnapshot(exportAppSnapshot());
+async function getLocalSnapshot(): Promise<PreparedSyncSnapshot> {
+  const input = createSyncSnapshotInput(exportAppSnapshot());
+  const serialized = await serializeSyncSnapshotOffMainThread(input);
+  return {
+    snapshot: syncSnapshotFromInput(input, serialized.fingerprint),
+    payload: serialized.payload,
+  };
 }
 
 async function saveSyncedState(snapshot: SyncSnapshot, remoteFileId: string): Promise<void> {
@@ -659,9 +675,10 @@ async function overwriteDriveBackupWithLocalDataUnlocked(
 ): Promise<SyncSnapshot> {
   const interactive = options.interactive !== false;
   await syncPendingTimelineMedia(interactive);
-  const local = await getLocalSnapshot();
+  const preparedLocal = await getLocalSnapshot();
+  const local = preparedLocal.snapshot;
   const remoteFile = await findSyncFile(interactive);
-  const savedFile = await writeRemoteSnapshot(local, remoteFile, interactive);
+  const savedFile = await writeRemoteSnapshot(preparedLocal.payload, remoteFile, interactive);
   await saveSyncedState(local, savedFile.id);
   publishSyncState({ status: 'synced', conflict: null, error: null, lastSyncedAt: new Date().toISOString() });
   return local;
@@ -683,12 +700,13 @@ async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = 
   publishSyncState({ status: 'syncing', error: null });
   try {
     await syncPendingTimelineMedia(interactive);
-    const local = await getLocalSnapshot();
+    const preparedLocal = await getLocalSnapshot();
+    const local = preparedLocal.snapshot;
     const meta = await readMeta();
     const remoteFile = await findSyncFile(interactive);
 
     if (!remoteFile) {
-      const created = await writeRemoteSnapshot(local, null, interactive);
+      const created = await writeRemoteSnapshot(preparedLocal.payload, null, interactive);
       await saveSyncedState(local, created.id);
       const result: SyncResult = { status: 'uploaded', snapshot: local };
       publishSyncResult(result);
@@ -718,7 +736,7 @@ async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = 
     }
 
     if (remote.fingerprint === meta.lastSyncedFingerprint) {
-      const updated = await writeRemoteSnapshot(local, remoteFile, interactive);
+      const updated = await writeRemoteSnapshot(preparedLocal.payload, remoteFile, interactive);
       await saveSyncedState(local, updated.id);
       const result: SyncResult = { status: 'uploaded', snapshot: local };
       publishSyncResult(result);
@@ -757,8 +775,9 @@ async function resolveSyncConflictUnlocked(
   }
 
   await syncPendingTimelineMedia(true);
-  const local = await getLocalSnapshot();
-  const updated = await writeRemoteSnapshot(local, remoteFile, true);
+  const preparedLocal = await getLocalSnapshot();
+  const local = preparedLocal.snapshot;
+  const updated = await writeRemoteSnapshot(preparedLocal.payload, remoteFile, true);
   await saveSyncedState(local, updated.id);
   publishSyncState({ status: 'synced', conflict: null, error: null });
   return 'uploaded';

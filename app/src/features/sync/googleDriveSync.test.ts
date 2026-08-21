@@ -134,7 +134,10 @@ describe('generation-2 Google Drive sync', () => {
     expect(snapshot.data.profile.familyData.childName).toBe('Bé Bơ');
     expect(fetchMock.mock.calls[3][0]).toContain('/upload/drive/v3/files/legacy-v2?uploadType=multipart');
     expect(fetchMock.mock.calls[3][1]).toMatchObject({ method: 'PATCH' });
-    expect(String(fetchMock.mock.calls[3][1]?.body)).toContain('babygrowth-sync-v2.json');
+    const uploadBody = fetchMock.mock.calls[3][1]?.body;
+    expect(uploadBody).toBeInstanceOf(Blob);
+    if (!(uploadBody instanceof Blob)) throw new Error('Expected Drive snapshot upload to use a Blob body.');
+    expect(await uploadBody.text()).toContain('babygrowth-sync-v2.json');
   });
 
   it('uploads private timeline media without Base64 conversion', async () => {
