@@ -98,6 +98,13 @@ transform('app/package.json', (input) => {
   return `${JSON.stringify(packageJson, null, 2)}\n`;
 });
 
+replaceOnce(
+  'app/src/architecture/cssArchitectureAudit.test.mjs',
+  "join(SRC, 'shared', 'motion', 'animations.css'),",
+  "join(SRC, 'shared', 'styles', 'native-animations.css'),",
+  'legacy shared Motion stylesheet ownership assertion',
+);
+
 transform('app/src/architecture/performanceAudit.test.mjs', (input) => {
   const first = /  it\('uses native route transitions while keeping modal Motion bounded', \(\) => \{[\s\S]*?\n  \}\);\n\n(?=  it\('keeps the baby timeline runtime behind an idle lazy boundary')/;
   if (!first.test(input)) throw new Error('performanceAudit: missing route/modal Motion contract');
