@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { LayoutGroup } from 'motion/react';
 import type { LucideIcon } from 'lucide-react';
 import { HeartPulse, Layers, Milk, Moon, Pill, Plus, Smile, Sparkles, Thermometer } from 'lucide-react';
 import { getBabyActivitiesForDay, getMomActivitiesForDay } from '@/features/activities/domain/activitySelectors';
@@ -85,7 +86,7 @@ function BabyTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {
   } = useHomeTimeline({ owner: 'baby', records, dayActivities, now });
 
   return (
-    <>
+    <LayoutGroup id="home-baby-timeline-media">
       <section className="haven-activity-surface" aria-labelledby="baby-recent-title">
         <div className="haven-sheet-heading">
           <div><span className="haven-eyebrow">NHẬT KÝ TRONG NGÀY</span><h3 id="baby-recent-title">Dòng thời gian</h3></div>
@@ -158,7 +159,7 @@ function BabyTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {
         onOpenMomentMedia={openMomentMedia}
       />
       <LazyMomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
-    </>
+    </LayoutGroup>
   );
 }
 
@@ -179,7 +180,7 @@ function MomTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {
   } = useHomeTimeline({ owner: 'mom', records, dayActivities, now });
 
   return (
-    <>
+    <LayoutGroup id="home-mom-timeline-media">
       <section className="haven-activity-surface haven-activity-surface-mom" aria-labelledby="mom-recent-title">
         <div className="haven-sheet-heading">
           <div><span className="haven-eyebrow">NHẬT KÝ TRONG NGÀY</span><h3 id="mom-recent-title">Dòng thời gian</h3></div>
@@ -246,7 +247,7 @@ function MomTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {
         onOpenMomentMedia={openMomentMedia}
       />
       <LazyMomentMediaPreview preview={momentPreview} onClose={closeMomentPreview} />
-    </>
+    </LayoutGroup>
   );
 }
 

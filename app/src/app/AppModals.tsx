@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { LayoutGroup } from 'motion/react';
 import { ModalMotionScope } from '@/shared/motion/ModalMotionScope';
 import type { ActivityLogMode } from '@/features/activities';
 import type { AddToast, AppModalController } from '@/app/hooks/useAppModals';
@@ -89,6 +90,7 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
 
   return (
     <Suspense fallback={<LazyModalFallback />}>
+      <LayoutGroup id="quick-log-modals">
       {quickLogMounted && (
         <ModalMotionScope layoutId={QUICK_LOG_SURFACE_ID}>
           <QuickLogModal isOpen={modals.isQuickLogOpen} onClose={modals.closeQuickLog} onSelectAction={modals.handleQuickAction} />
@@ -124,6 +126,7 @@ export function AppModals({ modals, onSuccessToast }: AppModalsProps) {
           <AddPostModal isOpen={modals.isAddPostOpen} onClose={modals.closeAddPost} onSuccessToast={onSuccessToast} />
         </ModalMotionScope>
       )}
+      </LayoutGroup>
       {profileMounted && (
         <EditProfileModal isOpen={modals.isEditProfileOpen} onClose={modals.closeEditProfile} onSuccessToast={onSuccessToast} />
       )}

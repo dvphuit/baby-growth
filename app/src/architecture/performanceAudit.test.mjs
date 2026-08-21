@@ -194,4 +194,17 @@ describe('interaction performance audit', () => {
     expect(segmentClock).toContain('LiveSegmentClock');
     expect(dayReference).toContain('scheduleMidnightCheck');
   });
+  it('scopes Motion shared-layout projection to modal and media flows', () => {
+    const main = source('main.tsx');
+    const modals = source('app/AppModals.tsx');
+    const timeline = source('features/timeline/TimelineView.tsx');
+    const homeTimeline = source('features/home/components/TimelinePreviewContent.tsx');
+
+    expect(main).not.toContain('LayoutGroup');
+    expect(modals).toContain('<LayoutGroup id="quick-log-modals">');
+    expect(timeline).toContain('<LayoutGroup id="timeline-media-page">');
+    expect(homeTimeline).toContain('<LayoutGroup id="home-baby-timeline-media">');
+    expect(homeTimeline).toContain('<LayoutGroup id="home-mom-timeline-media">');
+  });
+
 });
