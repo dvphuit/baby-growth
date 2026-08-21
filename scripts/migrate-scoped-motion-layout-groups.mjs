@@ -75,11 +75,6 @@ replaceOnce(
 );
 replaceOnce(
   'app/src/features/home/components/TimelinePreviewContent.tsx',
-  'function BabyTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {\n',
-  'function BabyTimelinePreview({ onAddActivity }: { onAddActivity: () => void }) {\n',
-);
-replaceOnce(
-  'app/src/features/home/components/TimelinePreviewContent.tsx',
   '  return (\n    <>\n      <section className="haven-activity-surface" aria-labelledby="baby-recent-title">',
   '  return (\n    <LayoutGroup id="home-baby-timeline-media">\n      <section className="haven-activity-surface" aria-labelledby="baby-recent-title">',
 );
@@ -101,7 +96,7 @@ replaceOnce(
 
 const auditPath = 'app/src/architecture/performanceAudit.test.mjs';
 let audit = read(auditPath);
-const auditMarker = "scopes Motion shared-layout projection to modal and media flows";
+const auditMarker = 'scopes Motion shared-layout projection to modal and media flows';
 if (!audit.includes(auditMarker)) {
   const insertion = `\n  it('${auditMarker}', () => {\n    const main = source('main.tsx');\n    const modals = source('app/AppModals.tsx');\n    const timeline = source('features/timeline/TimelineView.tsx');\n    const homeTimeline = source('features/home/components/TimelinePreviewContent.tsx');\n\n    expect(main).not.toContain('LayoutGroup');\n    expect(modals).toContain('<LayoutGroup id="quick-log-modals">');\n    expect(timeline).toContain('<LayoutGroup id="timeline-media-page">');\n    expect(homeTimeline).toContain('<LayoutGroup id="home-baby-timeline-media">');\n    expect(homeTimeline).toContain('<LayoutGroup id="home-mom-timeline-media">');\n  });\n`;
   const end = audit.lastIndexOf('\n});');
