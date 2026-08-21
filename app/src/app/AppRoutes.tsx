@@ -1,7 +1,5 @@
 import { lazy, memo, Suspense } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { havenRouteTransition, havenRouteVariants } from '@/shared/motion/motionPresets';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { HomeView } from '@/features/home';
 import type { AddToast } from '@/app/hooks/useAppModals';
 import { loadExpensesFeature, loadGrowthFeature, loadProfileFeature, loadTimelineFeature } from './routePreload';
@@ -37,20 +35,10 @@ export const AppRoutes = memo(function AppRoutes({
   onOpenEditProfile,
   onOpenNotifications,
 }: AppRoutesProps) {
-  const location = useLocation();
-  const shouldAnimateEntrance = location.key !== 'default';
-
   return (
-    <motion.div
-      key={location.pathname}
-      className="app-route-motion"
-      variants={havenRouteVariants}
-      initial={shouldAnimateEntrance ? 'initial' : false}
-      animate="animate"
-      transition={havenRouteTransition}
-    >
+    <div className="app-route-surface">
       <Suspense fallback={<RouteLoadingFallback />}>
-        <Routes location={location}>
+        <Routes>
           <Route path="/" element={<HomeView onOpenQuickLog={onOpenQuickLog} onOpenPumping={onOpenPumping} />} />
           <Route path="/timeline" element={<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={onOpenAddTimelineEntry} />} />
           <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
@@ -60,6 +48,6 @@ export const AppRoutes = memo(function AppRoutes({
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-    </motion.div>
+    </div>
   );
 });

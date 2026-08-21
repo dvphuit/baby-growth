@@ -40,6 +40,7 @@ export const BottomNav = memo(function BottomNav({ onOpenQuickLog, onRouteIntent
           key={to}
           to={to}
           end={to === '/'}
+          viewTransition
           className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
           id={id}
           data-route={to}
@@ -68,6 +69,7 @@ export const BottomNav = memo(function BottomNav({ onOpenQuickLog, onRouteIntent
         <NavLink
           key={to}
           to={to}
+          viewTransition
           className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
           id={id}
           data-route={to}

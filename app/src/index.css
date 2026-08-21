@@ -14,3 +14,4 @@
 @import './shared/styles/primitives.css';
 @import './features/timeline/timeline.css';
 @import './shared/motion/animations.css';
+@import './shared/styles/native-transitions.css';

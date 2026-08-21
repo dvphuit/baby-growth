@@ -68,14 +68,23 @@ describe('interaction performance audit', () => {
     expect(pullToRefresh).not.toContain('will-change: transform');
   });
 
-  it('keeps route and modal motion bounded on large surfaces', () => {
+  it('uses native route transitions while keeping modal Motion bounded', () => {
     const routes = source('app/AppRoutes.tsx');
+    const bottomNav = source('shared/ui/BottomNav.tsx');
+    const header = source('shared/ui/Header.tsx');
+    const nativeTransitions = source('shared/styles/native-transitions.css');
     const bottomSheet = source('shared/ui/BottomSheet.tsx');
     const dialog = source('shared/ui/HavenDialog.tsx');
 
-    expect(routes).not.toContain('AnimatePresence');
-    expect(routes).not.toContain('exit="exit"');
-    expect(routes).toContain("location.key !== 'default'");
+    expect(routes).not.toContain("from 'motion/react'");
+    expect(routes).not.toContain('havenRouteVariants');
+    expect(routes).not.toContain('havenRouteTransition');
+    expect(routes).toContain('className="app-route-surface"');
+    expect((bottomNav.match(/viewTransition/g) ?? [])).toHaveLength(2);
+    expect(header).toContain("navigate('/profile', { viewTransition: true })");
+    expect(nativeTransitions).toContain('::view-transition-old(root)');
+    expect(nativeTransitions).toContain('::view-transition-new(root)');
+    expect(nativeTransitions).toContain('@media (prefers-reduced-motion: reduce)');
 
     expect(bottomSheet).toContain('layoutId={surfaceLayoutId}');
     expect(bottomSheet).not.toMatch(/<motion\.div\s+layout\s+layoutId=\{surfaceLayoutId\}/);

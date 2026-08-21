@@ -47,7 +47,7 @@ export const Header = memo(function Header({ onOpenNotifications, onProfileInten
         <button
           type="button"
           className="header-profile-main"
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate('/profile', { viewTransition: true })}
           onPointerDown={onProfileIntent}
           onPointerEnter={onProfileIntent}
           onFocus={onProfileIntent}
