@@ -16,7 +16,8 @@ import PWABadge from '@/PWABadge';
 import { installGlobalDiagnosticLogging, logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { AppModals } from './AppModals';
-import { AppRoutes, preloadAppRoute } from './AppRoutes';
+import { AppRoutes } from './AppRoutes';
+import { preloadAppRoute } from './routePreload';
 
 const OnboardingView = lazy(async () => ({
   default: (await import('@/app/onboarding/OnboardingView')).OnboardingView,
@@ -52,13 +53,14 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals();
+  const { handleQuickAction } = modals;
   const openAddTimelineEntry = useCallback(
-    () => modals.handleQuickAction('diary'),
-    [modals.handleQuickAction],
+    () => handleQuickAction('diary'),
+    [handleQuickAction],
   );
 
   useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen });
-  useReminderLifecycle({ onQuickLog: modals.handleQuickAction, onOpenNotifications: modals.openNotifications });
+  useReminderLifecycle({ onQuickLog: handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   if (!isInitialized) {
     return (

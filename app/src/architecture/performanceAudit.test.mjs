@@ -137,6 +137,7 @@ describe('interaction performance audit', () => {
   it('keeps mobile interaction feedback and scrolling on lightweight paths', () => {
     const app = source('app/App.tsx');
     const routes = source('app/AppRoutes.tsx');
+    const routePreload = source('app/routePreload.ts');
     const modals = source('app/hooks/useAppModals.ts');
     const bottomNav = source('shared/ui/BottomNav.tsx');
     const bottomNavCss = source('shared/styles/bottom-nav.css');
@@ -157,7 +158,8 @@ describe('interaction performance audit', () => {
     expect(bottomNavCss).toContain('.nav-tab-item:active');
     expect(bottomNavCss).toContain('.fab-center-btn:active');
 
-    expect(routes).toContain('export function preloadAppRoute');
+    expect(routePreload).toContain('export function preloadAppRoute');
+    expect(routes).not.toContain('export function preloadAppRoute');
     expect(routes).toContain('memo(function AppRoutes');
     expect(app).toContain('onRouteIntent={preloadAppRoute}');
     expect(modals).toContain('useCallback');

@@ -47,10 +47,7 @@ vi.mock('@/app/hooks/useAppModals', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/app/hooks/useAppModals')>();
   return { ...original, useAppModals: () => modalController };
 });
-vi.mock('./AppRoutes', () => ({
-  AppRoutes: () => <div>App Routes marker</div>,
-  preloadAppRoute: vi.fn(),
-}));
+vi.mock('./AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));
 vi.mock('./AppModals', () => ({ AppModals: () => <div>App Modals marker</div> }));
 vi.mock('@/shared/ui/Header', () => ({ Header: () => <div>Header marker</div> }));
 vi.mock('@/shared/ui/BottomNav', () => ({ BottomNav: () => <div>Bottom Nav marker</div> }));

@@ -4,37 +4,13 @@ import { motion } from 'motion/react';
 import { havenRouteTransition, havenRouteVariants } from '@/shared/motion/motionPresets';
 import { HomeView } from '@/features/home';
 import type { AddToast } from '@/app/hooks/useAppModals';
-
-const loadTimelineFeature = () => import('@/features/timeline');
-const loadGrowthFeature = () => import('@/features/growth');
-const loadExpensesFeature = () => import('@/features/expenses');
-const loadProfileFeature = () => import('@/features/profile');
+import { loadExpensesFeature, loadGrowthFeature, loadProfileFeature, loadTimelineFeature } from './routePreload';
 
 const TimelineView = lazy(async () => ({ default: (await loadTimelineFeature()).TimelineView }));
 const GrowthView = lazy(async () => ({ default: (await loadGrowthFeature()).GrowthView }));
 const ExpensesView = lazy(async () => ({ default: (await loadExpensesFeature()).ExpensesView }));
 const ProfileView = lazy(async () => ({ default: (await loadProfileFeature()).ProfileView }));
 const GoogleDriveDataView = lazy(async () => ({ default: (await loadProfileFeature()).GoogleDriveDataView }));
-
-export function preloadAppRoute(pathname: string): void {
-  switch (pathname) {
-    case '/timeline':
-      void loadTimelineFeature();
-      return;
-    case '/growth':
-      void loadGrowthFeature();
-      return;
-    case '/expenses':
-      void loadExpensesFeature();
-      return;
-    case '/profile':
-    case '/profile/google-drive':
-      void loadProfileFeature();
-      return;
-    default:
-      return;
-  }
-}
 
 const RouteLoadingFallback = () => <div className="route-loading-state" role="status" aria-live="polite">Đang mở trang…</div>;
 
