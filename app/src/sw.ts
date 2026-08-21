@@ -2,6 +2,7 @@
 import { clientsClaim } from 'workbox-core'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { CacheFirst } from 'workbox-strategies'
 
 declare let self: ServiceWorkerGlobalScope
 
@@ -51,6 +52,11 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
+
+registerRoute(
+  ({ request, url }) => request.destination === 'image' && url.origin === self.location.origin,
+  new CacheFirst({ cacheName: 'babygrowth-runtime-images' }),
+)
 
 /** @type {RegExp[] | undefined} */
 let allowlist

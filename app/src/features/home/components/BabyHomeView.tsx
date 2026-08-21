@@ -54,7 +54,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
 
         <div className="haven-care-progress-grid">
           <article className="haven-care-progress haven-care-progress-milk">
-            <img className="haven-card-decor" src="/assets/decor/care-milk.png" alt="" aria-hidden="true" />
+            <img className="haven-card-decor" src="/assets/decor/care-milk.webp" alt="" width={320} height={320} loading="lazy" decoding="async" aria-hidden="true" />
             <div className="haven-care-progress-heading">
               <span className="haven-care-icon"><Milk size={18} /></span>
               <div><span>Sữa đã ghi</span><small>{metrics.feedingCount} cữ</small></div>
@@ -74,7 +74,7 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
           </article>
 
           <article className="haven-care-progress haven-care-progress-sleep">
-            <img className="haven-card-decor" src="/assets/decor/care-sleep.png" alt="" aria-hidden="true" />
+            <img className="haven-card-decor" src="/assets/decor/care-sleep.webp" alt="" width={320} height={320} loading="lazy" decoding="async" aria-hidden="true" />
             <div className="haven-care-progress-heading">
               <span className="haven-care-icon"><Moon size={18} /></span>
               <div><span>Giấc ngủ</span><small>Bao gồm giấc ngày</small></div>
@@ -92,12 +92,12 @@ export const BabyHomeView: React.FC<BabyHomeViewProps> = ({ onOpenQuickLog }) =>
 
         <div className="haven-daily-secondary-strip">
           <div className="haven-secondary-metric haven-secondary-metric-diaper">
-            <img className="haven-card-decor" src="/assets/decor/care-diaper.png" alt="" aria-hidden="true" />
+            <img className="haven-card-decor" src="/assets/decor/care-diaper.webp" alt="" width={128} height={128} loading="lazy" decoding="async" aria-hidden="true" />
             <Layers size={14} /><span>Thay tã</span><strong>{metrics.diaperCount} lần</strong>
           </div>
           <span className="haven-secondary-divider" />
           <div className="haven-secondary-metric haven-secondary-metric-clock">
-            <img className="haven-card-decor" src="/assets/decor/care-clock.png" alt="" aria-hidden="true" />
+            <img className="haven-card-decor" src="/assets/decor/care-clock.webp" alt="" width={128} height={128} loading="lazy" decoding="async" aria-hidden="true" />
             <Clock3 size={14} /><span>Cữ gần nhất</span><strong>{metrics.lastFeedingAt ? formatTimeOfDay(metrics.lastFeedingAt) : '—'}</strong>
           </div>
         </div>
