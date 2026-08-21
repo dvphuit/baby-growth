@@ -674,3 +674,7 @@
   box-shadow: 0 4px 10px rgba(91, 141, 239, 0.08);
 }
 
+.haven-growth-history-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 112px;
+}

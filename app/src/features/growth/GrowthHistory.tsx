@@ -2,15 +2,25 @@ import { FileText, Trash2 } from 'lucide-react';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
+import { ProgressiveListBoundary } from '@/shared/ui/ProgressiveListBoundary';
+import { useProgressiveList } from '@/shared/hooks/useProgressiveList';
 
 interface GrowthHistoryProps {
   onOpenAddMeasurement: () => void;
 }
 
 export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasurement }) => {
+  const currentStage = useGrowthStore((state) => state.currentStage);
   const currentStageData = useGrowthStore((state) => state.currentStageData());
   const deleteGrowthMeasurement = useGrowthStore((state) => state.deleteGrowthMeasurement);
   const history = getRealGrowthHistory(currentStageData.growthHistory);
+  const growthWindow = useProgressiveList({
+    totalCount: history.length,
+    initialCount: 12,
+    batchSize: 12,
+    resetKey: currentStage,
+  });
+  const renderedHistory = history.slice(0, growthWindow.visibleCount);
 
   const handleDelete = (id: string, date: string) => {
     if (window.confirm(`Xóa bản ghi cân đo ngày ${date}?`)) {
@@ -43,7 +53,7 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
         </div>
       ) : (
         <div className="haven-growth-history-list">
-          {history.map((record) => (
+          {renderedHistory.map((record) => (
             <article key={record.id} className="haven-growth-history-row">
               <div className="haven-growth-history-top">
                 <span className="haven-growth-history-age">
@@ -100,6 +110,13 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
               )}
             </article>
           ))}
+          <ProgressiveListBoundary
+            autoLoadAvailable={growthWindow.autoLoadAvailable}
+            fallbackLabel="Xem thêm số đo"
+            hasMore={growthWindow.hasMore}
+            onLoadMore={growthWindow.revealMore}
+            sentinelRef={growthWindow.sentinelRef}
+          />
         </div>
       )}
     </section>
