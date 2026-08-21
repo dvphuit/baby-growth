@@ -156,6 +156,74 @@ describe('MomentMediaPreview', () => {
     expect(activeImg).toHaveAttribute('src', 'https://example.com/five.jpg');
   });
 
+  it('mounts only the active and adjacent assets in a large album', () => {
+    const items: TimelineMediaItem[] = Array.from({ length: 20 }, (_, index) => ({
+      id: `photo-${index + 1}`,
+      type: 'photo' as const,
+      url: `https://example.com/${index + 1}.jpg`,
+    }));
+
+    render(
+      <MomentMediaPreview
+        preview={{
+          items,
+          initialIndex: 10,
+          title: 'Album lớn',
+          layoutId: 'moment-large-photo-11',
+          originSrc: items[10].url ?? '',
+          getLayoutId: (index, media) => `moment-large-${media.id ?? index}`,
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(document.querySelectorAll('.moment-media-preview-slide')).toHaveLength(20);
+    expect(document.querySelectorAll('[data-media-mounted="true"]')).toHaveLength(3);
+    expect(document.querySelectorAll('.moment-media-preview-asset')).toHaveLength(3);
+    expect(screen.getByRole('img', { name: 'Album lớn, ảnh 11' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Album lớn, ảnh 1' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Media kế tiếp' }));
+
+    expect(document.querySelectorAll('[data-media-mounted="true"]')).toHaveLength(3);
+    expect(document.querySelectorAll('.moment-media-preview-asset')).toHaveLength(3);
+    expect(screen.getByRole('img', { name: 'Album lớn, ảnh 12' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Album lớn, ảnh 10' })).not.toBeInTheDocument();
+  });
+
+  it('limits video preload to active metadata and disables adjacent preload', () => {
+    const items: TimelineMediaItem[] = [
+      { id: 'video-1', type: 'video', url: 'https://example.com/one.mp4' },
+      { id: 'video-2', type: 'video', url: 'https://example.com/two.mp4' },
+      { id: 'video-3', type: 'video', url: 'https://example.com/three.mp4' },
+    ];
+
+    render(
+      <MomentMediaPreview
+        preview={{
+          items,
+          initialIndex: 1,
+          title: 'Album video',
+          layoutId: 'moment-video-2',
+          originSrc: items[1].url ?? '',
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const videos = Array.from(document.querySelectorAll('video'));
+    expect(videos).toHaveLength(3);
+    const activeVideo = videos.find((video) => video.getAttribute('src') === 'https://example.com/two.mp4');
+    const adjacentVideos = videos.filter((video) => video !== activeVideo);
+
+    expect(activeVideo).toHaveAttribute('preload', 'metadata');
+    expect(activeVideo).toHaveAttribute('controls');
+    adjacentVideos.forEach((video) => {
+      expect(video).toHaveAttribute('preload', 'none');
+      expect(video).not.toHaveAttribute('controls');
+    });
+  });
+
   it('closes preview after the close button animation finishes', async () => {
     const onClose = vi.fn();
     const items: TimelineMediaItem[] = [
