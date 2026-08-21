@@ -104,11 +104,11 @@ Shared UI components contain reusable interaction and presentation only. Feature
 
 Split a large component when one part can have a clear responsibility such as form state, a selector-backed view model, media interaction, or a reusable presentation component. Do not split a file only to reduce its line count.
 
-## Motion and CSS
+## Native animation ownership
 
-Motion owns enter, exit, transform, opacity, and gesture animation state.
+Browser-native primitives own runtime animation behavior. CSS transitions and keyframes handle declarative enter/exit and press feedback. The View Transition API handles route-level document transitions. Pointer Events write drag transforms directly to the DOM, and the Web Animations API handles imperative settle/dismiss animation.
 
-CSS owns layout, typography, spacing, colors, borders, and static visual state. Shared design tokens belong in `shared/styles`. Feature-specific selectors belong with the feature that uses them.
+React state must not update on every gesture frame. Keep layout, typography, spacing, colors, borders, and static visual state in CSS. All native animation paths must respect `prefers-reduced-motion`.
 
 ## Verification
 

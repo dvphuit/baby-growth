@@ -31,7 +31,6 @@ import {
   Video,
   X,
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDialog } from '@/shared/ui/HavenDialog';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
@@ -40,7 +39,6 @@ import { HavenMilkAmountInput } from '@/shared/ui/HavenMilkAmountInput';
 import { HavenTemperatureInput } from '@/shared/ui/HavenTemperatureInput';
 import { TimelineMediaAsset } from '@/features/timeline/components/TimelineMediaAsset';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
-import { havenLayoutTransition } from '@/shared/motion/motionPresets';
 import {
   assessBabySleep,
   assessDiaper,
@@ -249,10 +247,8 @@ export function TimelineMediaButton({
       {src &&
         (media.type === 'video' ? (
           <>
-            <motion.video
-              layoutId={layoutId}
+            <video
               data-layout-id={layoutId}
-              transition={havenLayoutTransition}
               src={src}
               preload="metadata"
               style={{ borderRadius: 11 }}
@@ -268,10 +264,8 @@ export function TimelineMediaButton({
           </>
         ) : (
           <>
-            <motion.img
-              layoutId={layoutId}
+            <img
               data-layout-id={layoutId}
-              transition={havenLayoutTransition}
               src={src}
               alt={alt}
               style={{ ...imageStyle, borderRadius: 11 }}

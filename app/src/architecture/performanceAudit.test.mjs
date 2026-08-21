@@ -68,30 +68,28 @@ describe('interaction performance audit', () => {
     expect(pullToRefresh).not.toContain('will-change: transform');
   });
 
-  it('uses native route transitions while keeping modal Motion bounded', () => {
+  it('uses browser-native animation paths for routes, overlays, and gestures', () => {
     const routes = source('app/AppRoutes.tsx');
     const bottomNav = source('shared/ui/BottomNav.tsx');
     const header = source('shared/ui/Header.tsx');
     const nativeTransitions = source('shared/styles/native-transitions.css');
+    const nativeAnimations = source('shared/styles/native-animations.css');
     const bottomSheet = source('shared/ui/BottomSheet.tsx');
     const dialog = source('shared/ui/HavenDialog.tsx');
+    const mediaPreview = source('features/timeline/components/MomentMediaPreview.tsx');
 
     expect(routes).not.toContain("from 'motion/react'");
-    expect(routes).not.toContain('havenRouteVariants');
-    expect(routes).not.toContain('havenRouteTransition');
     expect(routes).toContain('className="app-route-surface"');
     expect((bottomNav.match(/viewTransition/g) ?? [])).toHaveLength(2);
     expect(header).toContain("navigate('/profile', { viewTransition: true })");
     expect(nativeTransitions).toContain('::view-transition-old(root)');
     expect(nativeTransitions).toContain('::view-transition-new(root)');
-    expect(nativeTransitions).toContain('@media (prefers-reduced-motion: reduce)');
-
-    expect(bottomSheet).toContain('layoutId={surfaceLayoutId}');
-    expect(bottomSheet).not.toMatch(/<motion\.div\s+layout\s+layoutId=\{surfaceLayoutId\}/);
-    expect(dialog).toContain('layoutId={surfaceLayoutId}');
-    expect(dialog).not.toMatch(/<motion\.div\s+layout\s+layoutId=\{surfaceLayoutId\}/);
-    expect(dialog).toContain('duration: 0.16');
-    expect(dialog).not.toContain('scale: 0.995');
+    expect(nativeAnimations).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(bottomSheet).toContain('onPointerMove={handlePointerMove}');
+    expect(bottomSheet).toContain('animateElement(');
+    expect(dialog).toContain('useNativePresence');
+    expect(mediaPreview).toContain('onPointerMove={handlePointerMove}');
+    expect(mediaPreview).toContain('translate3d');
   });
 
   it('keeps the baby timeline runtime behind an idle lazy boundary', () => {
@@ -203,17 +201,19 @@ describe('interaction performance audit', () => {
     expect(segmentClock).toContain('LiveSegmentClock');
     expect(dayReference).toContain('scheduleMidnightCheck');
   });
-  it('scopes Motion shared-layout projection to modal and media flows', () => {
+  it('keeps native animation ownership out of the React projection runtime', () => {
     const main = source('main.tsx');
     const modals = source('app/AppModals.tsx');
     const timeline = source('features/timeline/TimelineView.tsx');
     const homeTimeline = source('features/home/components/TimelinePreviewContent.tsx');
+    const nativeAnimation = source('shared/lib/nativeAnimation.ts');
 
-    expect(main).not.toContain('LayoutGroup');
-    expect(modals).toContain('<LayoutGroup id="quick-log-modals">');
-    expect(timeline).toContain('<LayoutGroup id="timeline-media-page">');
-    expect(homeTimeline).toContain('<LayoutGroup id="home-baby-timeline-media">');
-    expect(homeTimeline).toContain('<LayoutGroup id="home-mom-timeline-media">');
+    expect(main).not.toContain('MotionConfig');
+    expect(modals).not.toContain('LayoutGroup');
+    expect(timeline).not.toContain('LayoutGroup');
+    expect(homeTimeline).not.toContain('LayoutGroup');
+    expect(nativeAnimation).toContain('element.animate');
+    expect(nativeAnimation).toContain('prefersReducedMotion');
   });
 
 });

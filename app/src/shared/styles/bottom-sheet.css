@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MOTION-POWERED BOTTOM SHEET & GESTURES
+   NATIVE BOTTOM SHEET & GESTURES
    ========================================================================== */
 
 .bottom-sheet {
@@ -15,7 +15,6 @@
   overflow: hidden;
   overscroll-behavior-y: contain;
   box-shadow: 0 -12px 48px rgba(32, 26, 23, 0.26);
-  will-change: transform;
   touch-action: pan-y;
   transform-origin: 50% 100%;
 }

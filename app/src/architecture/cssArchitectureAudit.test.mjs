@@ -142,7 +142,7 @@ describe('stylesheet architecture audit', () => {
       join(SRC, 'shared', 'styles', 'modals.css'),
       join(SRC, 'shared', 'styles', 'tracker-primitives.css'),
       join(SRC, 'shared', 'styles', 'primitives.css'),
-      join(SRC, 'shared', 'motion', 'animations.css'),
+      join(SRC, 'shared', 'styles', 'native-animations.css'),
     ]) {
       expect(existsSync(sharedFile), `${relative(ROOT, sharedFile)} should exist`).toBe(true);
     }
