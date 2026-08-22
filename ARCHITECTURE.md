@@ -18,7 +18,6 @@ src/
 │   └── sync/
 ├── shared/
 │   ├── ui/
-│   ├── motion/
 │   ├── hooks/
 │   ├── lib/
 │   └── styles/
@@ -34,6 +33,10 @@ The refactor moves existing code into this layout in dependency order. Do not mo
 A feature may import shared code and domain-independent data. A feature must not import another feature's private component, hook, selector, or store file.
 
 `shared` must not import feature code.
+
+A feature public API is its `features/<feature>/index.ts`. Cross-feature consumers should import through that entry point instead of reaching into `components/`, `hooks/`, `domain/`, `store/`, or other private implementation paths.
+
+Architecture acceptance tests enforce dependency direction incrementally. Existing violations may be listed only as exact, file-level legacy exceptions in the architecture audit. Do not add wildcard exceptions or expand an exception to cover a directory. Remove an exception when the owning feature absorbs the dependency.
 
 ## Activity data
 
