@@ -65,6 +65,20 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
 }
 
+.haven-growth-card-decor {
+  position: absolute;
+  z-index: 0;
+  top: 34px;
+  right: -46px;
+  width: 208px;
+  height: 208px;
+  object-fit: contain;
+  opacity: 0.14;
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(4deg);
+}
+
 .haven-growth-summary-header {
   position: relative;
   z-index: 1;
@@ -636,6 +650,11 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   content-visibility: auto;
   contain-intrinsic-size: auto 112px;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .haven-growth-history-row::before {
@@ -652,6 +671,12 @@
 .haven-growth-history-row:hover {
   border-color: #bfd9d4;
   box-shadow: 0 8px 18px rgba(34, 75, 79, 0.065);
+}
+
+.haven-growth-history-row:focus-visible {
+  border-color: #79aca3;
+  box-shadow: 0 0 0 3px rgba(79, 145, 136, 0.14), 0 8px 18px rgba(34, 75, 79, 0.065);
+  outline: none;
 }
 
 .haven-growth-history-top {
@@ -685,23 +710,14 @@
   white-space: nowrap;
 }
 
-.haven-growth-delete-btn {
-  width: 25px;
-  height: 25px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #e2ece9;
-  border-radius: 8px;
-  background: #f7faf9;
-  color: #82938f;
-  cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+.haven-growth-history-chevron {
+  color: #65918b;
+  transition: transform var(--transition-fast);
 }
 
-.haven-growth-delete-btn:hover {
-  border-color: #f0c6c4;
-  background: #fff3f2;
-  color: #b44740;
+.haven-growth-history-row:hover .haven-growth-history-chevron,
+.haven-growth-history-row:focus-visible .haven-growth-history-chevron {
+  transform: translateX(2px);
 }
 
 .haven-growth-history-chips {

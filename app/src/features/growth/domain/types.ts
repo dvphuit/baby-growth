@@ -41,6 +41,16 @@ export interface GrowthHistoryRecord {
   note: string;
 }
 
+export type GrowthMeasurementInput = Pick<
+  GrowthHistoryRecord,
+  'weight' | 'height' | 'headCirc'
+> & Partial<Pick<GrowthHistoryRecord, 'date' | 'labelIndex' | 'note'>>;
+
+export type GrowthMeasurementPatch = Partial<Pick<
+  GrowthHistoryRecord,
+  'date' | 'labelIndex' | 'weight' | 'height' | 'headCirc' | 'note'
+>>;
+
 export interface MotorMilestoneItem {
   id: string;
   name: string;

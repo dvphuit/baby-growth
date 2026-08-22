@@ -34,4 +34,23 @@ describe('AddGrowthModal', () => {
     await user.click(screen.getByRole('button', { name: 'Tăng cân nặng' }));
     expect(weightInput).toHaveValue(initialWeight + 0.1);
   });
+
+  it('persists the selected chart milestone when saving', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(
+      <AddGrowthModal
+        isOpen
+        onClose={onClose}
+        onSuccessToast={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Cột mốc tháng: Mốc 8m/i }));
+    await user.click(screen.getByRole('option', { name: 'Mốc 10m' }));
+    await user.click(screen.getByRole('button', { name: 'Lưu số đo' }));
+
+    expect(useGrowthStore.getState().currentStageData().growthHistory[0].labelIndex).toBe(5);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

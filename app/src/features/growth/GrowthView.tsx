@@ -6,11 +6,11 @@ import { buildRealGrowthChart, getRealGrowthHistory } from '@/features/growth/do
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 import type { GrowthMetric } from '@/features/growth/domain/types';
 import { WHOChart } from './WHOChart';
-import { MilestoneRoadmap } from './MilestoneRoadmap';
 import { GrowthHistory } from './GrowthHistory';
 
 interface GrowthViewProps {
   onOpenAddMeasurement: () => void;
+  onSuccessToast?: (message: string) => void;
 }
 
 function formatDelta(current: number, prev: number, unit: string): string | null {
@@ -21,7 +21,10 @@ function formatDelta(current: number, prev: number, unit: string): string | null
   return `0 ${unit}`;
 }
 
-export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) => {
+export const GrowthView: React.FC<GrowthViewProps> = ({
+  onOpenAddMeasurement,
+  onSuccessToast,
+}) => {
   const currentStage = useGrowthStore((state) => state.currentStage);
   const currentStageData = useGrowthStore((state) => state.currentStageData());
   const familyData = useProfileStore((state) => state.familyData);
@@ -88,6 +91,16 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
     <div className="haven-growth">
       <section className="haven-growth-summary-card" aria-labelledby="growth-hero-title">
         <div className="haven-growth-ambient" aria-hidden="true" />
+        <img
+          className="haven-growth-card-decor"
+          src="/assets/decor/growth-measure.svg"
+          alt=""
+          width={320}
+          height={320}
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
         <div className="haven-growth-summary-header">
           <div className="haven-growth-hero-copy">
             <span className="haven-growth-eyebrow">NHỊP TĂNG TRƯỞNG</span>
@@ -204,8 +217,10 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         </div>
       </section>
 
-      <MilestoneRoadmap />
-      <GrowthHistory onOpenAddMeasurement={onOpenAddMeasurement} />
+      <GrowthHistory
+        onOpenAddMeasurement={onOpenAddMeasurement}
+        onSuccessToast={onSuccessToast}
+      />
     </div>
   );
 };

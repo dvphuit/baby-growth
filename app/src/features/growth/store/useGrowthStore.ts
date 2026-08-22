@@ -4,7 +4,12 @@ import { INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
 import { indexedDbStorage } from '@/data/localDb';
 import type { DailyHabit, StageData } from '@/types';
 import type { FamilyData } from '@/features/profile';
-import type { GrowthHistoryRecord, StageKey } from '@/features/growth/domain/types';
+import type {
+  GrowthHistoryRecord,
+  GrowthMeasurementInput,
+  GrowthMeasurementPatch,
+  StageKey,
+} from '@/features/growth/domain/types';
 import { generateId } from '@/utils/format';
 import { exportGrowthFacts, hydrateGrowthFacts, isGrowthFacts, type GrowthFacts } from './growthPersistence';
 
@@ -19,8 +24,8 @@ export interface GrowthStoreState {
     profile: Partial<FamilyData>,
     initialVitals?: { weight?: number; height?: number; headCirc?: number },
   ) => void;
-  addGrowthMeasurement: (measurement: { weight: number; height: number; headCirc: number; date?: string; note?: string }) => void;
-  updateGrowthMeasurement: (id: string, patch: Partial<Pick<GrowthHistoryRecord, 'date' | 'weight' | 'height' | 'headCirc' | 'note'>>) => void;
+  addGrowthMeasurement: (measurement: GrowthMeasurementInput) => void;
+  updateGrowthMeasurement: (id: string, patch: GrowthMeasurementPatch) => void;
   deleteGrowthMeasurement: (id: string) => void;
   toggleMilestone: (milestoneId: string, status?: 'completed' | 'in-progress' | 'upcoming', dateAchieved?: string) => void;
   resetTrackingData: (familyData: FamilyData) => void;
@@ -111,7 +116,7 @@ export const useGrowthStore = create<GrowthStoreState>()(
         });
       },
 
-      addGrowthMeasurement: ({ weight, height, headCirc, date, note }) => {
+      addGrowthMeasurement: ({ weight, height, headCirc, date, labelIndex: requestedLabelIndex, note }) => {
         const dateStr = date || new Date().toISOString().split('T')[0];
         const ageText = get().currentStageData().currentAgeText || 'Hiện tại';
         set((prevState) => {
@@ -126,8 +131,11 @@ export const useGrowthStore = create<GrowthStoreState>()(
             headCirc: headCirc > 0 ? `${headCirc} cm` : stage.todayVitals.headCirc,
           };
           let labelIndex: number | undefined;
-          if (stage.growthChart?.labels) {
-            const index = Math.max(0, stage.growthChart.labels.length - 3);
+          if (stage.growthChart?.labels.length) {
+            const fallbackIndex = Math.max(0, stage.growthChart.labels.length - 3);
+            const index = typeof requestedLabelIndex === 'number'
+              ? Math.min(Math.max(0, requestedLabelIndex), stage.growthChart.labels.length - 1)
+              : fallbackIndex;
             labelIndex = index;
             if (index < stage.growthChart.labels.length) {
               const nextHeight = [...stage.growthChart.height.child];
@@ -174,22 +182,29 @@ export const useGrowthStore = create<GrowthStoreState>()(
             .map((record) => record.id === id ? updatedRecord : record)
             .sort((a, b) => growthDateTimestamp(b.date) - growthDateTimestamp(a.date));
 
-          if (typeof updatedRecord.labelIndex === 'number' && stage.growthChart?.labels) {
-            const index = updatedRecord.labelIndex;
+          if (stage.growthChart?.labels) {
             const heightValues = [...stage.growthChart.height.child];
             const weightValues = [...stage.growthChart.weight.child];
             const headValues = [...stage.growthChart.headCirc.child];
-            if (index >= 0 && index < stage.growthChart.labels.length) {
-              heightValues[index] = updatedRecord.height;
-              weightValues[index] = updatedRecord.weight;
-              headValues[index] = updatedRecord.headCirc;
-              stage.growthChart = {
-                ...stage.growthChart,
-                height: { ...stage.growthChart.height, child: heightValues },
-                weight: { ...stage.growthChart.weight, child: weightValues },
-                headCirc: { ...stage.growthChart.headCirc, child: headValues },
-              };
-            }
+            const affectedIndexes = new Set(
+              [currentRecord.labelIndex, updatedRecord.labelIndex]
+                .filter((index): index is number => typeof index === 'number'),
+            );
+
+            affectedIndexes.forEach((index) => {
+              if (index < 0 || index >= stage.growthChart.labels.length) return;
+              const fallback = updatedHistory.find((record) => record.labelIndex === index);
+              heightValues[index] = fallback?.height && fallback.height > 0 ? fallback.height : null;
+              weightValues[index] = fallback?.weight && fallback.weight > 0 ? fallback.weight : null;
+              headValues[index] = fallback?.headCirc && fallback.headCirc > 0 ? fallback.headCirc : null;
+            });
+
+            stage.growthChart = {
+              ...stage.growthChart,
+              height: { ...stage.growthChart.height, child: heightValues },
+              weight: { ...stage.growthChart.weight, child: weightValues },
+              headCirc: { ...stage.growthChart.headCirc, child: headValues },
+            };
           }
 
           const latest = updatedHistory[0];

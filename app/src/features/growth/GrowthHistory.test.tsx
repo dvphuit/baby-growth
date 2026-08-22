@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GrowthHistory } from './GrowthHistory';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
@@ -19,11 +20,13 @@ describe('GrowthHistory', () => {
     expect(onOpenAddMeasurement).toHaveBeenCalledTimes(1);
   });
 
-  it('renders user records and supports deletion with confirm dialog', () => {
+  it('opens a preview sheet, edits the measurement, and deletes after confirmation', async () => {
+    const user = userEvent.setup();
     const testRecord: GrowthHistoryRecord = {
       id: 'gh-test-del-1',
       date: '2026-08-15',
       ageText: '8 tháng 25 ngày',
+      labelIndex: 4,
       weight: 8.8,
       height: 72.0,
       headCirc: 44.5,
@@ -35,22 +38,51 @@ describe('GrowthHistory', () => {
     const state = useGrowthStore.getState();
     const stage = state.stages[state.currentStage];
     stage.growthHistory = [testRecord];
+    stage.growthChart.weight.child[4] = testRecord.weight;
+    stage.growthChart.height.child[4] = testRecord.height;
+    stage.growthChart.headCirc.child[4] = testRecord.headCirc;
 
-    // Mock confirm dialog to true
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
-    render(<GrowthHistory onOpenAddMeasurement={vi.fn()} />);
+    const onSuccessToast = vi.fn();
+    render(
+      <GrowthHistory
+        onOpenAddMeasurement={vi.fn()}
+        onSuccessToast={onSuccessToast}
+      />,
+    );
 
     expect(screen.getByText('8 tháng 25 ngày')).toBeInTheDocument();
     expect(screen.getByText('8.8 kg')).toBeInTheDocument();
     expect(screen.getByText('72 cm')).toBeInTheDocument();
     expect(screen.getByText('Khám định kỳ')).toBeInTheDocument();
 
-    const deleteBtn = screen.getByRole('button', { name: 'Xóa số đo ngày 2026-08-15' });
-    fireEvent.click(deleteBtn);
+    fireEvent.click(screen.getByRole('button', { name: 'Xem số đo 8 tháng 25 ngày' }));
+    const preview = screen.getByRole('dialog', { name: 'Chi tiết cân đo' });
+    expect(within(preview).getByText(/Thứ Bảy, 15 tháng 8, 2026/i)).toBeInTheDocument();
+    expect(within(preview).getAllByText('8.8 kg').length).toBeGreaterThanOrEqual(1);
+    expect(within(preview).getByText('Khám định kỳ')).toBeInTheDocument();
 
-    expect(window.confirm).toHaveBeenCalledWith('Xóa bản ghi cân đo ngày 2026-08-15?');
-    // Record should now be deleted from history
+    fireEvent.click(within(preview).getByRole('button', { name: 'Chỉnh sửa' }));
+    const editor = screen.getByRole('dialog', { name: 'Chỉnh sửa số đo' });
+    const weightInput = within(editor).getByRole('spinbutton', { name: 'Cân nặng (kg)' });
+    fireEvent.change(weightInput, { target: { value: '9.1' } });
+    await user.click(within(editor).getByRole('button', { name: /Cột mốc tháng: Mốc 8m/i }));
+    await user.click(screen.getByRole('option', { name: 'Mốc 10m' }));
+    await user.click(within(editor).getByRole('button', { name: 'Lưu thay đổi' }));
+
+    const updatedPreview = screen.getByRole('dialog', { name: 'Chi tiết cân đo' });
+    expect(within(updatedPreview).getByText('9.1 kg')).toBeInTheDocument();
+    const updatedStage = useGrowthStore.getState().currentStageData();
+    expect(updatedStage.growthHistory[0]).toMatchObject({ weight: 9.1, labelIndex: 5 });
+    expect(updatedStage.growthChart.weight.child[4]).toBeNull();
+    expect(updatedStage.growthChart.weight.child[5]).toBe(9.1);
+    expect(onSuccessToast).toHaveBeenCalledWith(expect.stringContaining('Đã cập nhật số đo'));
+
+    fireEvent.click(within(updatedPreview).getByRole('button', { name: 'Xóa' }));
+    expect(within(updatedPreview).getByRole('alert')).toHaveTextContent('Bản ghi sẽ bị xóa');
+    fireEvent.click(within(updatedPreview).getByRole('button', { name: 'Xóa bản ghi' }));
+
     expect(screen.queryByText('8 tháng 25 ngày')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Chi tiết cân đo' })).not.toBeInTheDocument();
+    expect(onSuccessToast).toHaveBeenCalledWith('Đã xóa bản ghi cân đo');
   });
 });

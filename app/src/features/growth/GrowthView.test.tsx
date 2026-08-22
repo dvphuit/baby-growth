@@ -26,12 +26,16 @@ describe('GrowthView', () => {
     expect(screen.getByText('NHỊP TĂNG TRƯỞNG')).toBeInTheDocument();
     expect(container.querySelector('.haven-growth-summary-card')).toBeInTheDocument();
     expect(container.querySelector('.haven-growth-add-btn')).toBeInTheDocument();
+    expect(container.querySelector('.haven-growth-card-decor')).toHaveAttribute(
+      'src',
+      '/assets/decor/growth-measure.svg',
+    );
     expect(screen.getByText('Chưa có số đo được ghi nhận')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Ghi lần cân đo đầu tiên/i }).length).toBeGreaterThanOrEqual(1);
 
     expect(screen.getByTestId('who-chart-mock')).toBeInTheDocument();
     expect(screen.getByText(/WHOChart metric: weight/i)).toBeInTheDocument();
-    expect(screen.getByText('Phát triển thể chất')).toBeInTheDocument();
+    expect(screen.queryByText('Phát triển thể chất')).not.toBeInTheDocument();
   });
 
   it('triggers onOpenAddMeasurement when clicking hero action button', () => {

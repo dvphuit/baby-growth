@@ -15,8 +15,18 @@ vi.mock('@/features/timeline', () => ({
   ),
 }));
 vi.mock('@/features/growth', () => ({
-  GrowthView: ({ onOpenAddMeasurement }: { onOpenAddMeasurement: () => void }) => (
-    <div><span>Growth marker</span><button onClick={onOpenAddMeasurement}>open growth</button></div>
+  GrowthView: ({
+    onOpenAddMeasurement,
+    onSuccessToast,
+  }: {
+    onOpenAddMeasurement: () => void;
+    onSuccessToast: (message: string) => void;
+  }) => (
+    <div>
+      <span>Growth marker</span>
+      <button onClick={onOpenAddMeasurement}>open growth</button>
+      <button onClick={() => onSuccessToast('growth saved')}>toast growth</button>
+    </div>
   ),
 }));
 vi.mock('@/features/expenses', () => ({
@@ -77,5 +87,7 @@ describe('AppRoutes', () => {
     const props = renderRoute('/growth');
     await user.click(await screen.findByRole('button', { name: 'open growth' }));
     expect(props.onOpenAddGrowth).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'toast growth' }));
+    expect(props.onShowToast).toHaveBeenCalledWith('growth saved', '✓');
   });
 });

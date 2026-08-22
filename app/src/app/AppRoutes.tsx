@@ -41,7 +41,15 @@ export const AppRoutes = memo(function AppRoutes({
         <Routes>
           <Route path="/" element={<HomeView onOpenQuickLog={onOpenQuickLog} onOpenPumping={onOpenPumping} />} />
           <Route path="/timeline" element={<TimelineView onOpenLightbox={onOpenLightbox} onOpenAddEntry={onOpenAddTimelineEntry} />} />
-          <Route path="/growth" element={<GrowthView onOpenAddMeasurement={onOpenAddGrowth} />} />
+          <Route
+            path="/growth"
+            element={(
+              <GrowthView
+                onOpenAddMeasurement={onOpenAddGrowth}
+                onSuccessToast={(message) => onShowToast(message, '✓')}
+              />
+            )}
+          />
           <Route path="/expenses" element={<ExpensesView onOpenAddExpense={onOpenAddExpense} onShowToast={onShowToast} />} />
           <Route path="/profile" element={<ProfileView onOpenEditProfile={onOpenEditProfile} onOpenNotifications={onOpenNotifications} onShowToast={onShowToast} />} />
           <Route path="/profile/google-drive" element={<GoogleDriveDataView onOpenLightbox={onOpenLightbox} onShowToast={onShowToast} />} />
