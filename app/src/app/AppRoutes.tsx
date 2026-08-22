@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { HomeView } from '@/features/home';
 import type { AddToast } from '@/app/hooks/useAppModals';
 import { loadExpensesFeature, loadGrowthFeature, loadProfileFeature, loadTimelineFeature } from './routePreload';
@@ -35,8 +35,10 @@ export const AppRoutes = memo(function AppRoutes({
   onOpenEditProfile,
   onOpenNotifications,
 }: AppRoutesProps) {
+  const location = useLocation();
+
   return (
-    <div className="app-route-surface">
+    <div className="app-route-surface" key={location.pathname}>
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
           <Route path="/" element={<HomeView onOpenQuickLog={onOpenQuickLog} onOpenPumping={onOpenPumping} />} />
