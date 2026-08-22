@@ -35,6 +35,11 @@ const IMPORT_PATTERN = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+
 // Remove an exception as soon as its owning feature absorbs the module.
 const LEGACY_SHARED_FEATURE_IMPORTS = new Set([
   'shared/ui/HavenMedicationPicker.tsx -> @/features/activities/domain/medicationCatalog',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/activities/domain/dailyCareTargets',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/growth/store/useGrowthStore',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/profile/store/useProfileStore',
+  'shared/ui/HavenTemperatureInput.tsx -> @/features/activities/domain/dailyCareTargets',
+  'shared/ui/Header.tsx -> @/features/profile/hooks/useFamily',
 ]);
 
 function productionFiles(directory) {
