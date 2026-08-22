@@ -1,7 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
+async function suppressPwaBadge(page: Page): Promise<void> {
+  await page.addStyleTag({ content: '.PWABadge { display: none !important; }' });
+}
+
 async function completeOfflineOnboarding(page: Page, childName = 'Bé E2E'): Promise<void> {
   await page.goto('/');
+  await suppressPwaBadge(page);
   await expect(page.locator('#stepGoogleAuth')).toBeVisible();
 
   await page.locator('#btnDevBypass').click();
