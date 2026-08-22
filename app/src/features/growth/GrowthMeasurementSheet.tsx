@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { Fragment, useEffect, useId, useState } from 'react';
 import { CalendarDays, Check, FileText, Pencil, Trash2 } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
@@ -49,16 +49,16 @@ export function GrowthMeasurementSheet({
   }, [isOpen, record.id]);
 
   const footer = editing ? (
-    <>
+    <Fragment key="editing-actions">
       <button type="button" className="growth-sheet-secondary-action" onClick={() => setEditing(false)}>
         Hủy
       </button>
       <button type="submit" form={formId} className="log-btn-primary sheet-primary-action">
         <Check size={15} /> Lưu thay đổi
       </button>
-    </>
+    </Fragment>
   ) : confirmingDelete ? (
-    <>
+    <Fragment key="delete-confirmation-actions">
       <button type="button" className="growth-sheet-secondary-action" onClick={() => setConfirmingDelete(false)}>
         Giữ lại
       </button>
@@ -73,16 +73,16 @@ export function GrowthMeasurementSheet({
       >
         <Trash2 size={15} /> Xóa bản ghi
       </button>
-    </>
+    </Fragment>
   ) : (
-    <>
+    <Fragment key="preview-actions">
       <button type="button" className="growth-sheet-danger-action" onClick={() => setConfirmingDelete(true)}>
         <Trash2 size={15} /> Xóa
       </button>
       <button type="button" className="log-btn-primary sheet-primary-action" onClick={() => setEditing(true)}>
         <Pencil size={15} /> Chỉnh sửa
       </button>
-    </>
+    </Fragment>
   );
 
   return (

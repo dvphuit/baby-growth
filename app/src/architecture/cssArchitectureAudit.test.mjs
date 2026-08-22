@@ -148,6 +148,12 @@ describe('stylesheet architecture audit', () => {
     }
   });
 
+  it('keeps scrollable sheet content shrinkable so fixed footers remain visible', () => {
+    const bottomSheetCss = readFileSync(join(SRC, 'shared', 'styles', 'bottom-sheet.css'), 'utf8');
+
+    expect(bottomSheetCss).toMatch(/\.sheet-content-body\s*\{[^}]*min-height:\s*0\s*;/s);
+  });
+
   it('reports ownership overlap without changing runtime behavior', () => {
     const report = buildReport();
     console.info('[css-architecture-audit]', JSON.stringify({

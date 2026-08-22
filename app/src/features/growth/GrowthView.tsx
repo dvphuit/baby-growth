@@ -66,6 +66,7 @@ export const GrowthView: React.FC<GrowthViewProps> = ({
       value: `${latest.weight} kg`,
       delta: weightDelta,
       reference: `WHO P50: ${whoRefWeight} kg`,
+      decorSrc: '/assets/decor/growth-weight.svg',
     },
     {
       key: 'height',
@@ -75,6 +76,7 @@ export const GrowthView: React.FC<GrowthViewProps> = ({
       value: `${latest.height} cm`,
       delta: heightDelta,
       reference: `WHO P50: ${whoRefHeight} cm`,
+      decorSrc: '/assets/decor/growth-height.svg',
     },
     {
       key: 'head',
@@ -84,6 +86,7 @@ export const GrowthView: React.FC<GrowthViewProps> = ({
       value: `${latest.headCirc} cm`,
       delta: headDelta,
       reference: `WHO P50: ${whoRefHead} cm`,
+      decorSrc: '/assets/decor/growth-head.svg',
     },
   ] : [];
 
@@ -124,6 +127,16 @@ export const GrowthView: React.FC<GrowthViewProps> = ({
             <div className="haven-growth-vitals-grid" aria-label="Số đo gần nhất">
               {vitalCards.map((vital) => (
                 <article className={`haven-vital-card ${vital.className}`} key={vital.key}>
+                  <img
+                    className="haven-vital-decor"
+                    src={vital.decorSrc}
+                    alt=""
+                    width={240}
+                    height={240}
+                    loading="lazy"
+                    decoding="async"
+                    aria-hidden="true"
+                  />
                   <div className="haven-vital-top">
                     <span className="haven-vital-icon">{vital.icon}</span>
                     {vital.delta && <span className="haven-vital-delta-badge">{vital.delta}</span>}

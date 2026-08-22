@@ -61,7 +61,7 @@ test.describe('critical browser journeys', () => {
     await completeOfflineOnboarding(page);
 
     await page.locator('#fabCenterBtn').click();
-    await expect(page.getByText('Ghi Nhanh (Bé)', { exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Ghi nhanh cho Bé' })).toBeVisible();
     await page.getByRole('button', { name: 'Cữ bú' }).click();
 
     const saveButton = page.getByRole('button', { name: 'Lưu ghi nhận' });
@@ -83,5 +83,32 @@ test.describe('critical browser journeys', () => {
     await feedingEntry.click();
     await page.getByRole('button', { name: 'Chỉnh sửa' }).click();
     await expect(page.getByRole('spinbutton', { name: 'Lượng sữa (ml)' })).toHaveValue('90');
+  });
+
+  test('growth preview keeps its edit action visible above the mobile viewport edge', async ({ page }) => {
+    await completeOfflineOnboarding(page);
+
+    await page.locator('#navTabGrowth').click();
+    await expect(page).toHaveURL(/\/growth$/);
+    await page.locator('#btnQuickAddGrowthMeasurement').click();
+    await page.getByRole('button', { name: 'Lưu số đo' }).click();
+
+    await page.locator('.haven-growth-history-row').first().click();
+    const preview = page.getByRole('dialog', { name: 'Chi tiết cân đo' });
+    const sheetFooter = preview.locator('.sheet-footer');
+    await expect(sheetFooter.getByRole('button', { name: 'Chỉnh sửa' })).toBeVisible();
+
+    const [sheetBox, footerBox] = await Promise.all([
+      preview.boundingBox(),
+      sheetFooter.boundingBox(),
+    ]);
+    expect(sheetBox).not.toBeNull();
+    expect(footerBox).not.toBeNull();
+    expect((footerBox?.y ?? 0) + (footerBox?.height ?? 0))
+      .toBeLessThanOrEqual((sheetBox?.y ?? 0) + (sheetBox?.height ?? 0) + 1);
+
+    await sheetFooter.getByRole('button', { name: 'Chỉnh sửa' }).click();
+    await expect(page.getByRole('dialog', { name: 'Chỉnh sửa số đo' })).toBeVisible();
+    await expect(page.getByRole('spinbutton', { name: 'Cân nặng (kg)' })).toBeVisible();
   });
 });

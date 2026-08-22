@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
+  <defs>
+    <linearGradient id="height-ruler" x1="73" y1="36" x2="154" y2="286" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF5D9"/>
+      <stop offset="1" stop-color="#E2B95F"/>
+    </linearGradient>
+    <linearGradient id="height-arrow" x1="158" y1="244" x2="254" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D28D31"/>
+      <stop offset="1" stop-color="#FFE8A5"/>
+    </linearGradient>
+    <filter id="height-shadow" x="39" y="19" width="247" height="290" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#79540F" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <g filter="url(#height-shadow)">
+    <rect x="65" y="34" width="82" height="254" rx="31" fill="url(#height-ruler)"/>
+    <rect x="82" y="51" width="14" height="220" rx="7" fill="#FFF9E8" fill-opacity="0.72"/>
+    <path d="M102 67H130M102 91H121M102 115H130M102 139H121M102 163H130M102 187H121M102 211H130M102 235H121M102 259H130" stroke="#9B6B12" stroke-width="7" stroke-linecap="round"/>
+    <path d="M168 254C194 225 210 192 216 156C220 132 220 107 219 81" stroke="url(#height-arrow)" stroke-width="20" stroke-linecap="round"/>
+    <path d="M190 105L219 76L247 106" stroke="#F7D77F" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="174" cy="247" r="20" fill="#FFF4D0"/>
+    <circle cx="174" cy="247" r="9" fill="#C58724"/>
+  </g>
+  <path d="M254 49L261 65L277 72L261 79L254 95L247 79L231 72L247 65L254 49Z" fill="#FFF0B8"/>
+  <path d="M178 61L183 72L194 77L183 82L178 93L173 82L162 77L173 72L178 61Z" fill="#E9A84B"/>
+</svg>

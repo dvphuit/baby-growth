@@ -78,7 +78,7 @@ describe('GrowthView', () => {
     const stage = state.stages[state.currentStage];
     stage.growthHistory = initialHistory;
 
-    render(<GrowthView onOpenAddMeasurement={vi.fn()} />);
+    const { container } = render(<GrowthView onOpenAddMeasurement={vi.fn()} />);
 
     // Current latest vitals
     expect(screen.getAllByText('9 kg').length).toBeGreaterThanOrEqual(1);
@@ -89,6 +89,14 @@ describe('GrowthView', () => {
     expect(screen.getByText('+0.5 kg')).toBeInTheDocument();
     expect(screen.getByText('+2 cm')).toBeInTheDocument();
     expect(screen.getByText('+0.5 cm')).toBeInTheDocument();
+
+    expect(
+      [...container.querySelectorAll<HTMLImageElement>('.haven-vital-decor')].map((image) => image.getAttribute('src')),
+    ).toEqual([
+      '/assets/decor/growth-weight.svg',
+      '/assets/decor/growth-height.svg',
+      '/assets/decor/growth-head.svg',
+    ]);
 
     // History record rendered
     expect(screen.getByText('8 tháng 26 ngày')).toBeInTheDocument();

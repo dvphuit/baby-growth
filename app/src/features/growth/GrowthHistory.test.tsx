@@ -61,7 +61,8 @@ describe('GrowthHistory', () => {
     expect(within(preview).getAllByText('8.8 kg').length).toBeGreaterThanOrEqual(1);
     expect(within(preview).getByText('Khám định kỳ')).toBeInTheDocument();
 
-    fireEvent.click(within(preview).getByRole('button', { name: 'Chỉnh sửa' }));
+    await user.click(within(preview).getByRole('button', { name: 'Chỉnh sửa' }));
+    expect(onSuccessToast).not.toHaveBeenCalled();
     const editor = screen.getByRole('dialog', { name: 'Chỉnh sửa số đo' });
     const weightInput = within(editor).getByRole('spinbutton', { name: 'Cân nặng (kg)' });
     fireEvent.change(weightInput, { target: { value: '9.1' } });

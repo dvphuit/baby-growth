@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
+  <defs>
+    <linearGradient id="weight-body" x1="78" y1="116" x2="245" y2="286" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DDF1E8"/>
+      <stop offset="1" stop-color="#73AA99"/>
+    </linearGradient>
+    <linearGradient id="weight-tray" x1="102" y1="76" x2="218" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF9EB"/>
+      <stop offset="1" stop-color="#D8EADF"/>
+    </linearGradient>
+    <filter id="weight-shadow" x="42" y="54" width="236" height="254" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#244D48" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <g filter="url(#weight-shadow)">
+    <path d="M92 112C92 91 109 74 130 74H190C211 74 228 91 228 112V137H92V112Z" fill="url(#weight-tray)"/>
+    <path d="M68 154C68 137 82 123 99 123H221C238 123 252 137 252 154V247C252 270 233 289 210 289H110C87 289 68 270 68 247V154Z" fill="url(#weight-body)"/>
+    <rect x="102" y="143" width="116" height="92" rx="43" fill="#FFFDF7" fill-opacity="0.9"/>
+    <circle cx="160" cy="188" r="29" fill="#FFFFFF"/>
+    <path d="M160 188L178 169" stroke="#D79A65" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="160" cy="188" r="7" fill="#376E66"/>
+    <path d="M116 258H204" stroke="#356A63" stroke-opacity="0.32" stroke-width="10" stroke-linecap="round"/>
+    <path d="M119 103C130 87 148 85 158 99C168 85 187 87 198 103" stroke="#7EB09F" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <path d="M254 72L261 88L277 95L261 102L254 118L247 102L231 95L247 88L254 72Z" fill="#F0CD83"/>
+  <circle cx="72" cy="92" r="11" fill="#F5E6B9"/>
+</svg>

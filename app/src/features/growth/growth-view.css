@@ -180,16 +180,35 @@
   backdrop-filter: blur(9px);
 }
 
-.haven-vital-card::after {
-  content: '';
+.haven-vital-card > :not(.haven-vital-decor) {
+  position: relative;
+  z-index: 1;
+}
+
+.haven-vital-decor {
   position: absolute;
-  z-index: -1;
-  right: -22px;
-  bottom: -28px;
-  width: 74px;
-  height: 74px;
-  border: 12px solid color-mix(in srgb, var(--growth-vital-accent) 18%, transparent);
-  border-radius: 50%;
+  z-index: 0;
+  right: -25px;
+  bottom: -24px;
+  width: 104px;
+  height: 104px;
+  object-fit: contain;
+  opacity: 0.2;
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(3deg);
+}
+
+.haven-vital-card.height-card .haven-vital-decor {
+  right: -20px;
+  bottom: -21px;
+  transform: rotate(-2deg);
+}
+
+.haven-vital-card.head-card .haven-vital-decor {
+  right: -24px;
+  bottom: -20px;
+  transform: rotate(2deg);
 }
 
 .haven-vital-card.weight-card {
