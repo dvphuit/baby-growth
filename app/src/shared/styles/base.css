@@ -8,6 +8,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Use squircle corners everywhere the component declares a radius. */
+  corner-shape: squircle;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   /* Disable text selection globally across the whole app */

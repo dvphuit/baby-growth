@@ -31,7 +31,7 @@
   width: 190px;
   height: 190px;
   border: 24px solid rgba(255, 255, 255, 0.055);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -43,7 +43,7 @@
   width: 120px;
   height: 120px;
   border: 17px solid rgba(255, 255, 255, 0.035);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -200,7 +200,7 @@
   place-items: center;
   padding: 4px;
   border: 1px solid rgba(232, 248, 208, 0.3);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: rgba(232, 248, 208, 0.1);
   box-shadow: 0 8px 20px rgba(10, 19, 7, 0.2);
   transition: transform var(--transition-fast), background var(--transition-fast);
@@ -211,7 +211,7 @@
   height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: #263121;
   background: linear-gradient(145deg, #eef8dc, #cbe2aa);
   box-shadow: inset 0 2px rgba(255, 255, 255, 0.65), 0 5px 13px rgba(0, 0, 0, 0.17);
@@ -625,7 +625,7 @@
   width: var(--timeline-marker-size);
   height: var(--timeline-marker-size);
   border: 3px solid var(--color-canvas);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: var(--timeline-accent);
   background: var(--timeline-soft);
   box-shadow: 0 0 0 1px rgba(78, 66, 58, 0.05), 0 5px 13px rgba(51, 37, 31, 0.09);
@@ -690,7 +690,7 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: var(--color-sage-dark);
   background: var(--color-sage-light);
 }

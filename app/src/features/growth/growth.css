@@ -47,7 +47,7 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: #FFFFFF;
   color: #285860;
   box-shadow: 0 3px 10px rgba(40, 88, 96, 0.13);
@@ -272,7 +272,7 @@
   width: 130px;
   height: 130px;
   border: 18px solid rgba(255, 255, 255, 0.07);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
 }
 
 .growth-preview-hero-copy {

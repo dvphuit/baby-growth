@@ -39,7 +39,7 @@
   width: 190px;
   height: 190px;
   border: 24px solid rgba(255, 255, 255, 0.055);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -51,7 +51,7 @@
   width: 120px;
   height: 120px;
   border: 17px solid rgba(255, 255, 255, 0.035);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -133,7 +133,7 @@
   place-items: center;
   padding: 4px;
   border: 1px solid rgba(210, 244, 233, 0.3);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: rgba(210, 244, 233, 0.1);
   box-shadow: 0 8px 20px rgba(7, 28, 31, 0.22);
   cursor: pointer;
@@ -145,7 +145,7 @@
   height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: var(--growth-deep);
   background: linear-gradient(145deg, #e4f7f0, #a9dcc9);
   box-shadow: inset 0 2px rgba(255, 255, 255, 0.65), 0 5px 13px rgba(0, 0, 0, 0.17);
@@ -484,7 +484,7 @@
   width: 10px;
   height: 10px;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
 }
 
 .haven-legend-indicator.child {
