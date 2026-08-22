@@ -1,8 +1,8 @@
-# BabyGrowth
+# Kinly
 
-BabyGrowth is a local-first React application for tracking a baby's growth, daily care, family timeline, reminders, expenses, and the mother's postpartum routines.
+Kinly is a local-first React application for tracking baby care, growth, family timeline, reminders, expenses, and postpartum routines.
 
-The app stores data in IndexedDB and can back up one application snapshot to the user's private Google Drive `appDataFolder`. It has no application backend.
+The app stores data in IndexedDB and can back up one semantic application snapshot to the user's private Google Drive `appDataFolder`. It has no application backend.
 
 ## Features
 
@@ -24,14 +24,13 @@ The app stores data in IndexedDB and can back up one application snapshot to the
 - Vite 7
 - React Router 7
 - Zustand 5
-- Motion
 - IndexedDB
 - Chart.js
 - vite-plugin-pwa and Workbox
 
 ## Architecture
 
-The source tree is moving to feature ownership. New code belongs in a feature unless it is application composition or reusable code with no domain behavior.
+Kinly uses feature ownership for product code. Domain behavior belongs to the owning feature; application composition belongs in `app/`; reusable code with no feature-specific business rules belongs in `shared/`.
 
 ```text
 app/src/
@@ -47,14 +46,13 @@ app/src/
 │   └── sync/
 ├── shared/
 │   ├── ui/
-│   ├── motion/
 │   ├── hooks/
 │   ├── lib/
 │   └── styles/
 └── data/
 ```
 
-`features/home` and `features/sync` already use these boundaries. Remaining feature moves are tracked in the architecture refactor PR.
+Architecture tests enforce feature boundaries and prevent private cross-feature imports.
 
 ### Ownership rules
 
@@ -64,11 +62,13 @@ app/src/
 - Feature code does not depend on another feature's private files. Import its public entry point instead.
 - Persist raw domain data. Calculate totals and other derived values with selectors.
 
-See `ARCHITECTURE.md` for the current data and persistence contracts.
+See `ARCHITECTURE.md` for the current data, dependency, and persistence contracts.
 
 ## Persistence
 
-Zustand uses `app/src/services/localDb.ts` as its IndexedDB storage adapter. The current storage namespace is generation 4. The adapter does not read or migrate historical v2 or v3 store keys.
+Zustand uses `app/src/data/localDb.ts` as its IndexedDB storage adapter. The current logical storage namespace is generation 4. The adapter does not read or migrate historical v2 or v3 store keys.
+
+Kinly intentionally retains the historical `babygrowth-local`, `babygrowth_v4_*`, and `babygrowth-sync*.json` identifiers so existing installations and Google Drive backups remain readable after the rebrand. Changing those identifiers requires an explicit data migration and is not part of a cosmetic rename.
 
 Google Drive does not copy Zustand persistence keys. `app/src/features/sync/appSnapshot.ts` exports a semantic application snapshot with generation 2 sections for profile, activities, growth, timeline, expenses, and reminders.
 
@@ -102,13 +102,19 @@ The development server normally runs at `https://localhost:5173` with a local SS
 
 ## Validation
 
-Run the same checks used by CI:
+Run the same core checks used by CI:
 
 ```bash
 cd app
 npm test
 npm run lint
 npm run build
+```
+
+Browser E2E coverage is available with:
+
+```bash
+npm run test:e2e
 ```
 
 CI uses Node.js 22.

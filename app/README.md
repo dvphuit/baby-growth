@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# Kinly web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the Kinly React and Vite progressive web app.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Install dependencies and start the HTTPS development server:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The default local origin is `https://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Validation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Run the core checks before opening or updating a pull request:
+
+```bash
+npm test
+npm run lint
+npm run build
 ```
+
+Run browser-level critical-flow coverage with:
+
+```bash
+npm run test:e2e
+```
+
+The E2E command builds the application before running the Playwright suite in `e2e/`.
+
+## Environment
+
+Copy the example environment file for local Google Drive integration:
+
+```bash
+cp .env.example .env.local
+```
+
+Set the OAuth browser client ID:
+
+```text
+VITE_GOOGLE_CLIENT_ID=<your web OAuth client ID>
+```
+
+Do not commit `.env.local`, service account files, access tokens, or other credentials.
+
+## Source layout
+
+```text
+src/
+├── app/          # Routes, composition, lifecycle, onboarding
+├── features/     # Product domains and their public entry points
+├── shared/       # Reusable UI, hooks, libraries, and styles
+└── data/         # Physical local persistence boundary
+```
+
+Cross-feature production imports must go through `features/<feature>/index.ts`. Architecture tests enforce the dependency rules documented in `../ARCHITECTURE.md`.
+
+## Persistence compatibility
+
+The Kinly rebrand does not rename existing storage or backup identifiers. Values such as `babygrowth-local`, `babygrowth_v4_*`, and `babygrowth-sync*.json` are historical compatibility contracts used by existing installations and Google Drive backups.
+
+Do not rename those identifiers without an explicit migration that preserves existing user data.
+
+## Deployment
+
+Firebase Hosting serves `dist/`.
+
+```bash
+npm run deploy:test
+npm run deploy:production
+```
+
+See the repository-level `../README.md` for product setup and `../DESIGN.md` for UI conventions.
