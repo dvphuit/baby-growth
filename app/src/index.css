@@ -5,13 +5,8 @@
 @import './shared/styles/bottom-nav.css';
 @import './shared/styles/bottom-sheet.css';
 @import './shared/styles/modals.css';
-@import './features/profile/profile.css';
 @import './shared/styles/tracker-primitives.css';
 @import './features/home/home.css';
-@import './features/expenses/expenses.css';
-@import './features/growth/growth-view.css';
-@import './app/onboarding/onboarding.css';
 @import './shared/styles/primitives.css';
-@import './features/timeline/timeline.css';
 @import './shared/styles/native-animations.css';
 @import './shared/styles/native-transitions.css';

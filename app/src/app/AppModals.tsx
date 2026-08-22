@@ -1,13 +1,19 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { ActivityLogMode } from '@/features/activities';
 import type { AddToast, AppModalController } from '@/app/hooks/useAppModals';
+import {
+  loadExpensesFeature,
+  loadGrowthFeature,
+  loadProfileFeature,
+  loadTimelineFeature,
+} from '@/app/routePreload';
 
 const loadQuickLogModal = () => import('@/features/activities');
 const loadActivityLogModal = () => import('@/features/activities');
-const loadAddGrowthModal = () => import('@/features/growth');
+const loadAddGrowthModal = loadGrowthFeature;
 const loadAddPumpingModal = () => import('@/features/activities');
-const loadAddExpenseModal = () => import('@/features/expenses');
-const loadAddPostModal = () => import('@/features/timeline');
+const loadAddExpenseModal = loadExpensesFeature;
+const loadAddPostModal = loadTimelineFeature;
 
 const QuickLogModal = lazy(async () => ({ default: (await loadQuickLogModal()).QuickLogModal }));
 const ActivityLogModal = lazy(async () => ({ default: (await loadActivityLogModal()).ActivityLogModal }));
@@ -15,7 +21,7 @@ const AddGrowthModal = lazy(async () => ({ default: (await loadAddGrowthModal())
 const AddPumpingModal = lazy(async () => ({ default: (await loadAddPumpingModal()).AddPumpingModal }));
 const AddExpenseModal = lazy(async () => ({ default: (await loadAddExpenseModal()).AddExpenseModal }));
 const AddPostModal = lazy(async () => ({ default: (await loadAddPostModal()).AddPostModal }));
-const EditProfileModal = lazy(async () => ({ default: (await import('@/features/profile')).EditProfileModal }));
+const EditProfileModal = lazy(async () => ({ default: (await loadProfileFeature()).EditProfileModal }));
 const NotificationModal = lazy(async () => ({ default: (await import('@/features/reminders')).NotificationModal }));
 
 const MODAL_EXIT_RETENTION_MS = 280;

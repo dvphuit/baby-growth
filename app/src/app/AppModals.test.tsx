@@ -18,16 +18,22 @@ vi.mock('@/features/growth', () => ({
     <div><span>Add Growth marker</span><button onClick={onClose}>close growth modal</button><button onClick={() => onSuccessToast('saved growth', '📏')}>success growth</button></div>
   ),
   GrowthView: () => null,
+  loadGrowthStyles: async () => undefined,
 }));
-vi.mock('@/features/expenses', () => ({ AddExpenseModal: () => <span>Add Expense marker</span> }));
+vi.mock('@/features/expenses', () => ({
+  AddExpenseModal: () => <span>Add Expense marker</span>,
+  loadExpensesStyles: async () => undefined,
+}));
 vi.mock('@/features/timeline', () => ({
   AddPostModal: () => <span>Add Post marker</span>,
   TimelineView: () => null,
+  loadTimelineStyles: async () => undefined,
 }));
 vi.mock('@/features/profile', () => ({
   EditProfileModal: () => <span>Edit Profile marker</span>,
   GoogleDriveDataView: () => null,
   ProfileView: () => null,
+  loadProfileStyles: async () => undefined,
 }));
 vi.mock('@/features/reminders', () => ({
   NotificationModal: ({ onClose, onQuickLog }: { onClose: () => void; onQuickLog?: (action: string) => void }) => (

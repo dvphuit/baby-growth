@@ -1,9 +1,14 @@
 import { lazy, Suspense } from 'react';
 import type { ProfileMode } from '@/features/profile';
 
-const TimelinePreviewContent = lazy(async () => ({
-  default: (await import('./TimelinePreviewContent')).TimelinePreviewContent,
-}));
+const TimelinePreviewContent = lazy(async () => {
+  const [timelineFeature, module] = await Promise.all([
+    import('@/features/timeline'),
+    import('./TimelinePreviewContent'),
+  ]);
+  await timelineFeature.loadTimelineStyles();
+  return { default: module.TimelinePreviewContent };
+});
 
 interface LazyHomeTimelinePreviewProps {
   owner: ProfileMode;
