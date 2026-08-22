@@ -52,7 +52,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
   );
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi nhanh cho ${isMom ? 'Mẹ' : 'Bé'}`}>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi Nhanh (${isMom ? 'Mẹ' : 'Bé'})`}>
       <div className="quick-log-sheet">
         <div className="quick-log-intro">
           <span className="quick-log-kicker">{isMom ? 'NHẬT KÝ CỦA MẸ' : 'NHẬT KÝ CỦA BÉ'}</span>
