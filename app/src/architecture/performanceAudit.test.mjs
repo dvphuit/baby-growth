@@ -7,6 +7,18 @@ const source = (path) => readFileSync(join(ROOT, 'src', path), 'utf8');
 const appFile = (path) => readFileSync(join(ROOT, path), 'utf8');
 
 describe('interaction performance audit', () => {
+  it('keeps PWA chrome aligned for edge-to-edge surfaces', () => {
+    const index = appFile('index.html');
+    const viteConfig = appFile('vite.config.ts');
+    const base = source('shared/styles/base.css');
+    expect(index).toContain('viewport-fit=cover');
+    expect(index).toContain('<meta name="theme-color" content="#FBF7F2" />');
+    expect(viteConfig).toContain("display: 'standalone'");
+    expect(viteConfig).toContain("theme_color: '#FBF7F2'");
+    expect(viteConfig).toContain("background_color: '#FBF7F2'");
+    expect(base).toContain('min-height: 100svh;');
+  });
+
   it('keeps BottomSheet overlays on the appbar status-bar surface', () => {
     const app = source('app/App.tsx');
     expect(app).toContain('const isFullScreenOverlayOpen = Boolean');

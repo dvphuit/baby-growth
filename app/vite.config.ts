@@ -65,8 +65,8 @@ export default defineConfig({
         display_override: ['standalone', 'minimal-ui', 'browser'],
         orientation: 'portrait',
         prefer_related_applications: false,
-        theme_color: '#39261D',
-        background_color: '#FAF8F5',
+        theme_color: '#FBF7F2',
+        background_color: '#FBF7F2',
         icons: [
           {
             src: '/pwa-64x64.png',
