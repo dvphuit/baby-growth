@@ -118,12 +118,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title={editingExpense ? 'Sửa khoản chi' : 'Thêm chi tiêu'}
+      title={editingExpense ? 'Sửa chi tiêu' : 'Chi tiêu'}
       footer={
         <button
           type="submit"
           form={formId}
-          className="log-btn-primary haven-expense-submit-btn"
+          className="log-btn-primary sheet-primary-action"
           disabled={finalVndAmount <= 0}
         >
           {editingExpense ? 'Lưu thay đổi' : 'Lưu khoản chi'}
@@ -131,12 +131,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         </button>
       }
     >
-      <form id={formId} onSubmit={handleSubmit} className="haven-expense-form">
-        <div className="haven-form-section">
-          <div className="haven-section-header-compact">
-            <label className="log-form-label">
-              Danh mục chi tiêu {selectedCategories.length > 1 ? `(${selectedCategories.length} đã chọn)` : ''}
-            </label>
+      <form id={formId} onSubmit={handleSubmit} className="tracker-sheet-form haven-expense-form">
+        <div className="tracker-sheet-intro expense-sheet-intro">
+          <span className="tracker-sheet-kicker">GHI NHẬN CHI TIÊU</span>
+          <p>Nhập số tiền, chọn danh mục và thời điểm phát sinh.</p>
+        </div>
+
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Danh mục</span>
+            {selectedCategories.length > 1 && <small>{selectedCategories.length} đã chọn</small>}
           </div>
           <div className="haven-category-wrap-group" role="group" aria-label="Danh mục chi tiêu (chọn một hoặc nhiều)">
             {EXPENSE_CATEGORIES.map((category) => {
@@ -161,30 +165,31 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               );
             })}
           </div>
-        </div>
+        </section>
 
-        <div className="haven-expense-display">
-          <div className="haven-expense-display-header">
-            <span className="haven-display-title-label">Số tiền</span>
-            <span className="haven-unit-badge">Đơn vị: <b>×1.000 đ</b></span>
+        <section className="tracker-sheet-section expense-amount-section">
+          <div className="tracker-sheet-section-header">
+            <span>Số tiền</span>
+            <small>Đơn vị ×1.000 đ</small>
           </div>
-          <div className="haven-expense-amount-readout">
-            <div className="haven-formula-scroll-box" title="Biểu thức đã nhập">
-              <span className="haven-formula-text">{expression ? formatExpression(expression) : '0'}</span>
-            </div>
-            <div className="haven-total-vnd-line">
-              <span className="haven-amount-number">{finalVndAmount > 0 ? finalVndAmount.toLocaleString('vi-VN') : '0'}</span>
-              <span className="haven-amount-unit">đ</span>
+          <div className="haven-expense-display">
+            <div className="haven-expense-amount-readout">
+              <div className="haven-formula-scroll-box" title="Biểu thức đã nhập">
+                <span className="haven-formula-text">{expression ? formatExpression(expression) : '0'}</span>
+              </div>
+              <div className="haven-total-vnd-line">
+                <span className="haven-amount-number">{finalVndAmount > 0 ? finalVndAmount.toLocaleString('vi-VN') : '0'}</span>
+                <span className="haven-amount-unit">đ</span>
+              </div>
             </div>
           </div>
-        </div>
+          <div className="haven-form-keypad-wrapper">
+            <ExpenseKeypad expression={expression} onChangeExpression={setExpression} />
+          </div>
+        </section>
 
-        <div className="haven-form-keypad-wrapper">
-          <ExpenseKeypad expression={expression} onChangeExpression={setExpression} />
-        </div>
-
-        <div className="haven-form-section">
-          <label className="log-form-label">Thời gian</label>
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header"><span>Thời gian</span></div>
           <div className="haven-date-segmented-bar">
             <button type="button" className={`haven-date-seg-btn ${datePreset === 'today' ? 'active' : ''}`} onClick={() => handleDatePreset('today')}>Hôm nay</button>
             <button type="button" className={`haven-date-seg-btn ${datePreset === 'yesterday' ? 'active' : ''}`} onClick={() => handleDatePreset('yesterday')}>Hôm qua</button>
@@ -194,22 +199,24 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </div>
 
           {datePreset === 'custom' && (
-            <div style={{ marginTop: '8px' }}>
+            <div className="expense-custom-date">
               <HavenDatePicker label="Thời điểm chi tiêu" value={occurredAt} showTime onChange={setOccurredAt} />
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="haven-form-section">
-          <label className="log-form-label">Ghi chú chi tiết</label>
-          <input
-            className="log-input-control"
-            type="text"
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="Ví dụ: 2 hộp Meiji, bình sữa Comotomo..."
-          />
-        </div>
+        <section className="tracker-sheet-section">
+          <div className="log-form-group sheet-note-field">
+            <label className="log-form-label">Ghi chú</label>
+            <input
+              className="log-input-control"
+              type="text"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="Ví dụ: 2 hộp Meiji, bình sữa Comotomo..."
+            />
+          </div>
+        </section>
 
         {error && <p role="alert" className="haven-form-error">{error}</p>}
       </form>
