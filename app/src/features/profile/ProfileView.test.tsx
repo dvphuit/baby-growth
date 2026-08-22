@@ -83,7 +83,7 @@ describe('ProfileView', () => {
   it('links the growth summary to the full growth page', () => {
     renderProfile();
 
-    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xem chi tiết tăng trưởng' }));
 
     expect(screen.getByText('Trang tăng trưởng')).toBeInTheDocument();
   });
