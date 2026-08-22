@@ -1,7 +1,8 @@
 import React, { useEffect, useId, useMemo, useState } from 'react';
-import { Calendar, Check } from 'lucide-react';
+import { Calendar, Check, FileText } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
+import { HavenWalletIcon } from '@/shared/ui/HavenIcons';
 import { EXPENSE_CATEGORIES } from '@/features/expenses/domain/expenseCategories';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import type { ExpenseRecord } from '@/types/expense';
@@ -119,6 +120,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={editingExpense ? 'Sửa khoản chi' : 'Chi tiêu'}
+      className="kinly-themed-sheet expense-bottom-sheet"
       footer={
         <button
           type="submit"
@@ -133,39 +135,14 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     >
       <form id={formId} onSubmit={handleSubmit} className="tracker-sheet-form haven-expense-form">
         <div className="tracker-sheet-intro expense-sheet-intro">
-          <span className="tracker-sheet-kicker">GHI NHẬN CHI TIÊU</span>
-          <p>Nhập số tiền, chọn danh mục và thời điểm phát sinh.</p>
+          <span className="tracker-sheet-intro-icon">
+            <HavenWalletIcon size={22} color="currentColor" secondaryColor="rgba(255, 255, 255, 0.2)" />
+          </span>
+          <div className="tracker-sheet-intro-copy">
+            <span className="tracker-sheet-kicker">GHI NHẬN CHI TIÊU</span>
+            <p>Nhập số tiền trước, sau đó chọn nhóm chi và thời điểm phát sinh.</p>
+          </div>
         </div>
-
-        <section className="tracker-sheet-section">
-          <div className="tracker-sheet-section-header">
-            <span>Danh mục</span>
-            {selectedCategories.length > 1 && <small>{selectedCategories.length} đã chọn</small>}
-          </div>
-          <div className="haven-category-wrap-group" role="group" aria-label="Danh mục chi tiêu (chọn một hoặc nhiều)">
-            {EXPENSE_CATEGORIES.map((category) => {
-              const isSelected = selectedCategories.includes(category.name);
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  className={`haven-cat-pill-btn ${isSelected ? 'active' : ''}`}
-                  style={{
-                    backgroundColor: isSelected ? category.bgLight : undefined,
-                    borderColor: isSelected ? category.color : undefined,
-                    color: isSelected ? category.color : undefined,
-                  }}
-                  onClick={() => handleToggleCategory(category.name)}
-                >
-                  <ExpenseCategoryIcon category={category.name} size={15} />
-                  <span className="haven-cat-pill-title">{category.name}</span>
-                  {isSelected && <Check size={12} strokeWidth={2.6} className="haven-cat-check-ico" />}
-                </button>
-              );
-            })}
-          </div>
-        </section>
 
         <section className="tracker-sheet-section expense-amount-section">
           <div className="tracker-sheet-section-header">
@@ -188,6 +165,43 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </div>
         </section>
 
+        <section className="tracker-sheet-section expense-category-section">
+          <div className="tracker-sheet-section-header">
+            <span>Nhóm chi</span>
+            <small>{selectedCategories.length} đã chọn</small>
+          </div>
+          <div className="expense-category-grid" role="group" aria-label="Danh mục chi tiêu (chọn một hoặc nhiều)">
+            {EXPENSE_CATEGORIES.map((category) => {
+              const isSelected = selectedCategories.includes(category.name);
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  aria-label={category.name}
+                  aria-pressed={isSelected}
+                  className={`expense-category-card ${isSelected ? 'active' : ''}`}
+                  style={{
+                    backgroundColor: isSelected ? category.bgLight : undefined,
+                    borderColor: isSelected ? category.color : undefined,
+                    color: isSelected ? category.color : undefined,
+                  }}
+                  onClick={() => handleToggleCategory(category.name)}
+                >
+                  <span className="expense-category-icon" style={{ backgroundColor: category.bgLight }}>
+                    <ExpenseCategoryIcon category={category.name} size={17} />
+                  </span>
+                  <span className="expense-category-title">{category.shortName}</span>
+                  {isSelected && (
+                    <span className="expense-category-check" style={{ backgroundColor: category.color }}>
+                      <Check size={10} strokeWidth={3} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="tracker-sheet-section">
           <div className="tracker-sheet-section-header"><span>Thời gian</span></div>
           <div className="haven-date-segmented-bar">
@@ -207,7 +221,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
         <section className="tracker-sheet-section">
           <div className="log-form-group sheet-note-field">
-            <label className="log-form-label">Ghi chú</label>
+            <label className="log-form-label icon-label"><FileText size={13} /> Ghi chú</label>
             <input
               className="log-input-control"
               type="text"

@@ -1,11 +1,25 @@
+.growth-bottom-sheet {
+  --sheet-accent: #4b6637;
+  --sheet-soft: #edf4e3;
+}
+
+.growth-bottom-sheet .haven-date-picker-trigger:hover,
+.growth-bottom-sheet .haven-date-picker-trigger[aria-expanded='true'],
+.growth-bottom-sheet .haven-dropdown-trigger:hover,
+.growth-bottom-sheet .haven-dropdown-trigger[aria-expanded='true'] {
+  border-color: rgba(75, 102, 55, 0.5);
+  box-shadow: 0 3px 10px rgba(75, 102, 55, 0.09);
+}
+
 .growth-reference-box {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 10px 12px;
-  border: 1px solid #D2E2BE;
-  border-radius: var(--radius-lg);
-  background: var(--color-sage-subtle);
+  padding: 11px 13px;
+  border: 1px solid #cadcb5;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eaf2df 0%, #f7faF3 100%);
+  box-shadow: 0 5px 14px rgba(75, 102, 55, 0.07);
 }
 
 .growth-reference-icon {
@@ -17,7 +31,7 @@
   border-radius: 50%;
   background: #FFFFFF;
   color: var(--color-sage-dark);
-  box-shadow: 0 2px 8px rgba(83, 112, 56, 0.1);
+  box-shadow: 0 3px 10px rgba(83, 112, 56, 0.12);
 }
 
 .growth-reference-text {
@@ -47,14 +61,36 @@
 }
 
 .growth-metric-card {
+  --growth-metric-accent: #4b6637;
+  --growth-metric-soft: #edf4e3;
+  --growth-metric-icon-soft: #f7faF3;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 10px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--growth-metric-accent) 18%, var(--color-border-subtle));
+  border-radius: 17px;
+  background: linear-gradient(140deg, #FFFFFF 18%, var(--growth-metric-soft) 150%);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--growth-metric-accent) 7%, transparent);
+}
+
+.growth-metric-card.tone-weight {
+  --growth-metric-accent: #4b6637;
+  --growth-metric-soft: #e7f0dc;
+  --growth-metric-icon-soft: #f3f8ed;
+}
+
+.growth-metric-card.tone-height {
+  --growth-metric-accent: #9b6b12;
+  --growth-metric-soft: #fdf0cb;
+  --growth-metric-icon-soft: #fff8e8;
+}
+
+.growth-metric-card.tone-head {
+  --growth-metric-accent: #87533a;
+  --growth-metric-soft: #f4e4da;
+  --growth-metric-icon-soft: #fbf2ec;
 }
 
 .growth-metric-copy {
@@ -65,14 +101,15 @@
 }
 
 .growth-metric-icon {
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--color-sage-light);
-  color: var(--color-sage-dark);
+  border: 1px solid color-mix(in srgb, var(--growth-metric-accent) 12%, white);
+  border-radius: 13px;
+  background: var(--growth-metric-icon-soft);
+  color: var(--growth-metric-accent);
 }
 
 .growth-metric-copy > div {
@@ -83,17 +120,17 @@
 }
 
 .growth-metric-copy strong {
-  color: var(--color-primary-dark);
+  color: var(--growth-metric-accent);
   font-family: var(--font-family-display);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
 }
 
 .growth-metric-copy small {
-  color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--growth-metric-accent) 64%, var(--color-text-muted));
   font-size: 9.5px;
-  font-weight: 650;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -107,6 +144,14 @@
 .growth-stepper-control .stepper-btn {
   width: 32px;
   height: 32px;
+  border-color: color-mix(in srgb, var(--growth-metric-accent) 22%, var(--color-border-subtle));
+  color: var(--growth-metric-accent);
+}
+
+.growth-stepper-control .stepper-btn:hover,
+.growth-stepper-control .stepper-btn:focus-visible {
+  border-color: var(--growth-metric-accent);
+  background: var(--growth-metric-icon-soft);
 }
 
 .growth-metric-input-wrap {
@@ -118,6 +163,9 @@
 .growth-metric-input-wrap .growth-metric-input {
   height: 34px;
   padding: 0 26px 0 7px;
+  border-color: color-mix(in srgb, var(--growth-metric-accent) 18%, var(--color-border-subtle));
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--growth-metric-accent);
   text-align: center;
   font-family: var(--font-family-display);
   font-size: 15px;
@@ -128,14 +176,14 @@
   position: absolute;
   top: 50%;
   right: 8px;
-  color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--growth-metric-accent) 58%, var(--color-text-muted));
   font-size: 9px;
   font-weight: 700;
   pointer-events: none;
   transform: translateY(-50%);
 }
 
-@media (max-width: 400px) {
+@media (max-width: 350px) {
   .growth-metric-card {
     align-items: flex-start;
     flex-direction: column;

@@ -3,17 +3,15 @@ import {
   ArrowRight,
   Baby,
   Calendar,
-  CircleDot,
   FileText,
   Minus,
   Plus,
-  Ruler,
-  Scale,
   Sparkles,
 } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
+import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import './growth.css';
 
@@ -83,7 +81,8 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
   const metrics = [
     {
       key: 'weight',
-      icon: <Scale size={14} />,
+      tone: 'weight',
+      icon: <HavenScaleIcon size={22} color="currentColor" secondaryColor="var(--growth-metric-icon-soft)" />,
       label: 'Cân nặng',
       unit: 'kg',
       value: weight,
@@ -94,7 +93,8 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
     },
     {
       key: 'height',
-      icon: <Ruler size={14} />,
+      tone: 'height',
+      icon: <HavenRulerIcon size={22} color="currentColor" secondaryColor="var(--growth-metric-icon-soft)" />,
       label: 'Chiều cao',
       unit: 'cm',
       value: height,
@@ -105,7 +105,8 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
     },
     {
       key: 'head',
-      icon: <CircleDot size={14} />,
+      tone: 'head',
+      icon: <HavenHeadCircIcon size={22} color="currentColor" secondaryColor="var(--growth-metric-icon-soft)" />,
       label: 'Vòng đầu',
       unit: 'cm',
       value: headCirc,
@@ -120,7 +121,8 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Tăng trưởng"
+      title="Cân đo tăng trưởng"
+      className="kinly-themed-sheet growth-bottom-sheet"
       footer={
         <button type="submit" form={formId} className="log-btn-primary sheet-primary-action">
           <span>Lưu số đo</span>
@@ -130,8 +132,13 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
     >
       <form id={formId} onSubmit={handleSubmit} className="tracker-sheet-form growth-sheet-form">
         <div className="tracker-sheet-intro">
-          <span className="tracker-sheet-kicker">CẬP NHẬT CHỈ SỐ</span>
-          <p>Ghi số đo mới để theo dõi xu hướng phát triển của bé.</p>
+          <span className="tracker-sheet-intro-icon">
+            <HavenScaleIcon size={22} color="currentColor" secondaryColor="rgba(255, 255, 255, 0.18)" />
+          </span>
+          <div className="tracker-sheet-intro-copy">
+            <span className="tracker-sheet-kicker">CẬP NHẬT CHỈ SỐ</span>
+            <p>Ghi số đo mới để theo dõi nhịp phát triển của bé theo thời gian.</p>
+          </div>
         </div>
 
         <section className="tracker-sheet-section">
@@ -163,7 +170,7 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
           </div>
           <div className="growth-metric-stack">
             {metrics.map((metric) => (
-              <div className="growth-metric-card" key={metric.key}>
+              <div className={`growth-metric-card tone-${metric.tone}`} key={metric.key}>
                 <div className="growth-metric-copy">
                   <span className="growth-metric-icon">{metric.icon}</span>
                   <div>

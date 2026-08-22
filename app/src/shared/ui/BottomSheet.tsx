@@ -8,6 +8,7 @@ interface BottomSheetProps {
   onClose: () => void;
   title?: string;
   dismissible?: boolean;
+  className?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }
@@ -38,6 +39,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onClose,
   title,
   dismissible = true,
+  className = '',
   children,
   footer,
 }) => {
@@ -229,7 +231,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         aria-labelledby={title ? titleId : undefined}
         aria-label={title ? undefined : 'Hộp thoại'}
         tabIndex={-1}
-        className={`bottom-sheet ${sheetPhaseClass}`}
+        className={`bottom-sheet ${sheetPhaseClass} ${className}`.trim()}
         onClick={(event) => event.stopPropagation()}
       >
         <div

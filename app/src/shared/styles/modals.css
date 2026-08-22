@@ -47,46 +47,129 @@
   pointer-events: none;
 }
 
+.kinly-themed-sheet {
+  --sheet-accent: var(--color-sage-dark);
+  --sheet-soft: var(--color-sage-subtle);
+  background:
+    radial-gradient(circle at 92% 2%, color-mix(in srgb, var(--sheet-accent) 12%, transparent) 0 72px, transparent 73px),
+    linear-gradient(180deg, var(--sheet-soft) 0, #FFFFFF 170px);
+}
+
+.kinly-themed-sheet .sheet-drag-handle-area {
+  background: transparent;
+}
+
+.kinly-themed-sheet .sheet-handle-bar {
+  background: color-mix(in srgb, var(--sheet-accent) 24%, white);
+}
+
+.kinly-themed-sheet .sheet-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.kinly-themed-sheet .sheet-close-btn {
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--sheet-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sheet-accent) 10%, transparent);
+}
+
+.kinly-themed-sheet .sheet-footer {
+  border-top-color: color-mix(in srgb, var(--sheet-accent) 12%, white);
+  background: color-mix(in srgb, var(--sheet-soft) 42%, white);
+}
+
+.kinly-themed-sheet .sheet-primary-action {
+  background: var(--sheet-accent);
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--sheet-accent) 28%, transparent);
+}
+
+.kinly-themed-sheet .sheet-primary-action:hover:not(:disabled),
+.kinly-themed-sheet .sheet-primary-action:focus-visible:not(:disabled) {
+  background: color-mix(in srgb, var(--sheet-accent) 88%, black);
+}
+
 /* Shared bottom-sheet composition. Feature-specific controls can live inside these sections. */
 .tracker-sheet-form,
 .quick-log-sheet {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .tracker-sheet-intro,
 .quick-log-intro {
-  padding: 11px 13px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--color-card-warm);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  padding: 14px;
+  border: 0;
+  border-radius: 21px;
+  background: var(--sheet-accent);
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--sheet-accent) 20%, transparent);
+}
+
+.tracker-sheet-intro::after,
+.quick-log-intro::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -38px;
+  right: -28px;
+  width: 112px;
+  height: 112px;
+  border: 16px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.tracker-sheet-intro-icon,
+.quick-log-intro-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+}
+
+.tracker-sheet-intro-copy,
+.quick-log-intro-copy {
+  min-width: 0;
 }
 
 .tracker-sheet-kicker,
 .quick-log-kicker {
   display: block;
-  color: var(--color-sage-dark);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: 850;
+  letter-spacing: 0.11em;
 }
 
 .tracker-sheet-intro p,
 .quick-log-intro p {
   margin: 4px 0 0;
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 550;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 11.5px;
+  font-weight: 600;
   line-height: 1.45;
 }
 
 .tracker-sheet-section {
-  padding: 11px 12px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  background: #FFFFFF;
-  box-shadow: 0 2px 10px rgba(57, 38, 29, 0.035);
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--sheet-accent) 10%, var(--color-border-subtle));
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 5px 16px rgba(57, 38, 29, 0.045);
 }
 
 .tracker-sheet-section-header {
@@ -100,8 +183,9 @@
 .tracker-sheet-section-header > span {
   color: var(--color-primary-dark);
   font-family: var(--font-family-display);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .tracker-sheet-section-header > small {
@@ -140,6 +224,11 @@
 }
 
 /* Quick log */
+.quick-log-bottom-sheet {
+  --sheet-accent: #647d46;
+  --sheet-soft: #f0f5e8;
+}
+
 .quick-log-actions-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -147,33 +236,70 @@
   margin: 0;
 }
 
-.quick-log-actions-grid:has(> :nth-child(3):last-child) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.quick-log-actions-grid:has(> :nth-child(3):last-child) > :last-child {
+  grid-column: 1 / -1;
 }
 
 .quick-action-item {
+  --quick-action-accent: #607a41;
+  --quick-action-soft: #e8f0dc;
+  --quick-action-icon-soft: #f4f8ef;
+  position: relative;
+  overflow: hidden;
   min-width: 0;
-  min-height: 88px;
-  background: #FFFFFF;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 11px 8px 10px;
+  min-height: 72px;
+  background: linear-gradient(145deg, #FFFFFF 20%, var(--quick-action-soft) 150%);
+  border: 1px solid color-mix(in srgb, var(--quick-action-accent) 18%, var(--color-border-subtle));
+  border-radius: 19px;
+  padding: 11px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  color: var(--color-primary-dark);
+  justify-content: flex-start;
+  gap: 10px;
+  color: var(--quick-action-accent);
+  text-align: left;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(57, 38, 29, 0.04);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--quick-action-accent) 8%, transparent);
   transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.quick-action-item::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--quick-action-accent);
+  opacity: 0.26;
+}
+
+.quick-action-item.tone-sage { --quick-action-accent: #607a41; --quick-action-soft: #e8f0dc; --quick-action-icon-soft: #f3f7ed; }
+.quick-action-item.tone-rose { --quick-action-accent: #a05566; --quick-action-soft: #f8e3e8; --quick-action-icon-soft: #fff4f6; }
+.quick-action-item.tone-amber { --quick-action-accent: #a36a05; --quick-action-soft: #fdf1cf; --quick-action-icon-soft: #fff9e9; }
+.quick-action-item.tone-lavender { --quick-action-accent: #7561aa; --quick-action-soft: #f0ecfb; --quick-action-icon-soft: #f8f6ff; }
+.quick-action-item.tone-clay { --quick-action-accent: #8a5132; --quick-action-soft: #f6e6dc; --quick-action-icon-soft: #fcf3ed; }
+.quick-action-item.tone-blue { --quick-action-accent: #4f8195; --quick-action-soft: #e8f2f6; --quick-action-icon-soft: #f4fafc; }
+.quick-action-item.tone-meadow { --quick-action-accent: #4f7e2f; --quick-action-soft: #e8f3df; --quick-action-icon-soft: #f3f9ee; }
+
+.quick-action-item .haven-icon-badge {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid color-mix(in srgb, var(--quick-action-accent) 14%, white);
+  border-radius: 14px;
+  background: var(--quick-action-icon-soft);
+  color: var(--quick-action-accent);
+  box-shadow: none;
 }
 
 .quick-action-item:hover,
 .quick-action-item:focus-visible {
-  background: var(--color-sage-subtle);
-  border-color: var(--color-sage);
-  box-shadow: var(--shadow-card);
+  background: var(--quick-action-soft);
+  border-color: color-mix(in srgb, var(--quick-action-accent) 48%, white);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--quick-action-accent) 14%, transparent);
   transform: translateY(-1px);
   outline: none;
 }
@@ -184,44 +310,21 @@
 
 .action-item-label {
   max-width: 100%;
-  color: var(--color-primary-dark);
+  color: var(--quick-action-accent);
   font-family: var(--font-family-display);
-  font-size: 11px;
-  font-weight: 750;
-  line-height: 1.25;
-  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: left;
 }
 
 .quick-log-hint {
   margin: -2px 0 0;
-  color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--sheet-accent) 64%, var(--color-text-muted));
   font-size: 10px;
+  font-weight: 650;
   line-height: 1.4;
   text-align: center;
-}
-
-/* Expense sheet: keep its calculator controls, but make the surrounding layout match other sheets. */
-.tracker-sheet-form.haven-expense-form {
-  gap: 12px;
-}
-
-.tracker-sheet-section .haven-category-wrap-group {
-  margin-bottom: 0;
-}
-
-.tracker-sheet-section.expense-amount-section .haven-expense-display {
-  padding: 7px 10px;
-  border-radius: var(--radius-md);
-  background: var(--color-canvas);
-  box-shadow: none;
-}
-
-.tracker-sheet-section.expense-amount-section .haven-form-keypad-wrapper {
-  margin-top: 8px;
-}
-
-.expense-custom-date {
-  margin-top: 8px;
 }
 
 .log-form-group {
@@ -303,10 +406,5 @@
 @media (max-width: 380px) {
   .tracker-sheet-two-column {
     grid-template-columns: 1fr;
-  }
-
-  .quick-log-actions-grid,
-  .quick-log-actions-grid:has(> :nth-child(3):last-child) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

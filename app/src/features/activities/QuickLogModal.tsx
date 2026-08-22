@@ -1,4 +1,4 @@
-import { Camera, HeartPulse } from 'lucide-react';
+import { Camera, HeartPulse, Sparkles } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import {
   HavenDiaperIcon,
@@ -52,39 +52,92 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
   );
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi Nhanh (${isMom ? 'Mẹ' : 'Bé'})`}>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Ghi nhanh cho ${isMom ? 'Mẹ' : 'Bé'}`}
+      className="kinly-themed-sheet quick-log-bottom-sheet"
+    >
       <div className="quick-log-sheet">
         <div className="quick-log-intro">
-          <span className="quick-log-kicker">{isMom ? 'NHẬT KÝ CỦA MẸ' : 'NHẬT KÝ CỦA BÉ'}</span>
-          <p>Chọn hoạt động vừa diễn ra để ghi lại trong vài giây.</p>
+          <span className="quick-log-intro-icon"><Sparkles size={19} /></span>
+          <div className="quick-log-intro-copy">
+            <span className="quick-log-kicker">{isMom ? 'NHẬT KÝ CỦA MẸ' : 'NHẬT KÝ CỦA BÉ'}</span>
+            <p>Chọn hoạt động vừa diễn ra để ghi lại trong vài giây.</p>
+          </div>
         </div>
 
         <div className="quick-log-actions-grid">
           {isMom ? (
             <>
-              <Action type="pumping" label="Hút sữa" icon={<HavenPumpingIcon size={24} />} tone="rose" />
-              <Action type="mom-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+              <Action
+                type="pumping"
+                label="Hút sữa"
+                icon={<HavenPumpingIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="rose"
+              />
+              <Action
+                type="mom-sleep"
+                label="Giấc ngủ"
+                icon={<HavenSleepIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="lavender"
+              />
               <Action
                 type="mom-mood"
                 label="Tâm lý"
-                icon={<HeartPulse size={22} color="var(--color-sage-dark)" />}
-                tone="sage"
+                icon={<HeartPulse size={22} />}
+                tone="rose"
               />
             </>
           ) : (
             <>
-              <Action type="feeding" label="Cữ bú" icon={<HavenFeedingIcon size={24} />} tone="sage" />
-              <Action type="diaper" label="Thay tã" icon={<HavenDiaperIcon size={24} />} tone="amber" />
-              <Action type="baby-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
-              <Action type="temperature" label="Nhiệt độ" icon={<HavenTemperatureIcon size={24} />} tone="rose" />
-              <Action type="medicine" label="Thuốc / vitamin" icon={<HavenMedicineIcon size={24} />} tone="blue" />
-              <Action type="growth" label="Cân đo" icon={<HavenScaleIcon size={24} />} tone="meadow" />
-              <Action type="smart-expense" label="Chi tiêu" icon={<HavenWalletIcon size={24} />} tone="clay" />
+              <Action
+                type="feeding"
+                label="Cữ bú"
+                icon={<HavenFeedingIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="sage"
+              />
+              <Action
+                type="diaper"
+                label="Thay tã"
+                icon={<HavenDiaperIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="amber"
+              />
+              <Action
+                type="baby-sleep"
+                label="Giấc ngủ"
+                icon={<HavenSleepIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="lavender"
+              />
+              <Action
+                type="temperature"
+                label="Nhiệt độ"
+                icon={<HavenTemperatureIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="rose"
+              />
+              <Action
+                type="medicine"
+                label="Thuốc / vitamin"
+                icon={<HavenMedicineIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="blue"
+              />
+              <Action
+                type="growth"
+                label="Cân đo"
+                icon={<HavenScaleIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="meadow"
+              />
+              <Action
+                type="smart-expense"
+                label="Chi tiêu"
+                icon={<HavenWalletIcon size={24} color="currentColor" secondaryColor="var(--quick-action-icon-soft)" />}
+                tone="clay"
+              />
               <Action
                 type="diary"
                 label="Khoảnh khắc"
-                icon={<Camera size={22} color="var(--color-primary-dark)" />}
-                tone="sage"
+                icon={<Camera size={22} />}
+                tone="clay"
               />
             </>
           )}
