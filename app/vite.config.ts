@@ -54,9 +54,9 @@ export default defineConfig({
       },
 
       manifest: {
-        name: 'BabyGrowth AI - Theo dõi Bé & Mẹ',
-        short_name: 'BabyGrowth',
-        description: 'Ứng dụng theo dõi phát triển Bé & Chăm sóc Mẹ chuẩn WHO (0-18 tuổi)',
+        name: 'Kinly - Theo dõi Bé & Mẹ',
+        short_name: 'Kinly',
+        description: 'Ứng dụng theo dõi chăm sóc, tăng trưởng và nhật ký gia đình.',
         lang: 'vi',
         id: '/',
         start_url: '/',
