@@ -3,12 +3,16 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
 import './index.css';
+import { createAppSnapshotRuntime } from '@/app/lifecycle/appSnapshotRuntime';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { configureAppSnapshotRuntime } from '@/features/sync';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
+
+configureAppSnapshotRuntime(createAppSnapshotRuntime());
 
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);

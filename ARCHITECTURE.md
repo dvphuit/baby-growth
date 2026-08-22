@@ -48,9 +48,11 @@ The activity registry may hold stable metadata such as labels and icons. Forms a
 
 ## Snapshot contract
 
-`features/sync/appSnapshotSchema.ts` is the pure semantic wire contract for backup and restore. It owns `AppSnapshot`, the generation constant, and boundary parsing/validation. It must not read, write, or subscribe to application stores.
+`features/sync/appSnapshotSchema.ts` is the pure semantic wire contract for backup and restore. It owns `AppSnapshot`, the generation constant, and boundary parsing/validation. It must not read, write, or subscribe to application stores or depend on feature runtime values.
 
-`features/sync/appSnapshot.ts` is the runtime adapter. It assembles the semantic snapshot from feature state, applies a validated snapshot back to current stores, and subscribes to snapshot-relevant changes. Cross-feature access from this adapter must go through each feature's public API.
+`features/sync/appSnapshot.ts` is the Sync-side port. It exposes snapshot export/apply/subscription operations to Google Drive sync but does not know any feature stores. The application configures that port once during bootstrap.
+
+`app/lifecycle/appSnapshotRuntime.ts` is the app-composition adapter. It assembles the semantic snapshot from feature state, applies a validated snapshot back to current stores, and subscribes to snapshot-relevant changes. Because it composes multiple domains, it belongs to `app` and consumes each feature through its public API.
 
 `AppSnapshot` generation 2 has these semantic sections:
 
@@ -61,7 +63,7 @@ The activity registry may hold stable metadata such as labels and icons. Forms a
 - `expenses`
 - `reminders`
 
-The snapshot does not expose Zustand storage keys. Separating the schema from the runtime adapter does not change generation 2 or the Google Drive file format. A generation change is reserved for an incompatible semantic wire-contract change, not for moving implementation code.
+The snapshot does not expose Zustand storage keys. Separating the schema, port, and app runtime does not change generation 2 or the Google Drive file format. A generation change is reserved for an incompatible semantic wire-contract change, not for moving implementation code.
 
 `GrowthFacts` persists only measurement facts, milestone progress, the active stage, and completed habit IDs. `StageData` is an in-memory projection rebuilt from those facts plus static reference data. WHO chart series, vitals summaries, scores, labels, and other calculated presentation are not persisted.
 
@@ -81,7 +83,7 @@ Media blobs use a separate IndexedDB object store and are not encoded into the Z
 - `deviceId`
 - `fingerprint`
 
-Google Drive sync never reads or writes individual Zustand records. Auto-sync subscribes to domain store changes through the application snapshot runtime and exports a new semantic snapshot when needed.
+Google Drive sync never reads or writes individual Zustand records. Auto-sync subscribes through the configured snapshot port, so Sync remains independent of feature store implementations.
 
 Schema-1 Drive backups are incompatible with the current generation and are rejected at the parser boundary.
 

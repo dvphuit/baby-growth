@@ -1,6 +1,6 @@
 import type { BabyActivity, MedicationCatalogItem, MomActivity } from '@/features/activities';
 import type { ExpenseRecord } from '@/features/expenses';
-import { isGrowthFacts, type GrowthFacts } from '@/features/growth';
+import type { GrowthFacts } from '@/features/growth';
 import type { FamilyData, ProfileMode } from '@/features/profile';
 import type { Reminder, ReminderOccurrenceState } from '@/features/reminders';
 import type { TimelineItem } from '@/features/timeline';
@@ -34,8 +34,41 @@ export interface AppSnapshot {
   };
 }
 
+const GROWTH_STAGE_KEYS = new Set(['stage_0_1', 'stage_1_5', 'stage_6_12', 'stage_13_18']);
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isGrowthMeasurementFact(value: unknown): boolean {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.date === 'string'
+    && typeof value.weight === 'number'
+    && typeof value.height === 'number'
+    && typeof value.headCirc === 'number'
+    && typeof value.note === 'string'
+    && (value.labelIndex === undefined || typeof value.labelIndex === 'number');
+}
+
+function isGrowthMilestoneFact(value: unknown): boolean {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && (value.status === 'completed' || value.status === 'in-progress' || value.status === 'upcoming')
+    && (value.dateAchieved === null || typeof value.dateAchieved === 'string');
+}
+
+function isSnapshotGrowthFacts(value: unknown): value is GrowthFacts {
+  if (!isRecord(value) || typeof value.currentStage !== 'string' || !GROWTH_STAGE_KEYS.has(value.currentStage)) return false;
+  if (!isRecord(value.stages) || !Array.isArray(value.completedHabitIds) || !value.completedHabitIds.every((id) => typeof id === 'string')) return false;
+  return Object.entries(value.stages).every(([key, stage]) =>
+    GROWTH_STAGE_KEYS.has(key)
+      && isRecord(stage)
+      && Array.isArray(stage.measurements)
+      && stage.measurements.every(isGrowthMeasurementFact)
+      && Array.isArray(stage.milestones)
+      && stage.milestones.every(isGrowthMilestoneFact),
+  );
 }
 
 export function isAppSnapshot(value: unknown): value is AppSnapshot {
@@ -56,7 +89,7 @@ export function isAppSnapshot(value: unknown): value is AppSnapshot {
     && Array.isArray(activities.baby)
     && Array.isArray(activities.mom)
     && Array.isArray(activities.medicationCatalog)
-    && isGrowthFacts(growth)
+    && isSnapshotGrowthFacts(growth)
     && isRecord(timeline)
     && Array.isArray(timeline.items)
     && isRecord(expenses)

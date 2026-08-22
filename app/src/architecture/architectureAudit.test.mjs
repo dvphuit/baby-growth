@@ -142,15 +142,20 @@ describe('architecture acceptance guard', () => {
     expect(editor).not.toContain("@/features/profile/");
   });
 
-  it('keeps the semantic snapshot schema pure and runtime adapters on feature public APIs', () => {
+  it('keeps snapshot wire contracts pure and feature-store orchestration in app composition', () => {
     const schema = readFileSync(join(SRC, 'features/sync/appSnapshotSchema.ts'), 'utf8');
-    const runtime = readFileSync(join(SRC, 'features/sync/appSnapshot.ts'), 'utf8');
+    const port = readFileSync(join(SRC, 'features/sync/appSnapshot.ts'), 'utf8');
+    const runtime = readFileSync(join(SRC, 'app/lifecycle/appSnapshotRuntime.ts'), 'utf8');
 
-    expect(schema).not.toContain('.getState(');
-    expect(schema).not.toContain('.setState(');
-    expect(schema).not.toContain('.subscribe(');
-    expect(runtime).toContain("from './appSnapshotSchema'");
+    for (const source of [schema, port]) {
+      expect(source).not.toContain('.getState(');
+      expect(source).not.toContain('.setState(');
+      expect(source).not.toContain('.subscribe(');
+    }
+    expect(port).toContain("from './appSnapshotSchema'");
+    expect(runtime).toContain('createAppSnapshotRuntime');
     for (const feature of ['activities', 'expenses', 'growth', 'profile', 'reminders', 'timeline']) {
+      expect(port).not.toContain(`@/features/${feature}`);
       expect(runtime).not.toContain(`@/features/${feature}/`);
       expect(schema).not.toContain(`@/features/${feature}/`);
     }

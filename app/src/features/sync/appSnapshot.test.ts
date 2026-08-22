@@ -1,14 +1,22 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { createAppSnapshotRuntime } from '@/app/lifecycle/appSnapshotRuntime';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { initializeChildProfile, resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import { APP_SNAPSHOT_GENERATION, applyAppSnapshot, exportAppSnapshot, parseAppSnapshot } from './appSnapshot';
+import {
+  APP_SNAPSHOT_GENERATION,
+  applyAppSnapshot,
+  configureAppSnapshotRuntime,
+  exportAppSnapshot,
+  parseAppSnapshot,
+} from './appSnapshot';
 
 describe('appSnapshot', () => {
   beforeEach(() => {
+    configureAppSnapshotRuntime(createAppSnapshotRuntime());
     resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
