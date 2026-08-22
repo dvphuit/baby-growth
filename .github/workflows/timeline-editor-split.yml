@@ -1,0 +1,69 @@
+name: Timeline Editor Split Gate
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.head_ref == 'refactor/timeline-editor-ownership'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/timeline-editor-ownership
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+      - name: Split timeline editor ownership
+        working-directory: app
+        run: node scripts/split-timeline-editor.mjs
+      - name: Test
+        working-directory: app
+        run: npm test
+      - name: Lint
+        working-directory: app
+        run: npm run lint
+      - name: Build
+        working-directory: app
+        run: npm run build
+      - name: Verify split and staged scope
+        run: |
+          test -f app/src/features/timeline/components/TimelineEntryEditor.tsx
+          test -f app/src/features/timeline/components/timelineEntryTypes.ts
+          ! grep -q "function TimelineEntryEditor" app/src/features/timeline/components/TimelineEntryDialog.tsx
+          ! grep -q "@/features/activities/" app/src/features/timeline/components/TimelineEntryEditor.tsx
+          ! grep -q "@/features/growth/" app/src/features/timeline/components/TimelineEntryEditor.tsx
+          ! grep -q "@/features/profile/" app/src/features/timeline/components/TimelineEntryEditor.tsx
+          git diff --check
+      - name: Publish verified split
+        run: |
+          rm .github/workflows/timeline-editor-split.yml
+          rm app/scripts/split-timeline-editor.mjs
+          git add -A
+          git diff --cached --check
+          unexpected="$(git diff --cached --name-only | grep -vE '^(ARCHITECTURE\.md|app/src/architecture/architectureAudit\.test\.mjs|app/src/features/activities/index\.ts|app/src/features/timeline/components/TimelineEntryDialog\.tsx|app/src/features/timeline/components/TimelineEntryEditor\.tsx|app/src/features/timeline/components/timelineEntryTypes\.ts|\.github/workflows/timeline-editor-split\.yml|app/scripts/split-timeline-editor\.mjs)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected files in migration:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "Timeline editor split produced no changes"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Split timeline editor ownership"
+          git push origin HEAD:refactor/timeline-editor-ownership
