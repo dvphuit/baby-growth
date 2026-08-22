@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BabyActivity, MomActivity } from '@/types';
+import type { BabyActivity, MomActivity } from '@/features/activities/domain/types';
 import {
   getBabyActivitiesForDay,
   getMomActivitiesForDay,

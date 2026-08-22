@@ -1,5 +1,5 @@
 import { INITIAL_STAGES } from '@/data/seedData';
-import type { GrowthChartData, GrowthHistoryRecord, StageKey } from '@/types';
+import type { GrowthChartData, GrowthHistoryRecord, StageKey } from '@/features/growth/domain/types';
 
 const SEEDED_GROWTH_IDS = new Set(
   Object.values(INITIAL_STAGES).flatMap((stage) => (stage.growthHistory ?? []).map((record) => record.id)),

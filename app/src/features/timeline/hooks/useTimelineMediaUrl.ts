@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getLocalMedia } from '@/data/localDb';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 
 // Preloading warms an object URL with zero consumers; mounted media components
 // own the references that keep it alive. Concurrent blob reads are deduplicated

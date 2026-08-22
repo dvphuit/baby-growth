@@ -1,18 +1,8 @@
-/**
- * API service layer for BabyGrowth.
- *
- * Currently returns seed data directly. When a real backend is available,
- * replace the implementations with fetch() calls. The interface stays the same
- * so consumers don't need to change.
- */
-import type {
-  StageData,
-  MomData,
-  TimelineItem,
-  DailyHabit,
-  CalendarRangeEvent,
-  FamilyData,
-} from '@/types';
+
+import type { StageData, DailyHabit } from '@/types';
+import type { MomData } from '@/features/activities';
+import type { TimelineItem, CalendarRangeEvent } from '@/features/timeline';
+import type { FamilyData } from '@/features/profile';
 import {
   FAMILY_DATA,
   INITIAL_STAGES,

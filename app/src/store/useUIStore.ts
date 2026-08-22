@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/data/localDb';
-import type { TabType, ProfileMode } from '@/types';
+import type { TabType } from '@/types';
+import type { ProfileMode } from '@/features/profile';
 
 interface UIStoreState {
   currentTab: TabType;

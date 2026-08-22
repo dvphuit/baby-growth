@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GrowthHistory } from './GrowthHistory';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
-import type { GrowthHistoryRecord } from '@/types';
+import type { GrowthHistoryRecord } from '@/features/growth/domain/types';
 
 describe('GrowthHistory', () => {
   beforeEach(() => {

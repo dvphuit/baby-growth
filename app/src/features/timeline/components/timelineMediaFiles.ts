@@ -1,4 +1,5 @@
-import type { TimelineMediaItem } from '@/types';
+
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 import { removeLocalMedia, setLocalMedia } from '@/data/localDb';
 
 interface FaceDetectorResult {

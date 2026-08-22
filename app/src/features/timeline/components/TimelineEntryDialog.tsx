@@ -34,9 +34,9 @@ import {
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
 import { HavenDialog } from '@/shared/ui/HavenDialog';
 import { HavenDropdown } from '@/shared/ui/HavenDropdown';
-import { HavenMedicationPicker } from '@/shared/ui/HavenMedicationPicker';
-import { HavenMilkAmountInput } from '@/shared/ui/HavenMilkAmountInput';
-import { HavenTemperatureInput } from '@/shared/ui/HavenTemperatureInput';
+import { HavenMedicationPicker } from '@/features/activities';
+import { HavenMilkAmountInput } from '@/features/activities';
+import { HavenTemperatureInput } from '@/features/activities';
 import { TimelineMediaAsset } from '@/features/timeline/components/TimelineMediaAsset';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import {
@@ -61,12 +61,9 @@ import {
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type {
-  ActivityRecord,
-  GrowthHistoryRecord,
-  TimelineItem,
-  TimelineMediaItem,
-} from '@/types';
+import type { ActivityRecord } from '@/features/activities';
+import type { GrowthHistoryRecord } from '@/features/growth';
+import type { TimelineItem, TimelineMediaItem } from '@/features/timeline/domain/types';
 import { buildBabyTimelineEntry, type DerivedTimelineEntry } from '@/features/timeline/domain/timelineSelectors';
 import { entryMeta } from '@/features/timeline/components/timelineEntryPresentation';
 

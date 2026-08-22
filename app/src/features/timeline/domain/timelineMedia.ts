@@ -1,4 +1,5 @@
-import type { TimelineItem, TimelineMediaItem } from '@/types';
+
+import type { TimelineItem, TimelineMediaItem } from '@/features/timeline/domain/types';
 
 export function timelineMomentOccurredAt(item: Pick<TimelineItem, 'date' | 'timeFormatted'>): string {
   const [year, month, day] = item.date.split('-').map(Number);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ProfileMode } from '@/types';
+import type { ProfileMode } from '@/features/profile';
 import { LazyHomeTimelinePreview } from './LazyHomeTimelinePreview';
 
 interface IdleHomeTimelinePreviewProps {

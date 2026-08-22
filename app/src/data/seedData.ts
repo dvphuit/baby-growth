@@ -1,11 +1,8 @@
-import type {
-  FamilyData,
-  StageData,
-  MomData,
-  CalendarRangeEvent,
-  TimelineItem,
-  DailyHabit,
-} from '../types';
+
+import type { FamilyData } from '@/features/profile';
+import type { StageData, DailyHabit } from '../types';
+import type { MomData } from '@/features/activities';
+import type { CalendarRangeEvent, TimelineItem } from '@/features/timeline';
 
 export const FAMILY_DATA: FamilyData = {
   isInitialized: false,

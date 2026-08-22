@@ -10,7 +10,7 @@ import {
   getDaysInMonth,
   getFirstDayOffset,
 } from '@/utils/date';
-import type { CalendarRangeEvent } from '@/types';
+import type { CalendarRangeEvent } from '@/features/timeline/domain/types';
 
 export interface CalendarCell {
   dayNum: number;

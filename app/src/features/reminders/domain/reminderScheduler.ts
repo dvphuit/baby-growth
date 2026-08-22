@@ -1,4 +1,5 @@
-import type { BabyActivity, MomActivity } from '@/types';
+
+import type { BabyActivity, MomActivity } from '@/features/activities';
 import type { Reminder, ReminderOccurrence, ReminderOccurrenceState } from '@/types/reminder';
 
 function occurrenceId(reminderId: string, discriminator: string): string {

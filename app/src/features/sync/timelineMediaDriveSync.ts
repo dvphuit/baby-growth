@@ -3,7 +3,7 @@ import { uploadTimelineMediaToDrive } from '@/features/sync/googleDriveSync';
 import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { publishTimelineMediaSyncProgress } from './timelineMediaSyncProgress';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type { TimelineItem, TimelineMediaItem } from '@/types';
+import type { TimelineItem, TimelineMediaItem } from '@/features/timeline';
 
 const TIMELINE_STORAGE_KEY = 'babygrowth_v4_timeline';
 

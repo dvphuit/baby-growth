@@ -1,8 +1,8 @@
 import { Minus, Plus, Milk, Sparkles } from 'lucide-react';
 import React, { useId, useMemo } from 'react';
 import { getFeedingRecommendation, type FeedingRecommendation } from '@/features/activities/domain/dailyCareTargets';
-import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
-import { useProfileStore } from '@/features/profile/store/useProfileStore';
+import { useGrowthStore } from '@/features/growth';
+import { useProfileStore } from '@/features/profile';
 
 export interface HavenMilkAmountInputProps {
   value: number | string;

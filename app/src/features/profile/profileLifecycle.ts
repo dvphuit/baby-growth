@@ -1,4 +1,5 @@
-import type { FamilyData } from '@/types';
+
+import type { FamilyData } from '@/features/profile/domain/types';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from './store/useProfileStore';
 

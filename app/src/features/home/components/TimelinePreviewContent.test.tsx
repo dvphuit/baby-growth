@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type { MomActivity, TimelineItem } from '@/types';
+import type { MomActivity } from '@/features/activities';
+import type { TimelineItem } from '@/features/timeline';
 import { TimelinePreviewContent } from './TimelinePreviewContent';
 
 let records: MomActivity[] = [];

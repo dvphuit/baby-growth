@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BabyHomeView } from './BabyHomeView';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type { BabyActivity, TimelineItem } from '@/types';
+import type { BabyActivity } from '@/features/activities';
+import type { TimelineItem } from '@/features/timeline';
 
 let records: BabyActivity[] = [];
 

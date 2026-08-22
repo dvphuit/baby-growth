@@ -11,7 +11,7 @@ import {
   Wallet,
   Sparkles,
 } from 'lucide-react';
-import { getExpenseCategory } from '@/data/expenseCategories';
+import { getExpenseCategory } from '@/features/expenses/domain/expenseCategories';
 
 interface ExpenseCategoryIconProps {
   category: string;

@@ -22,7 +22,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
-import { getExpenseCategory } from '@/data/expenseCategories';
+import { getExpenseCategory } from '@/features/expenses/domain/expenseCategories';
 import type { AddToast } from '@/app/hooks/useAppModals';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import type { ExpenseRecord } from '@/types/expense';

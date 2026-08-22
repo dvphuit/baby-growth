@@ -7,7 +7,9 @@ import {
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import type { JournalTimelineEntry } from '@/features/timeline/components/TimelineEntryDialog';
 import type { MomentMediaPreviewState } from '@/features/timeline/components/MomentMediaPreview';
-import type { ActivityRecord, ProfileMode, TimelineItem, TimelineMediaItem } from '@/types';
+import type { ActivityRecord } from '@/features/activities';
+import type { ProfileMode } from '@/features/profile';
+import type { TimelineItem, TimelineMediaItem } from '@/features/timeline';
 
 type OwnerActivity<T extends ProfileMode> = Extract<ActivityRecord, { owner: T }>;
 

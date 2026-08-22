@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/data/localDb';
-import type { TimelineItem, TimelineMediaItem, CalendarViewMode } from '@/types';
+import type { TimelineItem, TimelineMediaItem, CalendarViewMode } from '@/features/timeline/domain/types';
 import { INITIAL_TIMELINE_ITEMS, FAMILY_DATA } from '@/data/seedData';
 import { todayStr, currentTimeStr } from '@/utils/date';
 import { generateId } from '@/utils/format';

@@ -35,7 +35,7 @@ import {
   type DiagnosticLogEntry,
 } from '@/app/diagnostics/diagnosticLog';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline';
 
 interface GoogleDriveDataViewProps {
   onOpenLightbox: (src: string, isVideo?: boolean) => void;
