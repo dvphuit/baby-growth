@@ -27,6 +27,7 @@
 .bottom-sheet.native-open { animation: slideUpSheet 180ms cubic-bezier(0.2, 0.75, 0.3, 1) both; }
 .bottom-sheet.native-closing { animation: slideDownSheet 160ms cubic-bezier(0.2, 0.75, 0.3, 1) both; pointer-events: none; }
 .bottom-sheet.native-drag-dismissed { animation: none !important; transform: translate3d(0, 100%, 0); opacity: 0; }
+.modal-backdrop.native-drag-dismissed { animation: none !important; opacity: 0 !important; pointer-events: none; }
 .sheet-handle-bar { transition: transform 140ms cubic-bezier(0.2, 0.75, 0.3, 1), background-color 160ms ease; }
 .sheet-handle-bar:hover { transform: scaleX(1.12); }
 .sheet-handle-bar:active { transform: scaleX(0.94); }

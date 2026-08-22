@@ -212,14 +212,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
   if (!presence.mounted || typeof document === 'undefined') return null;
   const phaseClass = presence.phase === 'open' ? 'native-open' : 'native-closing';
-  const sheetPhaseClass = dragDismissedRef.current && !isOpen
-    ? `${phaseClass} native-drag-dismissed`
-    : phaseClass;
+  const dragDismissedClass = dragDismissedRef.current && !isOpen ? 'native-drag-dismissed' : '';
+  const sheetPhaseClass = `${phaseClass} ${dragDismissedClass}`.trim();
 
   return createPortal(
     <div
       ref={backdropRef}
-      className={`modal-backdrop ${isOpen ? 'open' : 'closing'} ${phaseClass}`}
+      className={`modal-backdrop ${isOpen ? 'open' : 'closing'} ${phaseClass} ${dragDismissedClass}`.trim()}
       aria-hidden={isOpen ? undefined : true}
       onClick={(event) => {
         if (isOpen && dismissible && event.target === event.currentTarget) onClose();
