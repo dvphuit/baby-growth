@@ -17,6 +17,15 @@ function BottomSheetHarness() {
   );
 }
 
+function SwipeDismissHarness() {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)} title="Swipe sheet">
+      <p>Swipe content</p>
+    </BottomSheet>
+  );
+}
+
 describe('BottomSheet accessibility and dismissal', () => {
   it('acts as a named modal, traps focus, and restores focus to its opener', async () => {
     const user = userEvent.setup();
@@ -40,6 +49,19 @@ describe('BottomSheet accessibility and dismissal', () => {
     await user.click(close);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 500 });
     await waitFor(() => expect(opener).toHaveFocus());
+  });
+
+  it('keeps the backdrop hidden during swipe dismissal', async () => {
+    render(<SwipeDismissHarness />);
+    const dragArea = document.querySelector('.sheet-drag-handle-area')!;
+    const backdrop = document.querySelector('.modal-backdrop')!;
+
+    fireEvent.pointerDown(dragArea, { pointerId: 7, clientY: 0 });
+    fireEvent.pointerMove(dragArea, { pointerId: 7, clientY: 120 });
+    fireEvent.pointerUp(dragArea, { pointerId: 7, clientY: 120 });
+
+    await waitFor(() => expect(backdrop).toHaveClass('native-drag-dismissed'));
+    expect(backdrop).toHaveStyle({ opacity: '0' });
   });
 
   it('does not start any dismissal path when dismissible is false', () => {
