@@ -80,220 +80,151 @@ export const AddGrowthModal: React.FC<AddGrowthModalProps> = ({
     onClose();
   };
 
+  const metrics = [
+    {
+      key: 'weight',
+      icon: <Scale size={14} />,
+      label: 'Cân nặng',
+      unit: 'kg',
+      value: weight,
+      benchmark: currentP50Weight,
+      step: 0.1,
+      min: 0.5,
+      onChange: setWeight,
+    },
+    {
+      key: 'height',
+      icon: <Ruler size={14} />,
+      label: 'Chiều cao',
+      unit: 'cm',
+      value: height,
+      benchmark: currentP50Height,
+      step: 0.5,
+      min: 10,
+      onChange: setHeight,
+    },
+    {
+      key: 'head',
+      icon: <CircleDot size={14} />,
+      label: 'Vòng đầu',
+      unit: 'cm',
+      value: headCirc,
+      benchmark: currentP50Head,
+      step: 0.2,
+      min: 10,
+      onChange: setHeadCirc,
+    },
+  ] as const;
+
   return (
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Nhập Chỉ Số Tăng Trưởng"
+      title="Tăng trưởng"
       footer={
-        <button type="submit" form={formId} className="log-btn-primary">
-          <span>Lưu Số Đo & Cập Nhật Biểu Đồ</span>
+        <button type="submit" form={formId} className="log-btn-primary sheet-primary-action">
+          <span>Lưu số đo</span>
           <ArrowRight size={14} />
         </button>
       }
     >
-      <form id={formId} onSubmit={handleSubmit} className="growth-input-form-container">
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 1fr',
-            gap: '8px',
-            marginBottom: '10px',
-          }}
-        >
-          <div className="log-form-group" style={{ marginBottom: 0 }}>
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Calendar size={12} /> Ngày đo:
-            </label>
-            <HavenDatePicker
-              label="Ngày đo"
-              value={date}
-              onChange={setDate}
-              maxDate={todayStr}
-            />
-          </div>
-          <div className="log-form-group" style={{ marginBottom: 0 }}>
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Baby size={12} /> Cột mốc tháng:
-            </label>
-            <HavenDropdown
-              label="Cột mốc tháng"
-              value={milestoneIdx}
-              align="end"
-              onChange={(value) => setMilestoneIdx(Number(value))}
-              options={labels.map((label, index) => ({
-                value: index,
-                label: `Mốc ${label}`,
-              }))}
-            />
-          </div>
+      <form id={formId} onSubmit={handleSubmit} className="tracker-sheet-form growth-sheet-form">
+        <div className="tracker-sheet-intro">
+          <span className="tracker-sheet-kicker">CẬP NHẬT CHỈ SỐ</span>
+          <p>Ghi số đo mới để theo dõi xu hướng phát triển của bé.</p>
         </div>
 
-        <div className="log-form-group">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '4px',
-            }}
-          >
-            <label className="log-form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Scale size={12} /> Cân nặng (kg):
-            </label>
-            <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: {currentP50Weight} kg
-            </span>
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Thời điểm đo</span>
           </div>
-          <div className="growth-stepper-control">
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setWeight((current) => Math.max(0.5, parseFloat((current - 0.1).toFixed(1))))}
-            >
-              <Minus size={14} />
-            </button>
-            <input
-              type="number"
-              step="0.1"
-              className="log-input-control"
-              value={weight}
-              onChange={(event) => setWeight(parseFloat(event.target.value) || 0)}
-              style={{
-                textAlign: 'center',
-                fontFamily: 'var(--font-family-display)',
-                fontSize: '18px',
-                fontWeight: 800,
-              }}
-            />
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setWeight((current) => parseFloat((current + 0.1).toFixed(1)))}
-            >
-              <Plus size={14} />
-            </button>
+          <div className="tracker-sheet-two-column">
+            <div className="log-form-group">
+              <label className="log-form-label icon-label"><Calendar size={13} /> Ngày đo</label>
+              <HavenDatePicker label="Ngày đo" value={date} onChange={setDate} maxDate={todayStr} />
+            </div>
+            <div className="log-form-group">
+              <label className="log-form-label icon-label"><Baby size={13} /> Cột mốc tháng</label>
+              <HavenDropdown
+                label="Cột mốc tháng"
+                value={milestoneIdx}
+                align="end"
+                onChange={(value) => setMilestoneIdx(Number(value))}
+                options={labels.map((label, index) => ({ value: index, label: `Mốc ${label}` }))}
+              />
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className="log-form-group">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '4px',
-            }}
-          >
-            <label className="log-form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Ruler size={12} /> Chiều cao (cm):
-            </label>
-            <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: {currentP50Height} cm
-            </span>
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Chỉ số cơ thể</span>
+            <small>WHO P50 để tham chiếu</small>
           </div>
-          <div className="growth-stepper-control">
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setHeight((current) => Math.max(10, parseFloat((current - 0.5).toFixed(1))))}
-            >
-              <Minus size={14} />
-            </button>
-            <input
-              type="number"
-              step="0.5"
-              className="log-input-control"
-              value={height}
-              onChange={(event) => setHeight(parseFloat(event.target.value) || 0)}
-              style={{
-                textAlign: 'center',
-                fontFamily: 'var(--font-family-display)',
-                fontSize: '18px',
-                fontWeight: 800,
-              }}
-            />
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setHeight((current) => parseFloat((current + 0.5).toFixed(1)))}
-            >
-              <Plus size={14} />
-            </button>
+          <div className="growth-metric-stack">
+            {metrics.map((metric) => (
+              <div className="growth-metric-card" key={metric.key}>
+                <div className="growth-metric-copy">
+                  <span className="growth-metric-icon">{metric.icon}</span>
+                  <div>
+                    <strong>{metric.label}</strong>
+                    <small>P50: {metric.benchmark} {metric.unit}</small>
+                  </div>
+                </div>
+                <div className="growth-stepper-control">
+                  <button
+                    type="button"
+                    className="stepper-btn"
+                    aria-label={`Giảm ${metric.label.toLowerCase()}`}
+                    onClick={() => metric.onChange((current) => Math.max(metric.min, parseFloat((current - metric.step).toFixed(1))))}
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <label className="growth-metric-input-wrap">
+                    <input
+                      type="number"
+                      step={metric.step}
+                      className="log-input-control growth-metric-input"
+                      value={metric.value}
+                      onChange={(event) => metric.onChange(parseFloat(event.target.value) || 0)}
+                      aria-label={`${metric.label} (${metric.unit})`}
+                    />
+                    <span>{metric.unit}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="stepper-btn"
+                    aria-label={`Tăng ${metric.label.toLowerCase()}`}
+                    onClick={() => metric.onChange((current) => parseFloat((current + metric.step).toFixed(1)))}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-
-        <div className="log-form-group">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '4px',
-            }}
-          >
-            <label className="log-form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <CircleDot size={12} /> Vòng đầu (cm):
-            </label>
-            <span style={{ fontSize: '10px', color: 'var(--color-sage-dark)', fontWeight: 700 }}>
-              WHO P50: {currentP50Head} cm
-            </span>
-          </div>
-          <div className="growth-stepper-control">
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setHeadCirc((current) => Math.max(10, parseFloat((current - 0.2).toFixed(1))))}
-            >
-              <Minus size={14} />
-            </button>
-            <input
-              type="number"
-              step="0.2"
-              className="log-input-control"
-              value={headCirc}
-              onChange={(event) => setHeadCirc(parseFloat(event.target.value) || 0)}
-              style={{
-                textAlign: 'center',
-                fontFamily: 'var(--font-family-display)',
-                fontSize: '18px',
-                fontWeight: 800,
-              }}
-            />
-            <button
-              type="button"
-              className="stepper-btn"
-              onClick={() => setHeadCirc((current) => parseFloat((current + 0.2).toFixed(1)))}
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-        </div>
+        </section>
 
         <div className="growth-reference-box" id="growthWhoReference">
-          <span className="growth-reference-icon" style={{ color: 'var(--color-sage-dark)' }}>
-            <Sparkles size={18} />
-          </span>
+          <span className="growth-reference-icon"><Sparkles size={18} /></span>
           <div className="growth-reference-text">
-            <strong>Mốc tham chiếu WHO ({labels[milestoneIdx]}):</strong> Cân nặng chuẩn P50:{' '}
-            <strong>{currentP50Weight} kg</strong> • Chiều cao chuẩn P50:{' '}
-            <strong>{currentP50Height} cm</strong> • Vòng đầu:{' '}
-            <strong>{currentP50Head} cm</strong>.
+            <strong>Mốc WHO {labels[milestoneIdx]}</strong>
+            <span>{currentP50Weight} kg · {currentP50Height} cm · {currentP50Head} cm</span>
           </div>
         </div>
 
-        <div className="log-form-group">
-          <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <FileText size={12} /> Ghi chú sức khỏe / Bác sĩ dặn:
-          </label>
-          <input
-            type="text"
-            className="log-input-control"
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="Vd: Bé ăn dặm tốt, bú mẹ đủ cữ, lẫy thành thạo..."
-          />
-        </div>
+        <section className="tracker-sheet-section">
+          <div className="log-form-group sheet-note-field">
+            <label className="log-form-label icon-label"><FileText size={13} /> Ghi chú</label>
+            <input
+              type="text"
+              className="log-input-control"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="Ví dụ: bé ăn tốt, bác sĩ dặn theo dõi cân nặng..."
+            />
+          </div>
+        </section>
       </form>
     </BottomSheet>
   );

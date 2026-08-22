@@ -19,6 +19,8 @@ interface QuickLogModalProps {
   onSelectAction: (actionType: string) => void;
 }
 
+type QuickActionTone = 'sage' | 'rose' | 'amber' | 'lavender' | 'clay' | 'blue' | 'meadow';
+
 export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, onSelectAction }) => {
   const profileMode = useUIStore((state) => state.profileMode);
   const isMom = profileMode === 'mom';
@@ -37,54 +39,58 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({ isOpen, onClose, o
     type: string;
     label: string;
     icon: React.ReactNode;
-    tone?: 'sage' | 'rose' | 'amber' | 'lavender' | 'clay' | 'blue' | 'meadow';
+    tone?: QuickActionTone;
   }) => (
     <button
       type="button"
-      className="quick-action-item"
+      className={`quick-action-item tone-${tone}`}
       onClick={() => handleAction(type)}
-      style={{ cursor: 'pointer', border: 0, background: 'transparent' }}
     >
       <HavenIconBadge icon={icon} tone={tone} size="lg" />
-      <span className="action-item-label" style={{ marginTop: 6 }}>{label}</span>
+      <span className="action-item-label">{label}</span>
     </button>
   );
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi Nhanh ${isMom ? '(Mẹ)' : '(Bé)'}`}>
-      <div className="quick-log-actions-grid">
-        {isMom ? (
-          <>
-            <Action type="pumping" label="Hút sữa" icon={<HavenPumpingIcon size={24} />} tone="rose" />
-            <Action type="mom-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
-            <Action
-              type="mom-mood"
-              label="Tâm lý"
-              icon={<HeartPulse size={22} color="var(--color-sage-dark)" />}
-              tone="sage"
-            />
-          </>
-        ) : (
-          <>
-            <Action type="feeding" label="Cữ bú" icon={<HavenFeedingIcon size={24} />} tone="sage" />
-            <Action type="diaper" label="Thay tã" icon={<HavenDiaperIcon size={24} />} tone="amber" />
-            <Action type="baby-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
-            <Action type="temperature" label="Nhiệt độ" icon={<HavenTemperatureIcon size={24} />} tone="rose" />
-            <Action type="medicine" label="Thuốc / vitamin" icon={<HavenMedicineIcon size={24} />} tone="blue" />
-            <Action type="growth" label="Cân đo" icon={<HavenScaleIcon size={24} />} tone="meadow" />
-            <Action type="smart-expense" label="Chi tiêu" icon={<HavenWalletIcon size={24} />} tone="clay" />
-            <Action
-              type="diary"
-              label="Khoảnh khắc"
-              icon={<Camera size={22} color="var(--color-primary-dark)" />}
-              tone="sage"
-            />
-          </>
-        )}
-      </div>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={`Ghi Nhanh (${isMom ? 'Mẹ' : 'Bé'})`}>
+      <div className="quick-log-sheet">
+        <div className="quick-log-intro">
+          <span className="quick-log-kicker">{isMom ? 'NHẬT KÝ CỦA MẸ' : 'NHẬT KÝ CỦA BÉ'}</span>
+          <p>Chọn hoạt động vừa diễn ra để ghi lại trong vài giây.</p>
+        </div>
 
-      <div style={{ marginTop: '12px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '11px' }}>
-        Chạm một mục để ghi chép nhanh hoặc mở bảng chi tiết
+        <div className="quick-log-actions-grid">
+          {isMom ? (
+            <>
+              <Action type="pumping" label="Hút sữa" icon={<HavenPumpingIcon size={24} />} tone="rose" />
+              <Action type="mom-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+              <Action
+                type="mom-mood"
+                label="Tâm lý"
+                icon={<HeartPulse size={22} color="var(--color-sage-dark)" />}
+                tone="sage"
+              />
+            </>
+          ) : (
+            <>
+              <Action type="feeding" label="Cữ bú" icon={<HavenFeedingIcon size={24} />} tone="sage" />
+              <Action type="diaper" label="Thay tã" icon={<HavenDiaperIcon size={24} />} tone="amber" />
+              <Action type="baby-sleep" label="Giấc ngủ" icon={<HavenSleepIcon size={24} />} tone="lavender" />
+              <Action type="temperature" label="Nhiệt độ" icon={<HavenTemperatureIcon size={24} />} tone="rose" />
+              <Action type="medicine" label="Thuốc / vitamin" icon={<HavenMedicineIcon size={24} />} tone="blue" />
+              <Action type="growth" label="Cân đo" icon={<HavenScaleIcon size={24} />} tone="meadow" />
+              <Action type="smart-expense" label="Chi tiêu" icon={<HavenWalletIcon size={24} />} tone="clay" />
+              <Action
+                type="diary"
+                label="Khoảnh khắc"
+                icon={<Camera size={22} color="var(--color-primary-dark)" />}
+                tone="sage"
+              />
+            </>
+          )}
+        </div>
+
+        <p className="quick-log-hint">Chạm một mục để mở biểu mẫu tương ứng.</p>
       </div>
     </BottomSheet>
   );

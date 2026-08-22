@@ -11,10 +11,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.stepper-btn:hover {
+.stepper-btn:hover,
+.stepper-btn:focus-visible {
   background: var(--color-sage-light);
   border-color: var(--color-sage);
 }
@@ -46,30 +47,181 @@
   pointer-events: none;
 }
 
+/* Shared bottom-sheet composition. Feature-specific controls can live inside these sections. */
+.tracker-sheet-form,
+.quick-log-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tracker-sheet-intro,
+.quick-log-intro {
+  padding: 11px 13px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-card-warm);
+}
+
+.tracker-sheet-kicker,
+.quick-log-kicker {
+  display: block;
+  color: var(--color-sage-dark);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.tracker-sheet-intro p,
+.quick-log-intro p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.tracker-sheet-section {
+  padding: 11px 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(57, 38, 29, 0.035);
+}
+
+.tracker-sheet-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.tracker-sheet-section-header > span {
+  color: var(--color-primary-dark);
+  font-family: var(--font-family-display);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tracker-sheet-section-header > small {
+  color: var(--color-text-muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  text-align: right;
+}
+
+.tracker-sheet-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tracker-sheet-section .log-form-group,
+.sheet-note-field {
+  margin-bottom: 0;
+}
+
+.icon-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sheet-primary-action {
+  margin-top: 0;
+}
+
+.log-btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Quick log */
 .quick-log-actions-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.quick-log-actions-grid:has(> :nth-child(3):last-child) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .quick-action-item {
-  background: var(--color-canvas);
+  min-width: 0;
+  min-height: 88px;
+  background: #FFFFFF;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
-  padding: 12px 6px;
+  padding: 11px 8px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 7px;
+  color: var(--color-primary-dark);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  box-shadow: 0 2px 10px rgba(57, 38, 29, 0.04);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.quick-action-item:hover {
+.quick-action-item:hover,
+.quick-action-item:focus-visible {
   background: var(--color-sage-subtle);
   border-color: var(--color-sage);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.quick-action-item:active {
+  transform: scale(0.97);
+}
+
+.action-item-label {
+  max-width: 100%;
+  color: var(--color-primary-dark);
+  font-family: var(--font-family-display);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.quick-log-hint {
+  margin: -2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* Expense sheet: keep its calculator controls, but make the surrounding layout match other sheets. */
+.tracker-sheet-form.haven-expense-form {
+  gap: 12px;
+}
+
+.tracker-sheet-section .haven-category-wrap-group {
+  margin-bottom: 0;
+}
+
+.tracker-sheet-section.expense-amount-section .haven-expense-display {
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+  box-shadow: none;
+}
+
+.tracker-sheet-section.expense-amount-section .haven-form-keypad-wrapper {
+  margin-top: 8px;
+}
+
+.expense-custom-date {
+  margin-top: 8px;
 }
 
 .log-form-group {
@@ -93,13 +245,16 @@
   padding: 0 10px;
   font-family: var(--font-family-body);
   font-size: 12.5px;
+  color: var(--color-text-primary);
   outline: none;
   background: var(--color-canvas);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .log-input-control:focus {
   border-color: var(--color-sage);
   background: #FFFFFF;
+  box-shadow: 0 0 0 3px var(--color-sage-subtle);
 }
 
 .log-btn-primary {
@@ -120,10 +275,11 @@
   margin-top: 12px;
   box-shadow: 0 3px 12px rgba(51, 37, 31, 0.22);
   white-space: nowrap;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.log-btn-primary:hover {
+.log-btn-primary:hover:not(:disabled),
+.log-btn-primary:focus-visible:not(:disabled) {
   background: var(--color-primary-dark-hover);
   transform: translateY(-1px);
 }
@@ -136,10 +292,21 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 12px;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .notification-card-item:hover {
   background: var(--color-sage-subtle);
   border-color: var(--color-sage);
+}
+
+@media (max-width: 380px) {
+  .tracker-sheet-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-log-actions-grid,
+  .quick-log-actions-grid:has(> :nth-child(3):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
