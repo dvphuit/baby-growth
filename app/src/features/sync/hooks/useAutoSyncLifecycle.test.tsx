@@ -1,12 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { waitForAppSnapshotRuntime } from '../appSnapshot';
 import { startAutoSync } from '@/features/sync/googleDriveSync';
 import { reloadPage } from '@/services/appRuntime';
 import { useAutoSyncLifecycle } from './useAutoSyncLifecycle';
 
+vi.mock('../appSnapshot', () => ({ waitForAppSnapshotRuntime: vi.fn() }));
 vi.mock('@/features/sync/googleDriveSync', () => ({ startAutoSync: vi.fn() }));
 vi.mock('@/services/appRuntime', () => ({ reloadPage: vi.fn() }));
 
+const waitForAppSnapshotRuntimeMock = vi.mocked(waitForAppSnapshotRuntime);
 const startAutoSyncMock = vi.mocked(startAutoSync);
 const reloadPageMock = vi.mocked(reloadPage);
 let idleCallbacks: IdleRequestCallback[] = [];
@@ -23,6 +26,8 @@ function runNextIdleCallback(): void {
 
 describe('useAutoSyncLifecycle', () => {
   beforeEach(() => {
+    waitForAppSnapshotRuntimeMock.mockReset();
+    waitForAppSnapshotRuntimeMock.mockResolvedValue();
     startAutoSyncMock.mockReset();
     reloadPageMock.mockReset();
     cancelIdleCallbackMock.mockReset();
@@ -51,6 +56,24 @@ describe('useAutoSyncLifecycle', () => {
 
     unmount();
     expect(stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for snapshot runtime readiness before starting auto-sync', async () => {
+    let resolveRuntime!: () => void;
+    waitForAppSnapshotRuntimeMock.mockReturnValue(new Promise<void>((resolve) => { resolveRuntime = resolve; }));
+    startAutoSyncMock.mockResolvedValue(vi.fn());
+
+    const { unmount } = renderHook(() => useAutoSyncLifecycle());
+    runNextIdleCallback();
+
+    await waitFor(() => expect(waitForAppSnapshotRuntimeMock).toHaveBeenCalledTimes(1));
+    expect(startAutoSyncMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveRuntime();
+    });
+    await waitFor(() => expect(startAutoSyncMock).toHaveBeenCalledTimes(1));
+    unmount();
   });
 
   it('cancels startup when unmounted before the idle callback', () => {

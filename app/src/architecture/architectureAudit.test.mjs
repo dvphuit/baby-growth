@@ -89,12 +89,6 @@ const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
   'features/timeline/hooks/useTimelineMediaUrl.ts -> @/features/sync/googleDriveSync',
   'features/timeline/store/useTimelineStore.ts -> @/features/growth/store/useGrowthStore',
   'features/timeline/store/useTimelineStore.ts -> @/features/profile/store/useProfileStore',
-  'main.tsx -> @/features/activities/store/useActivityStore',
-  'main.tsx -> @/features/expenses/store/useExpenseStore',
-  'main.tsx -> @/features/growth/store/useGrowthStore',
-  'main.tsx -> @/features/profile/store/useProfileStore',
-  'main.tsx -> @/features/reminders/store/useReminderStore',
-  'main.tsx -> @/features/timeline/store/useTimelineStore',
 ].sort();
 
 function findForbiddenTokens() {

@@ -12,6 +12,9 @@ describe('auto-sync performance contract', () => {
 
     expect(lifecycle).toContain('scheduleIdleTask');
     expect(lifecycle).toContain('AUTO_SYNC_START_IDLE_TIMEOUT_MS = 3_000');
+    expect(lifecycle).toContain("import('../appSnapshot')");
+    expect(lifecycle).toContain('waitForAppSnapshotRuntime()');
+    expect(lifecycle.indexOf('waitForAppSnapshotRuntime()')).toBeLessThan(lifecycle.indexOf("import('../googleDriveSync')"));
     expect(sync).toContain('AUTO_SYNC_DEBOUNCE_MS = 3_500');
     expect(sync).toContain('cancelAutoSyncIdle = scheduleIdleTask');
     expect(sync).toContain('clearPendingAutoSync();');

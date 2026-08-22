@@ -1,0 +1,45 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const ROOT = process.cwd();
+const source = (path) => readFileSync(join(ROOT, 'src', path), 'utf8');
+
+describe('startup critical path', () => {
+  it('renders production UI before loading the cross-domain snapshot runtime', () => {
+    const main = source('main.tsx');
+    const renderIndex = main.indexOf('renderApp();');
+    const snapshotIndex = main.indexOf('const snapshotRuntimeReady = configureSnapshotRuntime();');
+
+    expect(renderIndex).toBeGreaterThan(-1);
+    expect(snapshotIndex).toBeGreaterThan(renderIndex);
+    expect(main).not.toContain('await configureSnapshotRuntime()');
+    expect(main).toContain('void snapshotRuntimeReady.catch(reportSnapshotRuntimeFailure);');
+  });
+
+  it('keeps development store hydration out of the production entry module', () => {
+    const main = source('main.tsx');
+    const bootstrap = source('data/bootstrapMockData.ts');
+    const storeImports = [
+      '@/features/activities/store/useActivityStore',
+      '@/features/growth/store/useGrowthStore',
+      '@/features/profile/store/useProfileStore',
+      '@/features/expenses/store/useExpenseStore',
+      '@/features/reminders/store/useReminderStore',
+      '@/features/timeline/store/useTimelineStore',
+    ];
+
+    storeImports.forEach((specifier) => expect(main).not.toContain(specifier));
+    expect(main).toContain('if (import.meta.env.DEV)');
+    expect(main).toContain("await import('./data/bootstrapMockData')");
+    expect(bootstrap).toContain('persist.rehydrate()');
+  });
+
+  it('keeps auto-sync behind both idle scheduling and snapshot runtime readiness', () => {
+    const lifecycle = source('features/sync/hooks/useAutoSyncLifecycle.ts');
+
+    expect(lifecycle).toContain('scheduleIdleTask');
+    expect(lifecycle).toContain('waitForAppSnapshotRuntime()');
+    expect(lifecycle.indexOf('waitForAppSnapshotRuntime()')).toBeLessThan(lifecycle.indexOf("import('../googleDriveSync')"));
+  });
+});

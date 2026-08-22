@@ -7,25 +7,64 @@ import path from 'node:path';
 
 const ENTRY_CHUNK_BUDGET_BYTES = 500_000;
 const ENTRY_GZIP_BUDGET_BYTES = 165_000;
+const TOTAL_CSS_BUDGET_BYTES = 250_000;
+const TOTAL_CSS_GZIP_BUDGET_BYTES = 45_000;
+const WASM_BUNDLE_BUDGET_BYTES = 0;
+
+function assetBuffer(source: string | Uint8Array): Buffer {
+  return typeof source === 'string' ? Buffer.from(source, 'utf8') : Buffer.from(source);
+}
 
 function performanceBudgetPlugin(): Plugin {
   return {
     name: 'performance-budget',
     apply: 'build',
     generateBundle(_options, bundle) {
+      let cssRawBytes = 0;
+      let cssGzipBytes = 0;
+      let wasmRawBytes = 0;
+
       Object.values(bundle).forEach((output) => {
-        if (output.type !== 'chunk' || !output.isEntry) return;
+        if (output.type === 'chunk' && output.isEntry) {
+          const rawBytes = Buffer.byteLength(output.code, 'utf8');
+          const gzipBytes = gzipSync(output.code).byteLength;
+          if (rawBytes <= ENTRY_CHUNK_BUDGET_BYTES && gzipBytes <= ENTRY_GZIP_BUDGET_BYTES) return;
 
-        const rawBytes = Buffer.byteLength(output.code, 'utf8');
-        const gzipBytes = gzipSync(output.code).byteLength;
-        if (rawBytes <= ENTRY_CHUNK_BUDGET_BYTES && gzipBytes <= ENTRY_GZIP_BUDGET_BYTES) return;
+          this.error(
+            `Entry chunk ${output.fileName} exceeds the performance budget: `
+            + `${rawBytes} raw bytes / ${gzipBytes} gzip bytes `
+            + `(limits: ${ENTRY_CHUNK_BUDGET_BYTES} / ${ENTRY_GZIP_BUDGET_BYTES}).`,
+          );
+          return;
+        }
 
-        this.error(
-          `Entry chunk ${output.fileName} exceeds the performance budget: `
-          + `${rawBytes} raw bytes / ${gzipBytes} gzip bytes `
-          + `(limits: ${ENTRY_CHUNK_BUDGET_BYTES} / ${ENTRY_GZIP_BUDGET_BYTES}).`,
-        );
+        if (output.type !== 'asset') return;
+        const bytes = assetBuffer(output.source);
+
+        if (output.fileName.endsWith('.css')) {
+          cssRawBytes += bytes.byteLength;
+          cssGzipBytes += gzipSync(bytes).byteLength;
+          return;
+        }
+
+        if (output.fileName.endsWith('.wasm')) {
+          wasmRawBytes += bytes.byteLength;
+        }
       });
+
+      if (cssRawBytes > TOTAL_CSS_BUDGET_BYTES || cssGzipBytes > TOTAL_CSS_GZIP_BUDGET_BYTES) {
+        this.error(
+          `CSS bundle exceeds the performance budget: ${cssRawBytes} raw bytes / ${cssGzipBytes} gzip bytes `
+          + `(limits: ${TOTAL_CSS_BUDGET_BYTES} / ${TOTAL_CSS_GZIP_BUDGET_BYTES}).`,
+        );
+      }
+
+      if (wasmRawBytes > WASM_BUNDLE_BUDGET_BYTES) {
+        this.error(
+          `WASM output exceeds the benchmark gate: ${wasmRawBytes} raw bytes `
+          + `(budget: ${WASM_BUNDLE_BUDGET_BYTES}). Add WASM only with benchmark evidence and an explicit budget update.`,
+        );
+      }
     },
   };
 }
