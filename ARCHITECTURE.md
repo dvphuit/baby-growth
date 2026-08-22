@@ -109,6 +109,8 @@ Feature-owned domain types live with the owning feature and are exported through
 
 Split a large component when one part can have a clear responsibility such as form state, a selector-backed view model, media interaction, or a reusable presentation component. Do not split a file only to reduce its line count.
 
+For timeline entries, the dialog shell owns detail presentation and edit/delete orchestration, while `TimelineEntryEditor` owns edit-form state, validation, and save orchestration. Cross-feature editor dependencies must use feature public APIs.
+
 ## Native animation ownership
 
 Browser-native primitives own runtime animation behavior. CSS transitions and keyframes handle declarative enter/exit and press feedback. The View Transition API handles route-level document transitions. Pointer Events write drag transforms directly to the DOM, and the Web Animations API handles imperative settle/dismiss animation.

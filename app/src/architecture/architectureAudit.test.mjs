@@ -93,11 +93,6 @@ const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
   'features/timeline/TimelineView.tsx -> @/features/growth/domain/growthSelectors',
   'features/timeline/TimelineView.tsx -> @/features/growth/store/useGrowthStore',
   'features/timeline/TimelineView.tsx -> @/features/profile/store/useProfileStore',
-  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/domain/activityAssessments',
-  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/domain/dailyCareTargets',
-  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/store/useActivityStore',
-  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/growth/store/useGrowthStore',
-  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/profile/store/useProfileStore',
   'features/timeline/components/TimelineMediaSyncBadge.tsx -> @/features/sync/timelineMediaSyncProgress',
   'features/timeline/hooks/useTimelineMediaUrl.ts -> @/features/sync/googleDriveSync',
   'features/timeline/store/useTimelineStore.ts -> @/features/growth/store/useGrowthStore',
@@ -138,6 +133,21 @@ describe('architecture acceptance guard', () => {
 
   it('requires every feature to expose a public index entry point', () => {
     expect(findMissingFeaturePublicApis(SRC)).toEqual([]);
+  });
+
+  it('keeps the timeline dialog shell separate from editor runtime', () => {
+    const dialog = readFileSync(join(SRC, 'features/timeline/components/TimelineEntryDialog.tsx'), 'utf8');
+    const editor = readFileSync(join(SRC, 'features/timeline/components/TimelineEntryEditor.tsx'), 'utf8');
+
+    expect(dialog).toContain("from './TimelineEntryEditor'");
+    expect(dialog).not.toContain('journal-feeding-edit-form');
+    expect(dialog).not.toContain('HavenMedicationPicker');
+    expect(dialog).not.toContain('assessBabySleep');
+    expect(editor).toContain('id="timeline-edit-form"');
+    expect(editor).not.toContain('<HavenDialog');
+    expect(editor).not.toContain("@/features/activities/");
+    expect(editor).not.toContain("@/features/growth/");
+    expect(editor).not.toContain("@/features/profile/");
   });
 
   it('keeps cross-boundary feature imports on public APIs without adding new debt', () => {
