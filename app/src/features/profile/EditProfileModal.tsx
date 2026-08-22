@@ -2,7 +2,6 @@ import { useEffect, useId, useState } from 'react';
 import {
   Building,
   Calendar,
-  Camera,
   Check,
   Clock,
   Droplet,
@@ -168,56 +167,58 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <span>Thông tin cơ bản</span>
             <small>Tên và giới tính</small>
           </div>
-          <div className="tracker-sheet-two-column">
-            <div className="log-form-group">
-              <label className="log-form-label icon-label">
-                <User size={13} /> Tên gọi ở nhà *
-              </label>
-              <input
-                type="text"
-                className="log-input-control"
-                required
-                value={childName}
-                onChange={(event) => setChildName(event.target.value)}
-                placeholder="VD: Bé Bơ"
-              />
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <User size={13} /> Tên gọi ở nhà *
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  required
+                  value={childName}
+                  onChange={(event) => setChildName(event.target.value)}
+                  placeholder="VD: Bé Bơ"
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <User size={13} /> Họ tên khai sinh *
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  required
+                  value={childFullName}
+                  onChange={(event) => setChildFullName(event.target.value)}
+                  placeholder="VD: Nguyễn Minh Khang"
+                />
+              </div>
             </div>
-            <div className="log-form-group">
-              <label className="log-form-label icon-label">
-                <User size={13} /> Họ tên khai sinh *
-              </label>
-              <input
-                type="text"
-                className="log-input-control"
-                required
-                value={childFullName}
-                onChange={(event) => setChildFullName(event.target.value)}
-                placeholder="VD: Nguyễn Minh Khang"
-              />
-            </div>
-          </div>
 
-          <div className="log-form-group">
-            <label className="log-form-label icon-label">
-              <Heart size={13} /> Giới tính
-            </label>
-            <div className="gender-selector-pills" role="group" aria-label="Giới tính của bé">
-              <button
-                type="button"
-                className={`gender-pill-btn ${gender === 'boy' ? 'active boy' : ''}`}
-                onClick={() => setGender('boy')}
-                aria-pressed={gender === 'boy'}
-              >
-                👦 Bé trai
-              </button>
-              <button
-                type="button"
-                className={`gender-pill-btn ${gender === 'girl' ? 'active girl' : ''}`}
-                onClick={() => setGender('girl')}
-                aria-pressed={gender === 'girl'}
-              >
-                👧 Bé gái
-              </button>
+            <div className="log-form-group">
+              <label className="log-form-label icon-label">
+                <Heart size={13} /> Giới tính
+              </label>
+              <div className="gender-selector-pills" role="group" aria-label="Giới tính của bé">
+                <button
+                  type="button"
+                  className={`gender-pill-btn ${gender === 'boy' ? 'active boy' : ''}`}
+                  onClick={() => setGender('boy')}
+                  aria-pressed={gender === 'boy'}
+                >
+                  👦 Bé trai
+                </button>
+                <button
+                  type="button"
+                  className={`gender-pill-btn ${gender === 'girl' ? 'active girl' : ''}`}
+                  onClick={() => setGender('girl')}
+                  aria-pressed={gender === 'girl'}
+                >
+                  👧 Bé gái
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -258,42 +259,44 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <span>Thông tin lúc sinh</span>
             <small>Số đo và nhóm máu</small>
           </div>
-          <div className="tracker-sheet-two-column">
-            <div className="log-form-group">
-              <label className="log-form-label icon-label">
-                <Scale size={13} /> Cân nặng
-              </label>
-              <input
-                type="text"
-                className="log-input-control"
-                value={birthWeight}
-                onChange={(event) => setBirthWeight(event.target.value)}
-                placeholder="VD: 3.3 kg"
-              />
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Scale size={13} /> Cân nặng
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={birthWeight}
+                  onChange={(event) => setBirthWeight(event.target.value)}
+                  placeholder="VD: 3.3 kg"
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Ruler size={13} /> Chiều dài
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={birthHeight}
+                  onChange={(event) => setBirthHeight(event.target.value)}
+                  placeholder="VD: 50.0 cm"
+                />
+              </div>
             </div>
             <div className="log-form-group">
               <label className="log-form-label icon-label">
-                <Ruler size={13} /> Chiều dài
+                <Droplet size={13} /> Nhóm máu
               </label>
-              <input
-                type="text"
-                className="log-input-control"
-                value={birthHeight}
-                onChange={(event) => setBirthHeight(event.target.value)}
-                placeholder="VD: 50.0 cm"
+              <HavenDropdown
+                label="Nhóm máu"
+                value={bloodType}
+                onChange={setBloodType}
+                options={BLOOD_TYPE_OPTIONS}
               />
             </div>
-          </div>
-          <div className="log-form-group">
-            <label className="log-form-label icon-label">
-              <Droplet size={13} /> Nhóm máu
-            </label>
-            <HavenDropdown
-              label="Nhóm máu"
-              value={bloodType}
-              onChange={setBloodType}
-              options={BLOOD_TYPE_OPTIONS}
-            />
           </div>
         </section>
 
@@ -302,43 +305,45 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <span>Y tế & ghi chú</span>
             <small>Thông tin tham khảo nhanh</small>
           </div>
-          <div className="tracker-sheet-two-column">
-            <div className="log-form-group">
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Building size={13} /> Bệnh viện nơi sinh
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={hospital}
+                  onChange={(event) => setHospital(event.target.value)}
+                  placeholder="VD: BV Phụ sản..."
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <ShieldAlert size={13} /> Mã thẻ BHYT
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={insuranceCode}
+                  onChange={(event) => setInsuranceCode(event.target.value)}
+                  placeholder="VD: DN4012984920"
+                />
+              </div>
+            </div>
+            <div className="log-form-group sheet-note-field">
               <label className="log-form-label icon-label">
-                <Building size={13} /> Bệnh viện nơi sinh
+                <FileText size={13} /> Ghi chú & đặc điểm riêng
               </label>
-              <input
-                type="text"
+              <textarea
                 className="log-input-control"
-                value={hospital}
-                onChange={(event) => setHospital(event.target.value)}
-                placeholder="VD: BV Phụ sản..."
+                rows={3}
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                placeholder="VD: Bé sinh đủ tháng, thích nghe nhạc êm dịu..."
               />
             </div>
-            <div className="log-form-group">
-              <label className="log-form-label icon-label">
-                <ShieldAlert size={13} /> Mã thẻ BHYT
-              </label>
-              <input
-                type="text"
-                className="log-input-control"
-                value={insuranceCode}
-                onChange={(event) => setInsuranceCode(event.target.value)}
-                placeholder="VD: DN4012984920"
-              />
-            </div>
-          </div>
-          <div className="log-form-group sheet-note-field">
-            <label className="log-form-label icon-label">
-              <FileText size={13} /> Ghi chú & đặc điểm riêng
-            </label>
-            <textarea
-              className="log-input-control"
-              rows={3}
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              placeholder="VD: Bé sinh đủ tháng, thích nghe nhạc êm dịu..."
-            />
           </div>
         </section>
       </form>
