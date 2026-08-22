@@ -1,15 +1,17 @@
 name: Ownership Migration Gate
 
 on:
-  push:
+  pull_request:
     branches:
-      - refactor/feature-ownership-cleanup
+      - refactor/enforce-feature-boundaries
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   migrate:
+    if: github.head_ref == 'refactor/feature-ownership-cleanup'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
