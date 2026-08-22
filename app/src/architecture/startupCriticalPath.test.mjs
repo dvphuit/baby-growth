@@ -47,6 +47,20 @@ describe('startup critical path', () => {
     expect(bootstrap).toContain('persist.rehydrate()');
   });
 
+  it('keeps the snapshot public entry free of static Google Drive transport edges', () => {
+    const main = source('main.tsx');
+    const runtime = source('app/lifecycle/appSnapshotRuntime.ts');
+    const syncIndex = source('features/sync/index.ts');
+
+    expect(main).toContain("import('@/features/sync')");
+    expect(main).not.toContain('googleDriveSync');
+    expect(runtime).toContain("from '@/features/sync'");
+    expect(runtime).not.toContain('googleDriveSync');
+    expect(syncIndex).not.toContain("export * from './googleDriveSync'");
+    expect(syncIndex).not.toContain("from './googleDriveSync'");
+    expect(syncIndex).toContain("import('./googleDriveSync')");
+  });
+
   it('keeps auto-sync behind both idle scheduling and snapshot runtime readiness', () => {
     const lifecycle = source('features/sync/hooks/useAutoSyncLifecycle.ts');
 
