@@ -14,7 +14,7 @@
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior-y: contain;
-  box-shadow: 0 -12px 48px rgba(32, 26, 23, 0.26);
+  box-shadow: none;
   touch-action: pan-y;
   transform-origin: 50% 100%;
 }
