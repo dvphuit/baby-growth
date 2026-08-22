@@ -34,6 +34,7 @@ jobs:
         run: |
           sed -i "s/not.toContain('journal-feeding-editor')/not.toContain('journal-feeding-edit-form')/" src/architecture/architectureAudit.test.mjs
           sed -i "s/import type { TimelineItem, TimelineMediaItem } from '..\/domain\/types';/import type { TimelineMediaItem } from '..\/domain\/types';/" src/features/timeline/components/TimelineEntryDialog.tsx
+          node -e "const fs=require('fs'); const p='src/features/timeline/components/TimelineEntryDialog.tsx'; fs.writeFileSync(p, fs.readFileSync(p,'utf8').trimEnd()+'\\n')"
       - name: Test
         working-directory: app
         run: npm test
