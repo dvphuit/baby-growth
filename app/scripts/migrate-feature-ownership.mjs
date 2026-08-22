@@ -37,19 +37,17 @@ function move(sourceRelative, targetRelative) {
   renameSync(source, target);
 }
 
-function owner(file) {
+function featureOwner(file) {
   const rel = relative(SRC, file).replaceAll('\\', '/');
-  const match = rel.match(/^features\/([^/]+)\//);
-  return match?.[1] ?? null;
+  return rel.match(/^features\/([^/]+)\//)?.[1] ?? null;
 }
 
-function resolveImportTarget(sourceFile, specifier) {
+function importCandidates(sourceFile, specifier) {
   let base;
   if (specifier.startsWith('@/')) base = resolve(SRC, specifier.slice(2));
   else if (specifier.startsWith('.')) base = resolve(dirname(sourceFile), specifier);
-  else return null;
-
-  for (const candidate of [
+  else return [];
+  return [
     base,
     `${base}.ts`,
     `${base}.tsx`,
@@ -57,20 +55,7 @@ function resolveImportTarget(sourceFile, specifier) {
     `${base}.jsx`,
     join(base, 'index.ts'),
     join(base, 'index.tsx'),
-  ]) {
-    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
-  }
-  return base;
-}
-
-function parse(file, text) {
-  return ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
-}
-
-function replaceRanges(text, edits) {
-  return [...edits]
-    .sort((a, b) => b.start - a.start)
-    .reduce((result, edit) => `${result.slice(0, edit.start)}${edit.text}${result.slice(edit.end)}`, text);
+  ];
 }
 
 const movedModules = new Map([
@@ -82,9 +67,35 @@ const movedModules = new Map([
   [join(SRC, 'utils/expenseMath.ts'), { feature: 'expenses', privateModule: '@/features/expenses/domain/expenseMath' }],
 ]);
 
+function resolveImportTarget(sourceFile, specifier) {
+  const candidates = importCandidates(sourceFile, specifier);
+  for (const candidate of candidates) {
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+  }
+  return candidates.find((candidate) => movedModules.has(candidate)) ?? null;
+}
+
+function parse(file, text) {
+  return ts.createSourceFile(
+    file,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+}
+
+function replaceRanges(text, edits) {
+  return [...edits]
+    .sort((a, b) => b.start - a.start)
+    .reduce((result, edit) => `${result.slice(0, edit.start)}${edit.text}${result.slice(edit.end)}`, text);
+}
+
 function replacementForMovedModule(sourceFile, moved) {
   if (!moved.feature) return moved.privateModule;
-  return owner(sourceFile) === moved.feature ? moved.privateModule : `@/features/${moved.feature}`;
+  return featureOwner(sourceFile) === moved.feature
+    ? moved.privateModule
+    : `@/features/${moved.feature}`;
 }
 
 function rewriteMovedModuleImports(file) {
@@ -117,10 +128,7 @@ function rewriteMovedModuleImports(file) {
   }
 
   visit(sourceFile);
-  if (edits.length) {
-    text = replaceRanges(text, edits);
-    writeFileSync(file, text);
-  }
+  if (edits.length) writeFileSync(file, replaceRanges(text, edits));
 }
 
 const TYPE_GROUPS = {
@@ -149,11 +157,14 @@ const TYPE_GROUPS = {
   ],
   expenses: ['ExpenseCategoryItem', 'ExpenseMonthlyHistory', 'StageExpenseData'],
 };
-
-const TYPE_OWNER = new Map(Object.entries(TYPE_GROUPS).flatMap(([feature, names]) => names.map((name) => [name, feature])));
+const TYPE_OWNER = new Map(
+  Object.entries(TYPE_GROUPS).flatMap(([feature, names]) => names.map((name) => [name, feature])),
+);
 
 function declarationName(statement) {
-  if ((ts.isInterfaceDeclaration(statement) || ts.isTypeAliasDeclaration(statement)) && statement.name) return statement.name.text;
+  if ((ts.isInterfaceDeclaration(statement) || ts.isTypeAliasDeclaration(statement)) && statement.name) {
+    return statement.name.text;
+  }
   return null;
 }
 
@@ -165,11 +176,9 @@ function splitGlobalTypes() {
 
   for (const statement of sourceFile.statements) {
     const name = declarationName(statement);
-    if (!name || !TYPE_OWNER.has(name)) {
-      remaining.push(text.slice(statement.getFullStart(), statement.getEnd()).trim());
-      continue;
-    }
-    declarations.set(name, text.slice(statement.getFullStart(), statement.getEnd()).trim());
+    const declarationText = text.slice(statement.getFullStart(), statement.getEnd()).trim();
+    if (!name || !TYPE_OWNER.has(name)) remaining.push(declarationText);
+    else declarations.set(name, declarationText);
   }
 
   const headers = {
@@ -198,14 +207,15 @@ function splitGlobalTypes() {
 }
 
 function resolvesToGlobalTypes(sourceFile, specifier) {
-  const target = resolveImportTarget(sourceFile, specifier);
-  return target === GLOBAL_TYPES;
+  return resolveImportTarget(sourceFile, specifier) === GLOBAL_TYPES;
 }
 
 function moduleForType(typeName, sourceFile) {
   const feature = TYPE_OWNER.get(typeName);
   if (!feature) return null;
-  return owner(sourceFile) === feature ? `@/features/${feature}/domain/types` : `@/features/${feature}`;
+  return featureOwner(sourceFile) === feature
+    ? `@/features/${feature}/domain/types`
+    : `@/features/${feature}`;
 }
 
 function rewriteGlobalTypeImports(file) {
@@ -237,10 +247,7 @@ function rewriteGlobalTypeImports(file) {
     edits.push({ start: statement.getFullStart(), end: statement.getEnd(), text: `\n${replacement}` });
   }
 
-  if (edits.length) {
-    text = replaceRanges(text, edits);
-    writeFileSync(file, text);
-  }
+  if (edits.length) writeFileSync(file, replaceRanges(text, edits));
 }
 
 function appendExports(relativePath, lines) {
@@ -310,8 +317,9 @@ function updateArchitectureGuard() {
   }
 
   const marker = "  it('uses a non-AI package identity in package metadata and lockfile', () => {";
-  const guard = `  it('keeps feature-owned modules out of legacy shared and global buckets', () => {\n    for (const legacyPath of [\n      join(SRC, 'data', 'expenseCategories.ts'),\n      join(SRC, 'utils', 'expenseMath.ts'),\n      join(SRC, 'shared', 'ui', 'HavenMedicationPicker.tsx'),\n      join(SRC, 'shared', 'ui', 'HavenMilkAmountInput.tsx'),\n      join(SRC, 'shared', 'ui', 'HavenTemperatureInput.tsx'),\n      join(SRC, 'shared', 'ui', 'Header.tsx'),\n    ]) {\n      expect(existsSync(legacyPath), \`${'${relative(ROOT, legacyPath)}'} should not remain\`).toBe(false);\n    }\n\n    const globalTypes = readFileSync(join(SRC, 'types', 'index.ts'), 'utf8');\n    for (const ownedType of [\n      'ActivityRecord',\n      'FamilyData',\n      'ProfileMode',\n      'TimelineItem',\n      'TimelineMediaItem',\n      'GrowthHistoryRecord',\n      'GrowthMetric',\n      'StageExpenseData',\n    ]) {\n      expect(globalTypes, \`${'${ownedType}'} should live with its feature\`).not.toMatch(\n        new RegExp(\`export\\\\s+(?:interface|type)\\\\s+${'${ownedType}'}\\\\b\`),\n      );\n    }\n  });\n\n`;
-  if (!text.includes("keeps feature-owned modules out of legacy shared and global buckets")) {
+  const guard = `  it('keeps feature-owned modules out of legacy shared and global buckets', () => {\n    for (const legacyPath of [\n      join(SRC, 'data', 'expenseCategories.ts'),\n      join(SRC, 'utils', 'expenseMath.ts'),\n      join(SRC, 'shared', 'ui', 'HavenMedicationPicker.tsx'),\n      join(SRC, 'shared', 'ui', 'HavenMilkAmountInput.tsx'),\n      join(SRC, 'shared', 'ui', 'HavenTemperatureInput.tsx'),\n      join(SRC, 'shared', 'ui', 'Header.tsx'),\n    ]) {\n      expect(existsSync(legacyPath), relative(ROOT, legacyPath) + ' should not remain').toBe(false);\n    }\n\n    const globalTypes = readFileSync(join(SRC, 'types', 'index.ts'), 'utf8');\n    for (const ownedType of [\n      'ActivityRecord',\n      'FamilyData',\n      'ProfileMode',\n      'TimelineItem',\n      'TimelineMediaItem',\n      'GrowthHistoryRecord',\n      'GrowthMetric',\n      'StageExpenseData',\n    ]) {\n      expect(globalTypes, ownedType + ' should live with its feature').not.toContain('export interface ' + ownedType);\n      expect(globalTypes, ownedType + ' should live with its feature').not.toContain('export type ' + ownedType);\n    }\n  });\n\n`;
+  if (!text.includes('keeps feature-owned modules out of legacy shared and global buckets')) {
+    if (!text.includes(marker)) throw new Error('Architecture guard insertion marker is missing');
     text = text.replace(marker, `${guard}${marker}`);
   }
   writeFileSync(file, text);
@@ -321,8 +329,11 @@ function updateArchitectureDocs() {
   const file = join(ROOT, '..', 'ARCHITECTURE.md');
   let text = readFileSync(file, 'utf8');
   const anchor = 'Shared UI components contain reusable interaction and presentation only. Feature components own domain behavior.\n';
-  const addition = `${anchor}\nFeature-owned domain types live under the owning feature and are exported through that feature public API when another boundary needs them. Do not use the global type barrel as a dumping ground for feature contracts. Domain-specific controls such as feeding, medication, and temperature inputs belong to the Activities feature rather than \`shared/ui\`.\n`;
-  if (!text.includes('Do not use the global type barrel as a dumping ground')) text = text.replace(anchor, addition);
+  const addition = `${anchor}\nFeature-owned domain types live with the owning feature and are exported through its public API when another boundary needs them. Do not use the global type barrel as a dumping ground for feature contracts. Domain-specific controls such as feeding, medication, and temperature inputs belong to the Activities feature rather than \`shared/ui\`.\n`;
+  if (!text.includes('Do not use the global type barrel as a dumping ground')) {
+    if (!text.includes(anchor)) throw new Error('Architecture documentation insertion marker is missing');
+    text = text.replace(anchor, addition);
+  }
   writeFileSync(file, text);
 }
 
@@ -332,7 +343,7 @@ function assertResidue() {
   }
   const globalTypes = readFileSync(GLOBAL_TYPES, 'utf8');
   for (const name of TYPE_OWNER.keys()) {
-    if (new RegExp(`export\\s+(?:interface|type)\\s+${name}\\b`).test(globalTypes)) {
+    if (globalTypes.includes(`export interface ${name}`) || globalTypes.includes(`export type ${name}`)) {
       throw new Error(`Feature-owned type remains global: ${name}`);
     }
   }
