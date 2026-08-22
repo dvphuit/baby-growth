@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MomentMediaPreview } from '@/features/timeline/components/MomentMediaPreview';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 
 describe('MomentMediaPreview', () => {
   it('opens the tapped media with the active shared-layout identity', () => {

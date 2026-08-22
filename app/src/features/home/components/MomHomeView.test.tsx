@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MomHomeView } from './MomHomeView';
-import type { MomActivity } from '@/types';
+import type { MomActivity } from '@/features/activities';
 
 let records: MomActivity[] = [];
 

@@ -1,4 +1,6 @@
-import type { BabyActivity, GrowthHistoryRecord, MomActivity } from '@/types';
+
+import type { BabyActivity, MomActivity } from '@/features/activities';
+import type { GrowthHistoryRecord } from '@/features/growth';
 
 export interface DerivedTimelineEntry {
   id: string;

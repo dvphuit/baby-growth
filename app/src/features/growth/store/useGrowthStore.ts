@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
 import { indexedDbStorage } from '@/data/localDb';
-import type { DailyHabit, FamilyData, GrowthHistoryRecord, StageData, StageKey } from '@/types';
+import type { DailyHabit, StageData } from '@/types';
+import type { FamilyData } from '@/features/profile';
+import type { GrowthHistoryRecord, StageKey } from '@/features/growth/domain/types';
 import { generateId } from '@/utils/format';
 import { exportGrowthFacts, hydrateGrowthFacts, isGrowthFacts, type GrowthFacts } from './growthPersistence';
 

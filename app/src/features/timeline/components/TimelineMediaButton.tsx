@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { Image as ImageIcon, Play, Video } from 'lucide-react';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 
 export interface TimelineMediaButtonProps {
   media: TimelineMediaItem;

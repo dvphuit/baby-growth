@@ -4,7 +4,7 @@ import {
   type JournalTimelineEntry,
 } from '@/features/timeline/components/TimelineEntryDialog';
 import { useUIStore } from '@/store/useUIStore';
-import type { TimelineItem } from '@/types';
+import type { TimelineItem } from '@/features/timeline/domain/types';
 
 type PostTagType = TimelineItem['tagType'];
 

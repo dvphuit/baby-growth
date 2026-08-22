@@ -1,4 +1,5 @@
-import type { BabyActivity, MomActivity } from '@/types';
+
+import type { BabyActivity, MomActivity } from '@/features/activities/domain/types';
 
 function localDayBounds(now: Date): { start: number; end: number } {
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();

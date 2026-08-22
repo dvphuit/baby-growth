@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { FAMILY_DATA } from '@/data/seedData';
 import { indexedDbStorage } from '@/data/localDb';
-import type { FamilyData } from '@/types';
+import type { FamilyData } from '@/features/profile/domain/types';
 
 export interface ProfileStoreState {
   familyData: FamilyData;

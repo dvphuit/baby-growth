@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/store/useUIStore';
-import { useFamily } from '@/features/profile/hooks/useFamily';
+import { useFamily } from '@/features/profile';
 import { useLocalDayReference } from '@/shared/hooks/useLocalDayReference';
 import { formatVietnameseDate } from '@/utils/date';
 import { Baby, Bell, Calendar, ChevronRight, Heart } from 'lucide-react';
-import { AppBar } from './AppBar';
+import { AppBar } from '@/shared/ui/AppBar';
 
 interface HeaderProps {
   onOpenNotifications: () => void;

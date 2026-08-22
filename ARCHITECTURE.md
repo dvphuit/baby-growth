@@ -105,6 +105,8 @@ UI state such as a selected tab, dialog state, and search text does not belong i
 
 Shared UI components contain reusable interaction and presentation only. Feature components own domain behavior.
 
+Feature-owned domain types live with the owning feature and are exported through its public API when another boundary needs them. Do not use the global type barrel as a dumping ground for feature contracts. Domain-specific controls such as feeding, medication, and temperature inputs belong to the Activities feature rather than `shared/ui`.
+
 Split a large component when one part can have a clear responsibility such as form state, a selector-backed view model, media interaction, or a reusable presentation component. Do not split a file only to reduce its line count.
 
 ## Native animation ownership

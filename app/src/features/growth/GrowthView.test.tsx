@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GrowthView } from './GrowthView';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
-import type { GrowthHistoryRecord } from '@/types';
+import type { GrowthHistoryRecord } from '@/features/growth/domain/types';
 
 // Mock chart.js so canvas doesn't throw in jsdom
 vi.mock('./WHOChart', () => ({

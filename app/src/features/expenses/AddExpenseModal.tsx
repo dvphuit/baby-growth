@@ -2,10 +2,10 @@ import React, { useEffect, useId, useMemo, useState } from 'react';
 import { Calendar, Check } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { HavenDatePicker } from '@/shared/ui/HavenDatePicker';
-import { EXPENSE_CATEGORIES } from '@/data/expenseCategories';
+import { EXPENSE_CATEGORIES } from '@/features/expenses/domain/expenseCategories';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import type { ExpenseRecord } from '@/types/expense';
-import { evaluateMathExpression, formatExpression } from '@/utils/expenseMath';
+import { evaluateMathExpression, formatExpression } from '@/features/expenses/domain/expenseMath';
 import { ExpenseCategoryIcon } from './ExpenseCategoryIcon';
 import { ExpenseKeypad } from './ExpenseKeypad';
 

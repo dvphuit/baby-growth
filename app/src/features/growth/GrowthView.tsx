@@ -4,7 +4,7 @@ import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { buildRealGrowthChart, getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { HavenHeadCircIcon, HavenRulerIcon, HavenScaleIcon } from '@/shared/ui/HavenIcons';
-import type { GrowthMetric } from '@/types';
+import type { GrowthMetric } from '@/features/growth/domain/types';
 import { WHOChart } from './WHOChart';
 import { MilestoneRoadmap } from './MilestoneRoadmap';
 import { GrowthHistory } from './GrowthHistory';

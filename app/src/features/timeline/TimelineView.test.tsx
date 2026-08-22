@@ -5,7 +5,8 @@ import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import type { GrowthHistoryRecord, TimelineItem } from '@/types';
+import type { GrowthHistoryRecord } from '@/features/growth';
+import type { TimelineItem } from '@/features/timeline/domain/types';
 import { TimelineView } from './TimelineView';
 
 function createMoment(overrides: Partial<TimelineItem> = {}): TimelineItem {

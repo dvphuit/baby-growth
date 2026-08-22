@@ -2,7 +2,7 @@ import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 import { getTimelineMediaItems } from '@/features/timeline/domain/timelineMedia';
 import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
-import type { TimelineItem } from '@/types';
+import type { TimelineItem } from '@/features/timeline/domain/types';
 
 interface TimelineFeedProps {
   onOpenLightbox: (src: string, isVideo?: boolean) => void;

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Chart, registerables, type ChartDataset } from 'chart.js';
-import type { GrowthChartData, GrowthMetric } from '@/types';
+import type { GrowthChartData, GrowthMetric } from '@/features/growth/domain/types';
 
 Chart.register(...registerables);
 

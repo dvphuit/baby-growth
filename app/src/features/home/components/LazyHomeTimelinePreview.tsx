@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import type { ProfileMode } from '@/types';
+import type { ProfileMode } from '@/features/profile';
 
 const TimelinePreviewContent = lazy(async () => ({
   default: (await import('./TimelinePreviewContent')).TimelinePreviewContent,

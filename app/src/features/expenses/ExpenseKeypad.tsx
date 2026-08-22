@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Delete, RotateCcw, Plus, Minus, X, Divide } from 'lucide-react';
-import { PRESET_ADD_AMOUNTS } from '@/data/expenseCategories';
-import { evaluateMathExpression } from '@/utils/expenseMath';
+import { PRESET_ADD_AMOUNTS } from '@/features/expenses/domain/expenseCategories';
+import { evaluateMathExpression } from '@/features/expenses/domain/expenseMath';
 
 interface ExpenseKeypadProps {
   expression: string;

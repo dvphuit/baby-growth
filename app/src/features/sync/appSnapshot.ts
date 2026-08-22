@@ -7,13 +7,9 @@ import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
-import type {
-  BabyActivity,
-  FamilyData,
-  MomActivity,
-  ProfileMode,
-  TimelineItem,
-} from '@/types';
+import type { BabyActivity, MomActivity } from '@/features/activities';
+import type { FamilyData, ProfileMode } from '@/features/profile';
+import type { TimelineItem } from '@/features/timeline';
 import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder, ReminderOccurrenceState } from '@/types/reminder';
 

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { indexedDbStorage } from '@/data/localDb';
-import type { ActivityRecord, BabyActivity, MomActivity } from '@/types';
+import type { ActivityRecord, BabyActivity, MomActivity } from '@/features/activities/domain/types';
 import {
   createDefaultMedicationCatalog,
   mergeMedicationCatalog,

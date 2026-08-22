@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AppVersionBadge } from '@/shared/ui/AppVersionBadge';
 import { BottomNav } from '@/shared/ui/BottomNav';
-import { Header } from '@/shared/ui/Header';
+import { Header } from '@/app/components/Header';
 import { Lightbox } from '@/shared/ui/Lightbox';
 import { PullToRefresh } from '@/shared/ui/PullToRefresh';
 import { PWAInstallPrompt } from '@/shared/ui/PWAInstallPrompt';

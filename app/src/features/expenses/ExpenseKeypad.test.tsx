@@ -5,7 +5,7 @@ import { ExpenseKeypad } from './ExpenseKeypad';
 import {
   evaluateMathExpression,
   formatExpression,
-} from '@/utils/expenseMath';
+} from '@/features/expenses/domain/expenseMath';
 
 describe('evaluateMathExpression', () => {
   it('evaluates basic numbers correctly', () => {

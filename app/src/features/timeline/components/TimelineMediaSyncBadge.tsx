@@ -5,7 +5,7 @@ import {
   subscribeTimelineMediaSyncProgress,
   type TimelineMediaSyncProgress,
 } from '@/features/sync/timelineMediaSyncProgress';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 
 interface TimelineMediaSyncBadgeProps {
   media: TimelineMediaItem;

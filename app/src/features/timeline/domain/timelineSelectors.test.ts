@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { BabyActivity, GrowthHistoryRecord, MomActivity } from '@/types';
+import type { BabyActivity, MomActivity } from '@/features/activities';
+import type { GrowthHistoryRecord } from '@/features/growth';
 import { buildTimelineEntries, filterTimelineByLocalDateRange, type DerivedTimelineEntry } from './timelineSelectors';
 
 function entry(id: string, year: number, month: number, day: number): DerivedTimelineEntry {

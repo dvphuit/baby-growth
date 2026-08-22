@@ -1,4 +1,7 @@
-import type { FamilyData, GrowthHistoryRecord, TimelineItem } from '@/types';
+
+import type { FamilyData } from '@/features/profile';
+import type { GrowthHistoryRecord } from '@/features/growth';
+import type { TimelineItem } from '@/features/timeline';
 import type { ExpenseRecord } from '@/types/expense';
 import type { Reminder } from '@/types/reminder';
 import { isGoogleConfigured } from '@/features/sync';

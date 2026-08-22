@@ -13,7 +13,7 @@ import { animateElement, cancelElementAnimations, prefersReducedMotion } from '@
 import { useNativePresence } from '@/shared/hooks/useNativePresence';
 import { TimelineMediaSyncBadge } from '@/features/timeline/components/TimelineMediaSyncBadge';
 import { useTimelineMediaUrl } from '@/features/timeline/hooks/useTimelineMediaUrl';
-import type { TimelineMediaItem } from '@/types';
+import type { TimelineMediaItem } from '@/features/timeline/domain/types';
 
 export interface MomentMediaPreviewState {
   items: TimelineMediaItem[];

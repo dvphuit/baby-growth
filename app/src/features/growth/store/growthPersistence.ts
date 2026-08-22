@@ -1,5 +1,6 @@
 import { INITIAL_DAILY_HABITS, INITIAL_STAGES } from '@/data/seedData';
-import type { DailyHabit, StageData, StageKey } from '@/types';
+import type { DailyHabit, StageData } from '@/types';
+import type { StageKey } from '@/features/growth/domain/types';
 
 const STAGE_KEYS: StageKey[] = ['stage_0_1', 'stage_1_5', 'stage_6_12', 'stage_13_18'];
 const STAGE_KEY_SET = new Set<string>(STAGE_KEYS);

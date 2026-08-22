@@ -108,12 +108,6 @@ const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
   'main.tsx -> @/features/profile/store/useProfileStore',
   'main.tsx -> @/features/reminders/store/useReminderStore',
   'main.tsx -> @/features/timeline/store/useTimelineStore',
-  'shared/ui/HavenMedicationPicker.tsx -> @/features/activities/domain/medicationCatalog',
-  'shared/ui/HavenMilkAmountInput.tsx -> @/features/activities/domain/dailyCareTargets',
-  'shared/ui/HavenMilkAmountInput.tsx -> @/features/growth/store/useGrowthStore',
-  'shared/ui/HavenMilkAmountInput.tsx -> @/features/profile/store/useProfileStore',
-  'shared/ui/HavenTemperatureInput.tsx -> @/features/activities/domain/dailyCareTargets',
-  'shared/ui/Header.tsx -> @/features/profile/hooks/useFamily',
 ].sort();
 
 function findForbiddenTokens() {
@@ -171,6 +165,34 @@ describe('architecture acceptance guard', () => {
       join(SRC, 'services', 'timelineMediaSyncProgress.ts'),
     ]) {
       expect(existsSync(legacyPath), `${relative(ROOT, legacyPath)} should not remain`).toBe(false);
+    }
+  });
+
+  it('keeps feature-owned modules out of legacy shared and global buckets', () => {
+    for (const legacyPath of [
+      join(SRC, 'data', 'expenseCategories.ts'),
+      join(SRC, 'utils', 'expenseMath.ts'),
+      join(SRC, 'shared', 'ui', 'HavenMedicationPicker.tsx'),
+      join(SRC, 'shared', 'ui', 'HavenMilkAmountInput.tsx'),
+      join(SRC, 'shared', 'ui', 'HavenTemperatureInput.tsx'),
+      join(SRC, 'shared', 'ui', 'Header.tsx'),
+    ]) {
+      expect(existsSync(legacyPath), relative(ROOT, legacyPath) + ' should not remain').toBe(false);
+    }
+
+    const globalTypes = readFileSync(join(SRC, 'types', 'index.ts'), 'utf8');
+    for (const ownedType of [
+      'ActivityRecord',
+      'FamilyData',
+      'ProfileMode',
+      'TimelineItem',
+      'TimelineMediaItem',
+      'GrowthHistoryRecord',
+      'GrowthMetric',
+      'StageExpenseData',
+    ]) {
+      expect(globalTypes, ownedType + ' should live with its feature').not.toContain('export interface ' + ownedType);
+      expect(globalTypes, ownedType + ' should live with its feature').not.toContain('export type ' + ownedType);
     }
   });
 
