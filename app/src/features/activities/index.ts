@@ -8,6 +8,7 @@ export type { HavenMilkAmountInputProps } from './components/HavenMilkAmountInpu
 export { HavenTemperatureInput } from './components/HavenTemperatureInput';
 export type { HavenTemperatureInputProps } from './components/HavenTemperatureInput';
 export type { ActivityBase, ActivityLogType, ActivityRecord, BabyActivity, BabyActivityType, MomActivity, MomActivityType, MomData, PumpingSession } from './domain/types';
+export type { MedicationCatalogItem } from './domain/medicationCatalog';
 export { assessBabySleep, assessDiaper, assessTemperature } from './domain/activityAssessments';
 export type { LiveAssessment } from './domain/activityAssessments';
 export { getAgeInMonths } from './domain/dailyCareTargets';
