@@ -15,6 +15,7 @@ import { useToast } from '@/shared/hooks/useToast';
 import PWABadge from '@/PWABadge';
 import { installGlobalDiagnosticLogging, logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
+import { useUIStore } from '@/store/useUIStore';
 import { AppModals } from './AppModals';
 import { AppRoutes } from './AppRoutes';
 import { preloadAppRoute } from './routePreload';
@@ -35,6 +36,7 @@ export const AppContent: React.FC = () => {
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
   const familyData = useProfileStore((state) => state.familyData);
+  const profileMode = useUIStore((state) => state.profileMode);
   const isInitialized = Boolean(familyData?.isInitialized && familyData?.childName);
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
@@ -59,7 +61,7 @@ export const AppContent: React.FC = () => {
     [handleQuickAction],
   );
 
-  useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen });
+  useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen, profileMode });
   useReminderLifecycle({ onQuickLog: handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   if (!isInitialized) {
