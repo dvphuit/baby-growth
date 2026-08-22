@@ -23,6 +23,7 @@
    ========================================================================== */
 .haven-expense-summary-card {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   padding: 16px 16px 14px;
   color: #FFFFFF;
@@ -33,6 +34,20 @@
     linear-gradient(145deg, #3A2317 0%, #24140D 100%);
   border: 1px solid rgba(245, 184, 66, 0.2);
   box-shadow: 0 14px 32px rgba(36, 20, 13, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.haven-expense-card-decor {
+  position: absolute;
+  z-index: 0;
+  top: 16px;
+  right: -52px;
+  width: 218px;
+  height: 218px;
+  object-fit: contain;
+  opacity: 0.16;
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(4deg);
 }
 
 /* Ambient Background Concentric Rings */
@@ -595,10 +610,54 @@
    3. TIMELINE STREAM (STICKY HEADERS, WRAP-SAFE CARDS)
    ========================================================================== */
 .haven-expense-timeline-section {
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  padding: 16px;
+  border: 1px solid #eadfd6;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #ffffff 0%, #fffaf6 100%);
+  box-shadow: 0 10px 26px rgba(88, 59, 43, 0.08);
+}
+
+.haven-expense-sheet-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.haven-expense-eyebrow {
+  display: block;
+  color: #9a6b45;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+}
+
+.haven-expense-sheet-heading h3 {
+  margin: 3px 0 0;
+  color: #5b3828;
+  font-family: var(--font-family-display, 'Outfit', sans-serif);
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.haven-expense-sheet-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid #ecd9c9;
+  border-radius: var(--radius-pill, 9999px);
+  background: #fbefe5;
+  color: #9a6b45;
+  font-size: 8px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.haven-expense-sheet-count svg {
+  color: #c27c4c;
 }
 
 .haven-timeline-filter-banner {
@@ -1297,6 +1356,22 @@
    5. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 @media (max-width: 360px) {
+  .haven-expense-summary-card {
+    padding: 13px 12px 12px;
+  }
+  .haven-expense-card-decor {
+    top: 22px;
+    right: -62px;
+    width: 188px;
+    height: 188px;
+    opacity: 0.13;
+  }
+  .haven-expense-timeline-section {
+    padding: 13px 12px;
+  }
+  .haven-expense-sheet-heading h3 {
+    font-size: 17px;
+  }
   .haven-summary-hero-copy h2 {
     font-size: 25px;
   }

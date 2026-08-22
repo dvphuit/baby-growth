@@ -40,13 +40,15 @@ describe('ExpensesView Component', () => {
   });
 
   it('renders monthly summary hero, budget progress bar, and newest entries first', () => {
-    render(<ExpensesView onOpenAddExpense={vi.fn()} />);
+    const { container } = render(<ExpensesView onOpenAddExpense={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: '950.000 đ' })).toBeInTheDocument();
     expect(screen.getByText(/3 khoản đã ghi/i)).toBeInTheDocument();
     expect(screen.getByText('5.000.000 đ')).toBeInTheDocument();
     expect(screen.getByText('19%')).toBeInTheDocument();
     expect(screen.getByText(/Còn: 4.050.000 đ/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dòng tiền tháng này' })).toBeInTheDocument();
+    expect(container.querySelector('.haven-expense-card-decor')).toHaveAttribute('src', '/assets/decor/expense-wallet.png');
 
     const afternoonNote = screen.getByText('Bỉm Merries size M (chiều)');
     const morningNote = screen.getByText('Sữa Meiji số 0 (sáng)');
