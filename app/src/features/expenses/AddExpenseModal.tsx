@@ -118,7 +118,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title={editingExpense ? 'Sửa chi tiêu' : 'Chi tiêu'}
+      title={editingExpense ? 'Sửa khoản chi' : 'Chi tiêu'}
       footer={
         <button
           type="submit"
