@@ -20,9 +20,12 @@ import { AppModals } from './AppModals';
 import { AppRoutes } from './AppRoutes';
 import { preloadAppRoute } from './routePreload';
 
-const OnboardingView = lazy(async () => ({
-  default: (await import('@/app/onboarding/OnboardingView')).OnboardingView,
-}));
+const OnboardingView = lazy(async () => {
+  const stylesReady = import('@/app/onboarding/onboarding.css');
+  const module = await import('@/app/onboarding/OnboardingView');
+  await stylesReady;
+  return { default: module.OnboardingView };
+});
 
 function reloadApp(): void {
   window.location.reload();

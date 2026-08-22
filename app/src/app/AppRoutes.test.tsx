@@ -13,6 +13,7 @@ vi.mock('@/features/timeline', () => ({
   TimelineView: ({ onOpenLightbox, onOpenAddEntry }: { onOpenLightbox: (src: string, isVideo?: boolean) => void; onOpenAddEntry: () => void }) => (
     <div><span>Timeline marker</span><button onClick={() => onOpenLightbox('/media.jpg', true)}>open lightbox</button><button onClick={onOpenAddEntry}>add timeline</button></div>
   ),
+  loadTimelineStyles: async () => undefined,
 }));
 vi.mock('@/features/growth', () => ({
   GrowthView: ({
@@ -28,17 +29,20 @@ vi.mock('@/features/growth', () => ({
       <button onClick={() => onSuccessToast('growth saved')}>toast growth</button>
     </div>
   ),
+  loadGrowthStyles: async () => undefined,
 }));
 vi.mock('@/features/expenses', () => ({
   ExpensesView: ({ onOpenAddExpense }: { onOpenAddExpense: () => void }) => (
     <div><span>Expenses marker</span><button onClick={onOpenAddExpense}>open expense</button></div>
   ),
+  loadExpensesStyles: async () => undefined,
 }));
 vi.mock('@/features/profile', () => ({
   ProfileView: ({ onOpenEditProfile, onOpenNotifications }: { onOpenEditProfile: () => void; onOpenNotifications: () => void }) => (
     <div><span>Profile marker</span><button onClick={onOpenEditProfile}>edit profile</button><button onClick={onOpenNotifications}>profile reminders</button></div>
   ),
   GoogleDriveDataView: () => <div>Drive data marker</div>,
+  loadProfileStyles: async () => undefined,
 }));
 
 function createProps(overrides: Partial<AppRoutesProps> = {}): AppRoutesProps {

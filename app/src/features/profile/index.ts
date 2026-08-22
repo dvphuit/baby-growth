@@ -5,3 +5,7 @@ export { initializeChildProfile, resetChildStoresToDefaults } from './profileLif
 export { useProfileStore } from './store/useProfileStore';
 export { useFamily } from './hooks/useFamily';
 export type { FamilyData, ProfileMode } from './domain/types';
+
+export async function loadProfileStyles(): Promise<void> {
+  await import('./profile.css');
+}
