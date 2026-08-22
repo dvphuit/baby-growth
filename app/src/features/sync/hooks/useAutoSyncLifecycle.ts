@@ -11,7 +11,9 @@ export function useAutoSyncLifecycle(): void {
     let stopAutoSync: (() => void) | undefined;
 
     const cancelStart = scheduleIdleTask(() => {
-      void import('@/features/sync/googleDriveSync')
+      void import('../appSnapshot')
+        .then(({ waitForAppSnapshotRuntime }) => waitForAppSnapshotRuntime())
+        .then(() => import('../googleDriveSync'))
         .then(({ startAutoSync }) => startAutoSync())
         .then((stop) => {
           if (disposed) {

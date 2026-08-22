@@ -67,10 +67,12 @@ describe('interaction performance audit', () => {
   it('keeps optional sync, reset, mock, and onboarding code off the startup import graph', () => {
     const main = source('main.tsx');
     const app = source('app/App.tsx');
+    const mockBootstrap = source('data/bootstrapMockData.ts');
     const mediaUrl = source('features/timeline/hooks/useTimelineMediaUrl.ts');
     expect(main).not.toContain("from './data/mockData'");
     expect(main).not.toContain("from './features/sync'");
-    expect(main).toContain("await import('./data/mockData')");
+    expect(main).toContain("await import('./data/bootstrapMockData')");
+    expect(mockBootstrap).toContain("from './mockData'");
     expect(main).toContain("await import('@/app/lifecycle/resetRequest')");
     expect(app).not.toContain("import { OnboardingView } from '@/app/onboarding/OnboardingView'");
     expect(app).toContain("await import('@/app/onboarding/OnboardingView')");
