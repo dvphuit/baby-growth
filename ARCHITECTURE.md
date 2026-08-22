@@ -30,13 +30,13 @@ The refactor moves existing code into this layout in dependency order. Do not mo
 
 `app` may import feature public entry points and shared code.
 
-A feature may import shared code and domain-independent data. A feature must not import another feature's private component, hook, selector, or store file.
+A feature may import shared code and domain-independent data. A feature must not import another feature's private component, hook, selector, store, or other implementation file.
 
-`shared` must not import feature code.
+`shared` must not import feature code, including feature public entry points.
 
-A feature public API is its `features/<feature>/index.ts`. Cross-feature consumers should import through that entry point instead of reaching into `components/`, `hooks/`, `domain/`, `store/`, or other private implementation paths.
+Every feature exposes exactly one public entry point at `features/<feature>/index.ts`. Production code outside the owning feature must consume that feature through the alias import `@/features/<feature>`; relative cross-feature imports and deep imports such as `@/features/<feature>/components/*`, `hooks/*`, `domain/*`, or `store/*` are private-boundary violations.
 
-Architecture acceptance tests enforce dependency direction incrementally. Existing violations may be listed only as exact, file-level legacy exceptions in the architecture audit. Do not add wildcard exceptions or expand an exception to cover a directory. Remove an exception when the owning feature absorbs the dependency.
+Architecture acceptance tests parse static imports, re-exports, dynamic `import()`, and `require()` calls to enforce these edges. Existing violations may be listed only as exact source-file/import-specifier exceptions in the architecture audit. Do not add wildcard exceptions or expand an exception to cover a directory. The audit also rejects stale exceptions, so remove an exception as soon as the dependency is moved behind the target feature's public API.
 
 ## Activity data
 
