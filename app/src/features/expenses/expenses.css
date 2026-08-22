@@ -29,9 +29,9 @@
   color: #FFFFFF;
   border-radius: var(--radius-xl, 24px);
   background:
-    radial-gradient(circle at 90% 12%, rgba(245, 184, 66, 0.22) 0%, transparent 55%),
-    radial-gradient(circle at 10% 88%, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
-    linear-gradient(145deg, #3A2317 0%, #24140D 100%);
+    radial-gradient(circle at 86% 18%, rgba(245, 184, 66, 0.2) 0%, transparent 34%),
+    radial-gradient(circle at 8% 92%, rgba(141, 160, 111, 0.14) 0%, transparent 38%),
+    linear-gradient(145deg, #523527 0%, #2A1911 100%);
   border: 1px solid rgba(245, 184, 66, 0.2);
   box-shadow: 0 14px 32px rgba(36, 20, 13, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
@@ -39,26 +39,27 @@
 .haven-expense-card-decor {
   position: absolute;
   z-index: 0;
-  top: 16px;
-  right: -52px;
-  width: 218px;
-  height: 218px;
+  right: -8px;
+  bottom: -52px;
+  width: 188px;
+  height: 188px;
   object-fit: contain;
-  opacity: 0.16;
+  opacity: 0.19;
   pointer-events: none;
   user-select: none;
-  transform: rotate(4deg);
+  filter: saturate(0.86) contrast(0.96);
+  transform: rotate(-5deg);
 }
 
 /* Ambient Background Concentric Rings */
 .haven-expense-summary-card::before {
   content: '';
   position: absolute;
-  right: -35px;
-  top: -35px;
-  width: 180px;
-  height: 180px;
-  border: 22px solid rgba(245, 184, 66, 0.12);
+  right: -54px;
+  top: -52px;
+  width: 164px;
+  height: 164px;
+  border: 18px solid rgba(245, 184, 66, 0.085);
   border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
@@ -66,11 +67,11 @@
 .haven-expense-summary-card::after {
   content: '';
   position: absolute;
-  left: 60%;
-  bottom: -45px;
-  width: 120px;
-  height: 120px;
-  border: 16px solid rgba(255, 255, 255, 0.04);
+  left: 58%;
+  bottom: -58px;
+  width: 108px;
+  height: 108px;
+  border: 14px solid rgba(255, 255, 255, 0.028);
   border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
@@ -1360,11 +1361,11 @@
     padding: 13px 12px 12px;
   }
   .haven-expense-card-decor {
-    top: 22px;
-    right: -62px;
-    width: 188px;
-    height: 188px;
-    opacity: 0.13;
+    right: -18px;
+    bottom: -44px;
+    width: 160px;
+    height: 160px;
+    opacity: 0.16;
   }
   .haven-expense-timeline-section {
     padding: 13px 12px;
