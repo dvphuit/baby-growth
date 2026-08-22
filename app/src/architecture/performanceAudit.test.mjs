@@ -187,6 +187,8 @@ describe('interaction performance audit', () => {
     expect(bottomNav).toContain('onPointerDown={handleRouteIntent}');
     expect(bottomNavCss).toContain('.nav-tab-item:active');
     expect(bottomNavCss).toContain('.fab-center-btn:active');
+    expect(bottomNavCss).toContain('view-transition-name: bottom-nav-active-pill;');
+    expect(bottomNavCss).toContain('@media (prefers-reduced-motion: reduce)');
     expect(bottomNavCss).toContain('--bottom-nav-safe-area: env(safe-area-inset-bottom, 0px);');
     expect(bottomNavCss).toContain('padding: 8px 6px calc(8px + var(--bottom-nav-safe-area)) 6px;');
     expect(baseCss).toContain('height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;');
