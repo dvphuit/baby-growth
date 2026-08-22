@@ -80,14 +80,6 @@ const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
   'features/profile/profileLifecycle.ts -> @/features/growth/store/useGrowthStore',
   'features/reminders/ReminderList.tsx -> @/features/activities/store/useActivityStore',
   'features/reminders/hooks/useReminderLifecycle.ts -> @/features/activities/store/useActivityStore',
-  'features/sync/appSnapshot.ts -> @/features/activities/domain/medicationCatalog',
-  'features/sync/appSnapshot.ts -> @/features/activities/store/useActivityStore',
-  'features/sync/appSnapshot.ts -> @/features/expenses/store/useExpenseStore',
-  'features/sync/appSnapshot.ts -> @/features/growth/store/growthPersistence',
-  'features/sync/appSnapshot.ts -> @/features/growth/store/useGrowthStore',
-  'features/sync/appSnapshot.ts -> @/features/profile/store/useProfileStore',
-  'features/sync/appSnapshot.ts -> @/features/reminders/store/useReminderStore',
-  'features/sync/appSnapshot.ts -> @/features/timeline/store/useTimelineStore',
   'features/sync/timelineMediaDriveSync.ts -> @/features/timeline/store/useTimelineStore',
   'features/timeline/TimelineView.tsx -> @/features/activities/store/useActivityStore',
   'features/timeline/TimelineView.tsx -> @/features/growth/domain/growthSelectors',
@@ -148,6 +140,25 @@ describe('architecture acceptance guard', () => {
     expect(editor).not.toContain("@/features/activities/");
     expect(editor).not.toContain("@/features/growth/");
     expect(editor).not.toContain("@/features/profile/");
+  });
+
+  it('keeps snapshot wire contracts pure and feature-store orchestration in app composition', () => {
+    const schema = readFileSync(join(SRC, 'features/sync/appSnapshotSchema.ts'), 'utf8');
+    const port = readFileSync(join(SRC, 'features/sync/appSnapshot.ts'), 'utf8');
+    const runtime = readFileSync(join(SRC, 'app/lifecycle/appSnapshotRuntime.ts'), 'utf8');
+
+    for (const source of [schema, port]) {
+      expect(source).not.toContain('.getState(');
+      expect(source).not.toContain('.setState(');
+      expect(source).not.toContain('.subscribe(');
+    }
+    expect(port).toContain("from './appSnapshotSchema'");
+    expect(runtime).toContain('createAppSnapshotRuntime');
+    for (const feature of ['activities', 'expenses', 'growth', 'profile', 'reminders', 'timeline']) {
+      expect(port).not.toContain(`@/features/${feature}`);
+      expect(runtime).not.toContain(`@/features/${feature}/`);
+      expect(schema).not.toContain(`@/features/${feature}/`);
+    }
   });
 
   it('keeps cross-boundary feature imports on public APIs without adding new debt', () => {

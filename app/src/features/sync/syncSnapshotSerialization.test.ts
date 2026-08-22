@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { exportAppSnapshot } from './appSnapshot';
+import { parseAppSnapshot } from './appSnapshot';
 import {
   serializeSyncSnapshotPayload,
   type SyncSnapshotSerializationInput,
@@ -14,9 +14,22 @@ function legacyFingerprint(value: string): string {
   return (result >>> 0).toString(16).padStart(8, '0');
 }
 
+function snapshotData() {
+  return parseAppSnapshot({
+    generation: 2,
+    exportedAt: '2026-08-21T14:00:00.000Z',
+    profile: { familyData: {}, profileMode: 'baby' },
+    activities: { baby: [], mom: [], medicationCatalog: [] },
+    growth: { currentStage: 'stage_0_1', stages: {}, completedHabitIds: [] },
+    timeline: { items: [] },
+    expenses: { records: [], monthlyBudget: 5_000_000 },
+    reminders: { items: [], occurrenceStates: {}, systemNotificationsEnabled: false },
+  });
+}
+
 describe('sync snapshot serialization', () => {
   it('preserves the generation-2 fingerprint and payload contract', () => {
-    const data = exportAppSnapshot(new Date('2026-08-21T14:00:00.000Z'));
+    const data = snapshotData();
     const input: SyncSnapshotSerializationInput = {
       schemaVersion: 2,
       updatedAt: '2026-08-21T14:01:00.000Z',

@@ -10,6 +10,14 @@ import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
+async function configureSnapshotRuntime(): Promise<void> {
+  const [{ createAppSnapshotRuntime }, { configureAppSnapshotRuntime }] = await Promise.all([
+    import('@/app/lifecycle/appSnapshotRuntime'),
+    import('@/features/sync'),
+  ]);
+  configureAppSnapshotRuntime(createAppSnapshotRuntime());
+}
+
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);
   if (!params.has('reset')) return false;
@@ -45,18 +53,22 @@ async function bootstrapMockData(): Promise<void> {
   }
 }
 
-void handleResetRequest().then((didReset) => {
+async function startApp(): Promise<void> {
+  await configureSnapshotRuntime();
+  const didReset = await handleResetRequest();
   if (didReset) return;
-  void bootstrapMockData().finally(() => {
-    const root = document.getElementById('root');
-    if (!root) throw new Error('Missing #root application element.');
 
-    createRoot(root).render(
-      <StrictMode>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </StrictMode>,
-    );
-  });
-});
+  await bootstrapMockData();
+  const root = document.getElementById('root');
+  if (!root) throw new Error('Missing #root application element.');
+
+  createRoot(root).render(
+    <StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </StrictMode>,
+  );
+}
+
+void startApp();

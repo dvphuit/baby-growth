@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createAppSnapshotRuntime } from '@/app/lifecycle/appSnapshotRuntime';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { initializeChildProfile, resetChildStoresToDefaults } from '@/features/profile';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
+import { configureAppSnapshotRuntime } from '@/features/sync/appSnapshot';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 import { useUIStore } from '@/store/useUIStore';
 
@@ -54,6 +56,7 @@ describe('generation-2 Google Drive sync', () => {
     localDb.getLocalRecord.mockResolvedValue(null);
     localDb.setLocalRecord.mockResolvedValue(undefined);
     timelineMediaDriveSync.syncTimelineMediaToDrive.mockResolvedValue(0);
+    configureAppSnapshotRuntime(createAppSnapshotRuntime());
     resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
