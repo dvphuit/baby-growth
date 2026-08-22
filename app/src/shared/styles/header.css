@@ -4,8 +4,10 @@
   top: 0;
   z-index: 30;
   isolation: isolate;
-  min-height: calc(68px + env(safe-area-inset-top, 0px));
-  padding: calc(9px + env(safe-area-inset-top, 0px)) 12px 9px;
+  min-height: 68px;
+  min-height: calc(68px + var(--safe-area-inset-top));
+  padding: 9px 12px;
+  padding: calc(9px + var(--safe-area-inset-top)) 12px 9px;
   border: 0;
   border-bottom: 1px solid rgba(111, 139, 74, 0.12);
   outline: 0;

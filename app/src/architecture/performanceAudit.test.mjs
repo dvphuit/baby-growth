@@ -202,6 +202,7 @@ describe('interaction performance audit', () => {
     const baseCss = source('shared/styles/base.css');
     const pullToRefresh = source('shared/ui/PullToRefresh.tsx');
     const header = source('app/components/Header.tsx');
+    const headerCss = source('shared/styles/header.css');
     const babyHome = source('features/home/components/BabyHomeView.tsx');
     const momHome = source('features/home/components/MomHomeView.tsx');
     const segmentClock = source('features/home/components/SegmentClock.tsx');
@@ -218,9 +219,14 @@ describe('interaction performance audit', () => {
     expect(bottomNavCss).toContain('.fab-center-btn:active');
     expect(bottomNavCss).toContain('view-transition-name: bottom-nav-active-pill;');
     expect(bottomNavCss).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(bottomNavCss).toContain('--bottom-nav-safe-area: env(safe-area-inset-bottom, 0px);');
-    expect(bottomNavCss).toContain('padding: 8px 6px calc(8px + var(--bottom-nav-safe-area)) 6px;');
-    expect(baseCss).toContain('height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;');
+    expect(bottomNavCss).toContain('--bottom-nav-safe-area: var(--safe-area-inset-bottom);');
+    expect(bottomNavCss).toContain('--bottom-nav-safe-area-max: var(--safe-area-max-inset-bottom);');
+    expect(bottomNavCss).toContain('bottom: calc(var(--bottom-nav-safe-area) - var(--bottom-nav-safe-area-max));');
+    expect(bottomNavCss).toContain('padding: 8px 6px calc(8px + var(--bottom-nav-safe-area-max)) 6px;');
+    expect(baseCss).toContain('--safe-area-max-inset-bottom: env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px));');
+    expect(baseCss).toContain('height: calc(76px + var(--safe-area-max-inset-bottom)) !important;');
+    expect(headerCss).toContain('min-height: 68px;');
+    expect(headerCss).toContain('padding: 9px 12px;');
 
     expect(routePreload).toContain('export function preloadAppRoute');
     expect(routes).not.toContain('export function preloadAppRoute');

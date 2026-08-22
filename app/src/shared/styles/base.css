@@ -19,6 +19,15 @@
   -ms-user-select: none;
 }
 
+:root {
+  --safe-area-inset-top: 0px;
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: 0px;
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-max-inset-bottom: 0px;
+  --safe-area-max-inset-bottom: env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+
 html {
   width: 100%;
   min-height: 100%;
@@ -90,8 +99,8 @@ body {
 .bottom-safe-spacer {
   display: block !important;
   width: 100% !important;
-  height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
-  min-height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  height: calc(76px + var(--safe-area-max-inset-bottom)) !important;
+  min-height: calc(76px + var(--safe-area-max-inset-bottom)) !important;
   flex-shrink: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
