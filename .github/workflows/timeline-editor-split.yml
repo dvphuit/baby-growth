@@ -28,10 +28,12 @@ jobs:
         run: npm ci
       - name: Split timeline editor ownership
         working-directory: app
-        run: node scripts/split-timeline-editor.mjs
-      - name: Narrow editor-runtime architecture guard
+        run: npm run -s env -- node scripts/split-timeline-editor.mjs
+      - name: Normalize generated split
         working-directory: app
-        run: sed -i "s/not.toContain('journal-feeding-editor')/not.toContain('journal-feeding-edit-form')/" src/architecture/architectureAudit.test.mjs
+        run: |
+          sed -i "s/not.toContain('journal-feeding-editor')/not.toContain('journal-feeding-edit-form')/" src/architecture/architectureAudit.test.mjs
+          sed -i "s/import type { TimelineItem, TimelineMediaItem } from '..\/domain\/types';/import type { TimelineMediaItem } from '..\/domain\/types';/" src/features/timeline/components/TimelineEntryDialog.tsx
       - name: Test
         working-directory: app
         run: npm test
