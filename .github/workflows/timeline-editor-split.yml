@@ -28,7 +28,7 @@ jobs:
         run: npm ci
       - name: Split timeline editor ownership
         working-directory: app
-        run: npm run -s env -- node scripts/split-timeline-editor.mjs
+        run: node scripts/split-timeline-editor.mjs
       - name: Normalize generated split
         working-directory: app
         run: |
