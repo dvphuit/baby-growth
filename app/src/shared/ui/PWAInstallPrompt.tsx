@@ -195,7 +195,7 @@ export const PWAInstallPrompt: React.FC = () => {
             <Smartphone size={20} strokeWidth={2.2} />
           </div>
           <div className="pwa-install-text">
-            <span className="pwa-install-title">Cài đặt BabyGrowth AI</span>
+            <span className="pwa-install-title">Cài đặt Kinly</span>
             <span className="pwa-install-sub">Trải nghiệm toàn màn hình & dùng offline</span>
           </div>
         </div>
