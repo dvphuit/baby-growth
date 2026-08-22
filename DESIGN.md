@@ -1,6 +1,6 @@
-# BabyGrowth design system
+# Kinly design system
 
-BabyGrowth uses a warm, low-contrast visual system for care tracking on mobile screens. The UI favors readable status information and large touch targets over dense dashboards.
+Kinly uses a warm, low-contrast visual system for care tracking on mobile screens. The UI favors readable status information and large touch targets over dense dashboards.
 
 ## Design tokens
 
