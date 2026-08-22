@@ -25,13 +25,14 @@ describe('OnboardingView', () => {
     vi.mocked(googleDriveSync.checkDriveBackup).mockResolvedValue({ found: false });
   });
 
-  it('renders Google Drive sign-in step initially', () => {
+  it('renders Kinly Google Drive sign-in step initially', () => {
     render(<OnboardingView />);
 
-    expect(screen.getByText('THIẾT LẬP LẦN ĐẦU · HAVEN BABY')).toBeInTheDocument();
+    expect(screen.getByText('THIẾT LẬP LẦN ĐẦU · KINLY')).toBeInTheDocument();
+    expect(screen.queryByText(/HAVEN BABY/i)).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Đăng nhập Google Drive/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Đăng nhập bằng Google/i })).toBeInTheDocument();
-    expect(screen.getByText(/Bảo mật & Riêng tư tuyệt đối/i)).toBeInTheDocument();
+    expect(screen.getByText(/Riêng tư theo quyền truy cập Google Drive/i)).toBeInTheDocument();
   });
 
   it('authenticates with Google Drive and proceeds to profile form when no backup is found', async () => {
@@ -126,6 +127,7 @@ describe('OnboardingView', () => {
 
     expect(screen.getByRole('heading', { name: /Khởi tạo hồ sơ Bé/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Tên gọi ở nhà của Bé/i)).toBeInTheDocument();
+    expect(screen.getByText(/Avatar minh họa Kinly/i)).toBeInTheDocument();
   });
 
   it('submits profile form, initializes child profile, and triggers cloud sync', async () => {
