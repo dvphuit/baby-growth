@@ -1,8 +1,8 @@
-# BabyGrowth architecture
+# Kinly architecture
 
 ## Source layout
 
-BabyGrowth uses feature ownership for product code and a small shared layer for reusable code.
+Kinly uses feature ownership for product code and a small shared layer for reusable code.
 
 ```text
 src/
@@ -24,7 +24,7 @@ src/
 └── data/
 ```
 
-The refactor moves existing code into this layout in dependency order. Do not move files only to make the tree match the target. Move a feature when its imports and ownership are clear.
+Move code only when ownership and dependency direction stay clear. Do not move files only to make the tree look more uniform.
 
 ## Dependency direction
 
@@ -69,7 +69,9 @@ The snapshot does not expose Zustand storage keys. Separating the schema, port, 
 
 ## Local persistence
 
-`data/localDb.ts` provides the current physical persistence boundary for `babygrowth_v4_*` records.
+`data/localDb.ts` provides the current physical persistence boundary for `babygrowth_v4_*` records inside the historical `babygrowth-local` IndexedDB database.
+
+These BabyGrowth-era identifiers intentionally survive the Kinly rebrand. Existing browser installations already store data under them, so changing them without a migration would make current data appear missing. Treat their literal values as compatibility contracts rather than current product branding.
 
 The adapter does not read v2 or v3 store records. The app has no migration step for those generations.
 
@@ -84,6 +86,8 @@ Media blobs use a separate IndexedDB object store and are not encoded into the Z
 - `fingerprint`
 
 Google Drive sync never reads or writes individual Zustand records. Auto-sync subscribes through the configured snapshot port, so Sync remains independent of feature store implementations.
+
+The existing `babygrowth-sync-v2.json`, legacy `babygrowth-sync.json`, sync metadata key, and device identifier are also compatibility contracts. Renaming them requires a migration that can discover and reconcile existing Drive and local state.
 
 Schema-1 Drive backups are incompatible with the current generation and are rejected at the parser boundary.
 
@@ -123,7 +127,7 @@ React state must not update on every gesture frame. Keep layout, typography, spa
 
 ## Verification
 
-Every architecture wave must pass:
+Every architecture change must pass:
 
 ```bash
 npm test
