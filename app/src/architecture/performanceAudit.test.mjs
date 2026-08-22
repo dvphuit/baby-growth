@@ -64,6 +64,9 @@ describe('interaction performance audit', () => {
     const bottomNav = source('shared/styles/bottom-nav.css');
     const pullToRefresh = source('shared/ui/PullToRefresh.css');
     expect(header).not.toContain('backdrop-filter');
+    expect(header).toContain('.app-bar::before');
+    expect(header).toContain('height: max(1px, env(safe-area-inset-top, 0px));');
+    expect(header).toContain('.app-bar-mom::before');
     expect(bottomNav).not.toContain('backdrop-filter');
     expect(pullToRefresh).not.toContain('will-change: transform');
   });
@@ -79,11 +82,15 @@ describe('interaction performance audit', () => {
     const mediaPreview = source('features/timeline/components/MomentMediaPreview.tsx');
 
     expect(routes).not.toContain("from 'motion/react'");
-    expect(routes).toContain('className="app-route-surface"');
+    expect(routes).toContain('useLocation');
+    expect(routes).toContain('className="app-route-surface" key={location.pathname}');
     expect((bottomNav.match(/viewTransition/g) ?? [])).toHaveLength(2);
     expect(header).toContain("navigate('/profile', { viewTransition: true })");
     expect(nativeTransitions).toContain('::view-transition-old(root)');
     expect(nativeTransitions).toContain('::view-transition-new(root)');
+    expect(nativeTransitions).toContain('view-transition-name: app-route-surface;');
+    expect(nativeTransitions).toContain('animation: havenRouteContentIn 260ms');
+    expect(nativeTransitions).toContain('view-transition-name: none;');
     expect(nativeAnimations).toContain('@media (prefers-reduced-motion: reduce)');
     expect(bottomSheet).toContain('onPointerMove={handlePointerMove}');
     expect(bottomSheet).toContain('animateElement(');
