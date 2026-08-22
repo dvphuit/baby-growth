@@ -1,6 +1,7 @@
 export * from './appSnapshot';
 export { SyncSnapshotIntegrityError } from './syncSnapshotEnvelope';
-export type { SyncSnapshot, SyncSnapshotIntegrityReason } from './syncSnapshotEnvelope';
+export type SyncSnapshot = import('./syncSnapshotEnvelope').SyncSnapshot;
+export type SyncSnapshotIntegrityReason = import('./syncSnapshotEnvelope').SyncSnapshotIntegrityReason;
 
 type GoogleDriveSyncModule = typeof import('./googleDriveSync');
 
