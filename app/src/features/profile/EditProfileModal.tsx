@@ -2,15 +2,16 @@ import { useEffect, useId, useState } from 'react';
 import {
   Building,
   Calendar,
-  Camera,
   Check,
   Clock,
   Droplet,
+  FileText,
   Heart,
   Ruler,
   Save,
   Scale,
   ShieldAlert,
+  Sparkles,
   User,
 } from 'lucide-react';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
@@ -29,6 +30,18 @@ const PRESET_AVATARS = [
   { label: 'Bé Bơ', url: '/assets/avatars/baby_avatar.jpg' },
   { label: 'Mẹ Thảo', url: '/assets/avatars/mom_avatar.jpg' },
   { label: 'Bố Tuấn', url: '/assets/avatars/dad_avatar.jpg' },
+];
+
+const BLOOD_TYPE_OPTIONS = [
+  { value: 'O+', label: 'O+ (Phổ biến)' },
+  { value: 'A+', label: 'A+' },
+  { value: 'B+', label: 'B+' },
+  { value: 'AB+', label: 'AB+' },
+  { value: 'O-', label: 'O- (Hiếm)' },
+  { value: 'A-', label: 'A-' },
+  { value: 'B-', label: 'B-' },
+  { value: 'AB-', label: 'AB-' },
+  { value: 'Chưa xác định', label: 'Chưa xác định' },
 ];
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -71,8 +84,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
+    const nextChildName = childName.trim() || family.childName || 'Bé';
+
     updateFamilyData({
-      childName: childName.trim() || family.childName || 'Bé',
+      childName: nextChildName,
       childFullName: childFullName.trim(),
       birthDate,
       birthTime,
@@ -87,245 +102,250 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
 
     onClose();
-    onSuccessToast?.(`Đã cập nhật thông tin cho ${childName || 'Bé'} thành công!`);
+    onSuccessToast?.(`Đã cập nhật thông tin cho ${nextChildName} thành công!`);
   };
 
   return (
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Chỉnh sửa Hồ sơ Bé"
+      title="Chỉnh sửa hồ sơ bé"
+      className="kinly-themed-sheet edit-profile-bottom-sheet"
       footer={
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', width: '100%' }}>
-          <button
-            type="button"
-            className="btn-secondary-pill"
-            onClick={onClose}
-            style={{
-              padding: '12px',
-              borderRadius: 'var(--radius-pill)',
-              border: '1px solid var(--color-border-subtle)',
-              background: 'var(--color-card-warm)',
-              fontFamily: 'var(--font-family-display)',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            form={formId}
-            className="log-btn-primary"
-            style={{
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-            }}
-          >
-            <Save size={15} />
-            <span>Lưu Hồ Sơ Bé</span>
-          </button>
-        </div>
+        <button type="submit" form={formId} className="log-btn-primary sheet-primary-action">
+          <Save size={15} />
+          <span>Lưu thay đổi</span>
+        </button>
       }
     >
-      <form id={formId} onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div className="log-form-group">
-          <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Camera size={13} color="var(--color-sage-dark)" /> Ảnh đại diện của bé
-          </label>
+      <form id={formId} onSubmit={handleSave} className="tracker-sheet-form edit-profile-form">
+        <div className="tracker-sheet-intro edit-profile-sheet-intro">
+          <span className="tracker-sheet-intro-icon"><Sparkles size={20} /></span>
+          <div className="tracker-sheet-intro-copy">
+            <span className="tracker-sheet-kicker">HỒ SƠ CỦA BÉ</span>
+            <p>Cập nhật những thông tin Kinly dùng để cá nhân hóa hồ sơ và các mốc chăm sóc.</p>
+          </div>
+        </div>
+
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Ảnh đại diện</span>
+            <small>Hiển thị trên hồ sơ</small>
+          </div>
           <div className="avatar-preview-picker-row">
             <div className="avatar-big-preview">
-              <img src={childAvatar} alt={childName} />
+              <img src={childAvatar} alt={`Ảnh đại diện của ${childName || 'bé'}`} />
             </div>
-            <div className="avatar-preset-list">
-              {PRESET_AVATARS.map((avatar) => (
+            <div className="avatar-preset-list" role="group" aria-label="Chọn ảnh đại diện">
+              {PRESET_AVATARS.map((avatar) => {
+                const selected = childAvatar === avatar.url;
+                return (
+                  <button
+                    key={avatar.url}
+                    type="button"
+                    className={`avatar-preset-thumb-btn ${selected ? 'selected' : ''}`}
+                    onClick={() => setChildAvatar(avatar.url)}
+                    title={avatar.label}
+                    aria-label={`Chọn ảnh ${avatar.label}`}
+                    aria-pressed={selected}
+                  >
+                    <img src={avatar.url} alt="" />
+                    {selected && (
+                      <span className="avatar-check-badge" aria-hidden="true">
+                        <Check size={10} color="#FFFFFF" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Thông tin cơ bản</span>
+            <small>Tên và giới tính</small>
+          </div>
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <User size={13} /> Tên gọi ở nhà *
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  required
+                  value={childName}
+                  onChange={(event) => setChildName(event.target.value)}
+                  placeholder="VD: Bé Bơ"
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <User size={13} /> Họ tên khai sinh *
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  required
+                  value={childFullName}
+                  onChange={(event) => setChildFullName(event.target.value)}
+                  placeholder="VD: Nguyễn Minh Khang"
+                />
+              </div>
+            </div>
+
+            <div className="log-form-group">
+              <label className="log-form-label icon-label">
+                <Heart size={13} /> Giới tính
+              </label>
+              <div className="gender-selector-pills" role="group" aria-label="Giới tính của bé">
                 <button
-                  key={avatar.url}
                   type="button"
-                  className={`avatar-preset-thumb-btn ${childAvatar === avatar.url ? 'selected' : ''}`}
-                  onClick={() => setChildAvatar(avatar.url)}
-                  title={avatar.label}
+                  className={`gender-pill-btn ${gender === 'boy' ? 'active boy' : ''}`}
+                  onClick={() => setGender('boy')}
+                  aria-pressed={gender === 'boy'}
                 >
-                  <img src={avatar.url} alt={avatar.label} />
-                  {childAvatar === avatar.url && (
-                    <span className="avatar-check-badge">
-                      <Check size={10} color="#FFFFFF" />
-                    </span>
-                  )}
+                  👦 Bé trai
                 </button>
-              ))}
+                <button
+                  type="button"
+                  className={`gender-pill-btn ${gender === 'girl' ? 'active girl' : ''}`}
+                  onClick={() => setGender('girl')}
+                  aria-pressed={gender === 'girl'}
+                >
+                  👧 Bé gái
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <User size={13} color="var(--color-sage-dark)" /> Tên gọi ở nhà *
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              required
-              value={childName}
-              onChange={(event) => setChildName(event.target.value)}
-              placeholder="VD: Bé Bơ, Coca..."
-            />
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Ngày sinh</span>
+            <small>Thông tin dùng để tính tuổi</small>
           </div>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <User size={13} color="var(--color-sage-dark)" /> Họ tên khai sinh *
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              required
-              value={childFullName}
-              onChange={(event) => setChildFullName(event.target.value)}
-              placeholder="VD: Nguyễn Minh Khang..."
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Heart size={13} color="var(--color-mom-rose)" /> Giới tính
-            </label>
-            <div className="gender-selector-pills">
-              <button
-                type="button"
-                className={`gender-pill-btn ${gender === 'boy' ? 'active boy' : ''}`}
-                onClick={() => setGender('boy')}
-              >
-                👦 Bé Trai
-              </button>
-              <button
-                type="button"
-                className={`gender-pill-btn ${gender === 'girl' ? 'active girl' : ''}`}
-                onClick={() => setGender('girl')}
-              >
-                👧 Bé Gái
-              </button>
+          <div className="tracker-sheet-two-column">
+            <div className="log-form-group">
+              <label className="log-form-label icon-label">
+                <Calendar size={13} /> Ngày sinh *
+              </label>
+              <HavenDatePicker
+                label="Ngày sinh"
+                value={birthDate}
+                onChange={setBirthDate}
+                maxDate={new Date().toISOString().slice(0, 10)}
+              />
+            </div>
+            <div className="log-form-group">
+              <label className="log-form-label icon-label">
+                <Clock size={13} /> Giờ sinh
+              </label>
+              <input
+                type="time"
+                className="log-input-control"
+                value={birthTime}
+                onChange={(event) => setBirthTime(event.target.value)}
+              />
             </div>
           </div>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Droplet size={13} color="#E87A90" /> Nhóm máu
-            </label>
-            <HavenDropdown
-              label="Nhóm máu"
-              value={bloodType}
-              onChange={setBloodType}
-              options={[
-                { value: 'O+', label: 'O+ (Phổ biến)' },
-                { value: 'A+', label: 'A+' },
-                { value: 'B+', label: 'B+' },
-                { value: 'AB+', label: 'AB+' },
-                { value: 'O-', label: 'O- (Hiếm)' },
-                { value: 'A-', label: 'A-' },
-                { value: 'B-', label: 'B-' },
-                { value: 'AB-', label: 'AB-' },
-                { value: 'Chưa xác định', label: 'Chưa xác định' },
-              ]}
-            />
-          </div>
-        </div>
+        </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Calendar size={13} color="var(--color-sage-dark)" /> Ngày sinh *
-            </label>
-            <HavenDatePicker
-              label="Ngày sinh"
-              value={birthDate}
-              onChange={setBirthDate}
-              maxDate={new Date().toISOString().slice(0, 10)}
-            />
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Thông tin lúc sinh</span>
+            <small>Số đo và nhóm máu</small>
           </div>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Clock size={13} color="var(--color-sage-dark)" /> Giờ sinh
-            </label>
-            <input
-              type="time"
-              className="log-input-control"
-              value={birthTime}
-              onChange={(event) => setBirthTime(event.target.value)}
-            />
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Scale size={13} /> Cân nặng
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={birthWeight}
+                  onChange={(event) => setBirthWeight(event.target.value)}
+                  placeholder="VD: 3.3 kg"
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Ruler size={13} /> Chiều dài
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={birthHeight}
+                  onChange={(event) => setBirthHeight(event.target.value)}
+                  placeholder="VD: 50.0 cm"
+                />
+              </div>
+            </div>
+            <div className="log-form-group">
+              <label className="log-form-label icon-label">
+                <Droplet size={13} /> Nhóm máu
+              </label>
+              <HavenDropdown
+                label="Nhóm máu"
+                value={bloodType}
+                onChange={setBloodType}
+                options={BLOOD_TYPE_OPTIONS}
+              />
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Scale size={13} color="#E97332" /> Cân nặng lúc sinh
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              value={birthWeight}
-              onChange={(event) => setBirthWeight(event.target.value)}
-              placeholder="VD: 3.3 kg"
-            />
+        <section className="tracker-sheet-section">
+          <div className="tracker-sheet-section-header">
+            <span>Y tế & ghi chú</span>
+            <small>Thông tin tham khảo nhanh</small>
           </div>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Ruler size={13} color="var(--color-sage-dark)" /> Chiều dài lúc sinh
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              value={birthHeight}
-              onChange={(event) => setBirthHeight(event.target.value)}
-              placeholder="VD: 50.0 cm"
-            />
+          <div className="tracker-sheet-form">
+            <div className="tracker-sheet-two-column">
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <Building size={13} /> Bệnh viện nơi sinh
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={hospital}
+                  onChange={(event) => setHospital(event.target.value)}
+                  placeholder="VD: BV Phụ sản..."
+                />
+              </div>
+              <div className="log-form-group">
+                <label className="log-form-label icon-label">
+                  <ShieldAlert size={13} /> Mã thẻ BHYT
+                </label>
+                <input
+                  type="text"
+                  className="log-input-control"
+                  value={insuranceCode}
+                  onChange={(event) => setInsuranceCode(event.target.value)}
+                  placeholder="VD: DN4012984920"
+                />
+              </div>
+            </div>
+            <div className="log-form-group sheet-note-field">
+              <label className="log-form-label icon-label">
+                <FileText size={13} /> Ghi chú & đặc điểm riêng
+              </label>
+              <textarea
+                className="log-input-control"
+                rows={3}
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                placeholder="VD: Bé sinh đủ tháng, thích nghe nhạc êm dịu..."
+              />
+            </div>
           </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Building size={13} color="var(--color-sage-dark)" /> Bệnh viện nơi sinh
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              value={hospital}
-              onChange={(event) => setHospital(event.target.value)}
-              placeholder="VD: BV Phụ sản..."
-            />
-          </div>
-          <div className="log-form-group">
-            <label className="log-form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <ShieldAlert size={13} color="var(--color-sage-dark)" /> Mã số thẻ BHYT
-            </label>
-            <input
-              type="text"
-              className="log-input-control"
-              value={insuranceCode}
-              onChange={(event) => setInsuranceCode(event.target.value)}
-              placeholder="VD: DN4012984920..."
-            />
-          </div>
-        </div>
-
-        <div className="log-form-group">
-          <label className="log-form-label">Ghi chú & Đặc điểm riêng của bé</label>
-          <textarea
-            className="log-input-control"
-            style={{ height: '60px', padding: '8px 10px', resize: 'none' }}
-            rows={2}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="VD: Bé sinh đủ tháng, thích nghe nhạc êm dịu..."
-          />
-        </div>
+        </section>
       </form>
     </BottomSheet>
   );
