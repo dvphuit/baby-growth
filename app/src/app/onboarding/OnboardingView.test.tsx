@@ -59,7 +59,17 @@ describe('OnboardingView', () => {
       generation: 2,
       exportedAt: backupDate,
       profile: {
-        familyData: { childName: 'Bé Đậu Đậu', birthDate: '2025-01-15' },
+        familyData: {
+          isInitialized: true,
+          childName: 'Bé Đậu Đậu',
+          childFullName: 'Bé Đậu Đậu',
+          birthDate: '2025-01-15',
+          gender: 'girl',
+          bloodType: 'O+',
+          childAvatar: '/assets/avatars/baby_avatar.jpg',
+          momName: '',
+          momAvatar: '/assets/avatars/mom_avatar.jpg',
+        },
         profileMode: 'baby',
       },
       activities: { baby: [], mom: [], medicationCatalog: [] },

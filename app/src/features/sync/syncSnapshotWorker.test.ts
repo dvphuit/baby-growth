@@ -11,7 +11,20 @@ function input(): SyncSnapshotSerializationInput {
     data: parseAppSnapshot({
       generation: 2,
       exportedAt: '2026-08-21T14:00:00.000Z',
-      profile: { familyData: {}, profileMode: 'baby' },
+      profile: {
+        familyData: {
+          isInitialized: false,
+          childName: '',
+          childFullName: '',
+          birthDate: '',
+          gender: 'boy',
+          bloodType: 'O+',
+          childAvatar: '/assets/avatars/baby_avatar.jpg',
+          momName: '',
+          momAvatar: '/assets/avatars/mom_avatar.jpg',
+        },
+        profileMode: 'baby',
+      },
       activities: { baby: [], mom: [], medicationCatalog: [] },
       growth: { currentStage: 'stage_0_1', stages: {}, completedHabitIds: [] },
       timeline: { items: [] },
