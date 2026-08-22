@@ -70,7 +70,7 @@ export const AppContent: React.FC = () => {
       <div className="app-container" id="appContainer">
         <ToastContainer toasts={toasts} />
         <Suspense fallback={<div className="route-loading-state" role="status">Đang chuẩn bị hồ sơ…</div>}>
-          <OnboardingView onComplete={() => addToast('Chào mừng Ba Mẹ đến với Haven! Hồ sơ của Bé đã sẵn sàng.')} />
+          <OnboardingView onComplete={() => addToast('Chào mừng Ba Mẹ đến với Kinly! Hồ sơ của Bé đã sẵn sàng.')} />
         </Suspense>
         <PWABadge />
       </div>

@@ -72,8 +72,9 @@ test.describe('critical browser journeys', () => {
 
     await page.locator('#navTabTimeline').click();
     await expect(page).toHaveURL(/\/timeline$/);
-    await expect(page.getByText('Cữ bú', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('90 ml', { exact: true }).first()).toBeVisible();
+    const feedingSummary = page.getByRole('button', { name: /^Cữ bú,/ }).first();
+    await expect(feedingSummary).toBeVisible();
+    await expect(feedingSummary).toContainText('90 ml');
 
     await page.reload();
 
