@@ -64,9 +64,9 @@ describe('interaction performance audit', () => {
     const bottomNav = source('shared/styles/bottom-nav.css');
     const pullToRefresh = source('shared/ui/PullToRefresh.css');
     expect(header).not.toContain('backdrop-filter');
-    expect(header).toContain('.app-bar::before');
-    expect(header).toContain('height: max(1px, env(safe-area-inset-top, 0px));');
-    expect(header).toContain('.app-bar-mom::before');
+    expect(header).toContain('safe-area-inset-top');
+    expect(header).not.toContain('.app-bar::before');
+    expect(header).not.toContain('height: max(1px, env(safe-area-inset-top, 0px));');
     expect(bottomNav).not.toContain('backdrop-filter');
     expect(pullToRefresh).not.toContain('will-change: transform');
   });
