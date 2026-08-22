@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { animateElement, cancelElementAnimations } from '@/shared/lib/nativeAnimation';
 import { useNativePresence } from '@/shared/hooks/useNativePresence';
@@ -209,13 +210,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     settleDrag();
   };
 
-  if (!presence.mounted) return null;
+  if (!presence.mounted || typeof document === 'undefined') return null;
   const phaseClass = presence.phase === 'open' ? 'native-open' : 'native-closing';
   const sheetPhaseClass = dragDismissedRef.current && !isOpen
     ? `${phaseClass} native-drag-dismissed`
     : phaseClass;
 
-  return (
+  return createPortal(
     <div
       ref={backdropRef}
       className={`modal-backdrop ${isOpen ? 'open' : 'closing'} ${phaseClass}`}
@@ -275,6 +276,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         <div ref={contentRef} className="sheet-content-body">{children}</div>
         {footer && <div className="sheet-footer">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

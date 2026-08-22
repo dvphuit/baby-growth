@@ -44,14 +44,14 @@ describe('BottomSheet accessibility and dismissal', () => {
 
   it('does not start any dismissal path when dismissible is false', () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet isOpen onClose={onClose} title="Locked sheet" dismissible={false}>
         <button type="button">Action</button>
       </BottomSheet>,
     );
     const dialog = screen.getByRole('dialog', { name: 'Locked sheet' });
-    const backdrop = container.querySelector('.modal-backdrop')!;
-    const handle = container.querySelector('.sheet-handle-bar')!;
+    const backdrop = document.querySelector('.modal-backdrop')!;
+    const handle = document.querySelector('.sheet-handle-bar')!;
 
     fireEvent.keyDown(window, { key: 'Escape' });
     fireEvent.click(backdrop);
@@ -63,6 +63,21 @@ describe('BottomSheet accessibility and dismissal', () => {
 
     expect(onClose).not.toHaveBeenCalled();
     expect(dialog).not.toHaveClass('closing');
+  });
+
+  it('portals the overlay to document.body so app stacking contexts cannot cover it', () => {
+    const { container } = render(
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <BottomSheet isOpen onClose={() => {}} title="Nested sheet">
+          <p>Nested content</p>
+        </BottomSheet>
+      </div>,
+    );
+
+    const backdrop = document.querySelector('.modal-backdrop');
+    expect(backdrop).not.toBeNull();
+    expect(backdrop?.parentElement).toBe(document.body);
+    expect(container.querySelector('.modal-backdrop')).toBeNull();
   });
 
   it('renders fixed footer outside the scrollable content body', () => {
