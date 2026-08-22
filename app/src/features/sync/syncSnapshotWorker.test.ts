@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { exportAppSnapshot } from './appSnapshot';
+import { parseAppSnapshot } from './appSnapshot';
 import { serializeSyncSnapshotPayload, type SyncSnapshotSerializationInput } from './syncSnapshotSerialization';
 import { serializeSyncSnapshotOffMainThread } from './syncSnapshotWorker';
 
@@ -8,7 +8,16 @@ function input(): SyncSnapshotSerializationInput {
     schemaVersion: 2,
     updatedAt: '2026-08-21T14:01:00.000Z',
     deviceId: 'device-test',
-    data: exportAppSnapshot(new Date('2026-08-21T14:00:00.000Z')),
+    data: parseAppSnapshot({
+      generation: 2,
+      exportedAt: '2026-08-21T14:00:00.000Z',
+      profile: { familyData: {}, profileMode: 'baby' },
+      activities: { baby: [], mom: [], medicationCatalog: [] },
+      growth: { currentStage: 'stage_0_1', stages: {}, completedHabitIds: [] },
+      timeline: { items: [] },
+      expenses: { records: [], monthlyBudget: 5_000_000 },
+      reminders: { items: [], occurrenceStates: {}, systemNotificationsEnabled: false },
+    }),
   };
 }
 

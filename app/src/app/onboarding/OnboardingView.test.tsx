@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { exportAppSnapshot } from '@/features/sync/appSnapshot';
+import { parseAppSnapshot } from '@/features/sync/appSnapshot';
 import { resetChildStoresToDefaults, useProfileStore } from '@/features/profile';
 import * as googleDriveSync from '@/features/sync';
 import { OnboardingView } from './OnboardingView';
@@ -55,6 +55,19 @@ describe('OnboardingView', () => {
   it('shows backup found screen and allows restoring generation-2 data', async () => {
     const onComplete = vi.fn();
     const backupDate = '2025-02-01T10:00:00Z';
+    const backupData = parseAppSnapshot({
+      generation: 2,
+      exportedAt: backupDate,
+      profile: {
+        familyData: { childName: 'Bé Đậu Đậu', birthDate: '2025-01-15' },
+        profileMode: 'baby',
+      },
+      activities: { baby: [], mom: [], medicationCatalog: [] },
+      growth: { currentStage: 'stage_0_1', stages: {}, completedHabitIds: [] },
+      timeline: { items: [] },
+      expenses: { records: [], monthlyBudget: 5_000_000 },
+      reminders: { items: [], occurrenceStates: {}, systemNotificationsEnabled: false },
+    });
     vi.mocked(googleDriveSync.checkDriveBackup).mockResolvedValue({
       found: true,
       remoteFileId: 'file-123',
@@ -66,7 +79,7 @@ describe('OnboardingView', () => {
         updatedAt: backupDate,
         deviceId: 'device-1',
         fingerprint: 'fp-1',
-        data: exportAppSnapshot(new Date(backupDate)),
+        data: backupData,
       },
     });
 
