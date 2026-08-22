@@ -51,7 +51,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   font-size: 13px;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -95,7 +95,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   font-size: 13px;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -155,7 +155,7 @@
 .mini-score-pill {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: var(--color-depressed-bg);
   color: var(--color-depressed);
   font-size: 10px;
@@ -501,7 +501,7 @@
 .legend-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   flex-shrink: 0;
 }
 
@@ -576,7 +576,7 @@
 .cat-color-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   flex-shrink: 0;
 }
 
@@ -621,7 +621,7 @@
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: var(--color-sage);
   border: 2.5px solid #FFFFFF;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -677,7 +677,7 @@
 .action-icon-circle {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: #FFFFFF;
   display: flex;
   align-items: center;
@@ -726,7 +726,7 @@
   right: 16px;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: rgba(255, 255, 255, 0.25);
   color: #FFFFFF;
   border: none;
@@ -838,7 +838,7 @@
   color: #FFFFFF;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -870,7 +870,7 @@
 .ios-step-num {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: var(--color-primary-dark);
   color: #FFFFFF;
   font-family: var(--font-family-display);
@@ -906,7 +906,7 @@
 .notif-icon-circle {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: #FFFFFF;
   display: flex;
   align-items: center;

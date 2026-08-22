@@ -45,7 +45,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
 }
 
 .profile-edit-btn {
@@ -128,7 +128,7 @@
   position: absolute;
   z-index: -1;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
 }
 
 .profile-hero-decoration-one {
@@ -171,7 +171,7 @@
   align-items: center;
   justify-content: center;
   border: 3px solid #718060;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: #6c4d25;
   background: #f8df9d;
 }
@@ -1419,7 +1419,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: var(--color-sage-dark);
 }
 

@@ -119,7 +119,7 @@
 .fab-center-btn {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: var(--color-sage);
   color: #FFFFFF;
   border: 3px solid #FFFFFF;

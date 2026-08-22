@@ -44,7 +44,7 @@
   width: 180px;
   height: 180px;
   border: 22px solid rgba(245, 184, 66, 0.12);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -56,7 +56,7 @@
   width: 120px;
   height: 120px;
   border: 16px solid rgba(255, 255, 255, 0.04);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
@@ -91,7 +91,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
   cursor: pointer;
@@ -231,7 +231,7 @@
   justify-content: center;
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   padding: 4px;
   background: rgba(245, 184, 66, 0.16);
   border: 1.5px solid rgba(245, 184, 66, 0.35);
@@ -247,7 +247,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   background: linear-gradient(135deg, #FDE68A 0%, #F5B842 55%, #E59819 100%);
   color: var(--color-primary-dark, #2D180F);
   box-shadow: 0 4px 14px rgba(245, 184, 66, 0.45), inset 0 2px 3px rgba(255, 255, 255, 0.6);
@@ -742,7 +742,7 @@
   top: 12px;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   border: 1.5px solid;
   display: flex;
   align-items: center;
@@ -979,7 +979,7 @@
   display: grid;
   place-items: center;
   border: 2px solid #FFFFFF;
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   color: #FFFFFF;
   box-shadow: 0 2px 5px rgba(57, 38, 29, 0.15);
 }
@@ -1003,7 +1003,7 @@
   width: 104px;
   height: 104px;
   border: 14px solid rgba(128, 80, 56, 0.06);
-  border-radius: 50%;
+  border-radius: 50%; corner-shape: round;
   pointer-events: none;
 }
 
