@@ -4,15 +4,15 @@ import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 function getMilestoneIcon(id: string) {
   switch (id) {
     case 'roll':
-      return <RotateCw size={18} color="var(--color-sage-dark)" />;
+      return <RotateCw size={18} />;
     case 'sit':
-      return <User size={18} color="var(--color-sage-dark)" />;
+      return <User size={18} />;
     case 'crawl':
     case 'stand_walk':
     case 'run':
-      return <Footprints size={18} color="var(--color-sage-dark)" />;
+      return <Footprints size={18} />;
     default:
-      return <Activity size={18} color="var(--color-sage-dark)" />;
+      return <Activity size={18} />;
   }
 }
 
@@ -96,5 +96,4 @@ export const MilestoneRoadmap: React.FC = () => {
     </section>
   );
 };
-
 

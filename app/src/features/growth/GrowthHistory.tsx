@@ -76,7 +76,12 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
                 {record.weight > 0 && (
                   <span className="haven-growth-chip">
                     <span className="haven-growth-chip-label">
-                      <HavenScaleIcon size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} />
+                      <HavenScaleIcon
+                        size={12}
+                        color="currentColor"
+                        secondaryColor="var(--growth-chip-icon-soft)"
+                        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }}
+                      />
                       Cân nặng:
                     </span>
                     <strong>{record.weight} kg</strong>
@@ -85,7 +90,12 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
                 {record.height > 0 && (
                   <span className="haven-growth-chip">
                     <span className="haven-growth-chip-label">
-                      <HavenRulerIcon size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} />
+                      <HavenRulerIcon
+                        size={12}
+                        color="currentColor"
+                        secondaryColor="var(--growth-chip-icon-soft)"
+                        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }}
+                      />
                       Chiều cao:
                     </span>
                     <strong>{record.height} cm</strong>
@@ -94,7 +104,12 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
                 {record.headCirc > 0 && (
                   <span className="haven-growth-chip">
                     <span className="haven-growth-chip-label">
-                      <HavenHeadCircIcon size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }} />
+                      <HavenHeadCircIcon
+                        size={12}
+                        color="currentColor"
+                        secondaryColor="var(--growth-chip-icon-soft)"
+                        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 4 }}
+                      />
                       Vòng đầu:
                     </span>
                     <strong>{record.headCirc} cm</strong>
@@ -104,7 +119,7 @@ export const GrowthHistory: React.FC<GrowthHistoryProps> = ({ onOpenAddMeasureme
 
               {record.note && (
                 <p className="haven-growth-history-note">
-                  <FileText size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4, color: 'var(--color-sage-dark)' }} />
+                  <FileText size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
                   <span>{record.note}</span>
                 </p>
               )}

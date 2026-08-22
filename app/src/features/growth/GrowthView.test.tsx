@@ -18,21 +18,17 @@ describe('GrowthView', () => {
     useGrowthStore.getState().resetToDefaults();
   });
 
-  it('renders Haven growth hero and honest empty state when no measurements exist', () => {
+  it('renders the Home-style growth summary and honest empty state when no measurements exist', () => {
     const onOpenAddMeasurement = vi.fn();
-    render(<GrowthView onOpenAddMeasurement={onOpenAddMeasurement} />);
+    const { container } = render(<GrowthView onOpenAddMeasurement={onOpenAddMeasurement} />);
 
-    // Haven Hero
     expect(screen.getByRole('heading', { level: 2, name: /Hành trình/i })).toBeInTheDocument();
     expect(screen.getByText('NHỊP TĂNG TRƯỞNG')).toBeInTheDocument();
-
-
-    // Empty state
+    expect(container.querySelector('.haven-growth-summary-card')).toBeInTheDocument();
+    expect(container.querySelector('.haven-growth-add-btn')).toBeInTheDocument();
     expect(screen.getByText('Chưa có số đo được ghi nhận')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Ghi lần cân đo đầu tiên/i }).length).toBeGreaterThanOrEqual(1);
 
-
-    // Chart & Milestones
     expect(screen.getByTestId('who-chart-mock')).toBeInTheDocument();
     expect(screen.getByText(/WHOChart metric: weight/i)).toBeInTheDocument();
     expect(screen.getByText('Phát triển thể chất')).toBeInTheDocument();
@@ -100,9 +96,15 @@ describe('GrowthView', () => {
   it('switches chart metric pills between Weight, Height, and Head Circumference', () => {
     render(<GrowthView onOpenAddMeasurement={vi.fn()} />);
 
+    const weightPill = screen.getByRole('button', { name: /Cân nặng/i });
     const heightPill = screen.getByRole('button', { name: /Chiều cao/i });
+    expect(weightPill).toHaveAttribute('aria-pressed', 'true');
+    expect(heightPill).toHaveAttribute('aria-pressed', 'false');
+
     fireEvent.click(heightPill);
     expect(screen.getByText(/WHOChart metric: height/i)).toBeInTheDocument();
+    expect(weightPill).toHaveAttribute('aria-pressed', 'false');
+    expect(heightPill).toHaveAttribute('aria-pressed', 'true');
 
     const headPill = screen.getByRole('button', { name: /Vòng đầu/i });
     fireEvent.click(headPill);

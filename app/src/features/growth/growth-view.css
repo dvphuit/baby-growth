@@ -1,278 +1,427 @@
-/* Haven growth implementation: forest sage hero, responsive WHO growth chart, vital delta cards, interactive milestone roadmap, and measurement history. */
+/* Growth follows the Home tab's dark summary card and lighter journal sections, with a teal palette. */
 
 .haven-growth {
+  --growth-deep: #17383e;
+  --growth-ink: #285860;
+  --growth-ink-strong: #1f4a51;
+  --growth-mint: #a9ddca;
+  --growth-mint-soft: #e6f3ef;
+  --growth-border: #d7e8e3;
+  --growth-muted: #64807d;
+  position: relative;
+  z-index: 2;
   display: grid;
-  gap: 14px;
+  gap: 16px;
+  margin-top: -6px;
   padding-bottom: 8px;
 }
 
-/* ==========================================================================
-   1. Growth Hero Banner
-   ========================================================================== */
-.haven-growth-hero {
+/* Summary card */
+.haven-growth-summary-card {
   position: relative;
-  min-height: 216px;
   overflow: hidden;
-  padding: 22px 18px 18px;
-  color: #ffffff;
-  border-radius: 26px;
-  background: linear-gradient(140deg, #4b6637 0%, #344a25 100%);
-  box-shadow: 0 14px 28px rgba(52, 74, 37, 0.22);
+  padding: 14px;
+  border: 1px solid rgba(174, 224, 208, 0.18);
+  border-radius: 28px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(174, 224, 208, 0.18), transparent 36%),
+    radial-gradient(circle at 5% 100%, rgba(255, 255, 255, 0.065), transparent 38%),
+    linear-gradient(145deg, #28555d 0%, #17383e 100%);
+  box-shadow: 0 16px 34px rgba(27, 68, 74, 0.25), inset 0 1px rgba(255, 255, 255, 0.12);
 }
 
-.haven-growth-hero::before {
+.haven-growth-summary-card::before {
   content: '';
   position: absolute;
-  right: -52px;
-  top: -46px;
-  width: 176px;
-  height: 176px;
-  border: 22px solid rgba(255, 255, 255, 0.12);
+  top: -74px;
+  right: -58px;
+  width: 190px;
+  height: 190px;
+  border: 24px solid rgba(255, 255, 255, 0.055);
   border-radius: 50%;
   pointer-events: none;
 }
 
-.haven-growth-hero::after {
+.haven-growth-summary-card::after {
   content: '';
   position: absolute;
-  right: 124px;
-  bottom: -46px;
-  width: 76px;
-  height: 76px;
-  border: 14px solid rgba(255, 255, 255, 0.1);
+  right: 40%;
+  bottom: -58px;
+  width: 120px;
+  height: 120px;
+  border: 17px solid rgba(255, 255, 255, 0.035);
   border-radius: 50%;
   pointer-events: none;
+}
+
+.haven-growth-ambient {
+  position: absolute;
+  top: 0;
+  right: 16%;
+  left: 16%;
+  z-index: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+}
+
+.haven-growth-summary-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 4px 12px;
 }
 
 .haven-growth-hero-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 220px;
+  min-width: 0;
+  max-width: 265px;
 }
 
-.haven-growth-hero .haven-eyebrow {
-  display: block;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 9px;
+.haven-growth-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid rgba(196, 237, 223, 0.2);
+  border-radius: var(--radius-pill);
+  color: #d8f0e8;
+  background: rgba(196, 237, 223, 0.09);
+  font-size: 8.5px;
   font-weight: 900;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.08em;
 }
 
-.haven-growth-hero h2 {
-  margin: 7px 0 6px;
-  color: #ffffff;
+.haven-growth-hero-copy h2 {
+  margin: 8px 0 4px;
+  color: #fff;
   font-family: var(--font-family-display);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-size: clamp(27px, 7.5vw, 33px);
+  font-weight: 850;
+  line-height: 1.03;
+  letter-spacing: -0.045em;
 }
 
-.haven-growth-hero p {
+.haven-growth-hero-copy p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 11px;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 10.5px;
+  font-weight: 650;
   line-height: 1.4;
 }
 
-.haven-growth-orbit {
-  position: absolute;
-  z-index: 1;
-  right: 16px;
-  top: 44px;
+.haven-growth-add-btn {
+  flex: 0 0 auto;
+  width: 55px;
+  height: 55px;
   display: grid;
   place-items: center;
-  width: 94px;
-  height: 94px;
-  text-align: center;
-  border: 7px solid rgba(255, 255, 255, 0.25);
-  border-top-color: #ffffff;
+  padding: 4px;
+  border: 1px solid rgba(210, 244, 233, 0.3);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.haven-growth-orbit strong {
-  font-family: var(--font-family-display);
-  font-size: 17px;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: -0.04em;
-}
-
-.haven-growth-orbit span {
-  margin-top: -24px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 8.5px;
-  font-weight: 800;
-}
-
-.haven-growth-add {
-  position: absolute;
-  z-index: 2;
-  left: 18px;
-  bottom: 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 8px 14px;
-  color: var(--color-primary-dark);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: #ffffff;
-  font-family: var(--font-family-body);
-  font-size: 11px;
-  font-weight: 900;
-  box-shadow: 0 6px 14px rgba(52, 74, 37, 0.16);
+  background: rgba(210, 244, 233, 0.1);
+  box-shadow: 0 8px 20px rgba(7, 28, 31, 0.22);
   cursor: pointer;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), background var(--transition-fast);
 }
 
-.haven-growth-add:active {
-  transform: scale(0.97);
+.haven-growth-add-btn > span {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--growth-deep);
+  background: linear-gradient(145deg, #e4f7f0, #a9dcc9);
+  box-shadow: inset 0 2px rgba(255, 255, 255, 0.65), 0 5px 13px rgba(0, 0, 0, 0.17);
 }
 
-/* ==========================================================================
-   2. Growth Vitals Cards
-   ========================================================================== */
-.haven-growth-vitals-sheet {
-  padding: 17px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow: var(--shadow-card);
+.haven-growth-add-btn:active {
+  transform: scale(0.92);
 }
 
 .haven-growth-vitals-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 .haven-vital-card {
-  min-height: 120px;
+  --growth-vital-accent: #5b9d87;
+  --growth-vital-icon-soft: #dff2eb;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 118px;
   display: flex;
   flex-direction: column;
-  padding: 11px 9px;
+  padding: 10px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  background: var(--color-card-warm);
-  border: 1px solid rgba(51, 37, 31, 0.04);
-  position: relative;
-  overflow: hidden;
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(9px);
+}
+
+.haven-vital-card::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: -22px;
+  bottom: -28px;
+  width: 74px;
+  height: 74px;
+  border: 12px solid color-mix(in srgb, var(--growth-vital-accent) 18%, transparent);
+  border-radius: 50%;
 }
 
 .haven-vital-card.weight-card {
-  background: #edf4e3;
+  --growth-vital-accent: #76b79d;
+  --growth-vital-icon-soft: #dff2eb;
 }
 
 .haven-vital-card.height-card {
-  background: #fff3d4;
+  --growth-vital-accent: #d6ae5d;
+  --growth-vital-icon-soft: #f8edcf;
 }
 
 .haven-vital-card.head-card {
-  background: #f4e8e1;
+  --growth-vital-accent: #d58f70;
+  --growth-vital-icon-soft: #f7dfd4;
 }
 
 .haven-vital-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 7px;
 }
 
 .haven-vital-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  color: var(--color-primary-dark);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.72);
-  font-size: 13px;
+  border-radius: 11px;
+  background: var(--growth-vital-icon-soft);
+  color: color-mix(in srgb, var(--growth-vital-accent) 74%, #23484d);
 }
 
 .haven-vital-delta-badge {
-  font-size: 8px;
-  font-weight: 800;
-  padding: 2px 5px;
+  overflow: hidden;
+  padding: 3px 5px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--color-sage-dark);
+  background: rgba(255, 255, 255, 0.1);
+  color: color-mix(in srgb, var(--growth-vital-accent) 72%, white);
+  font-size: 7.5px;
+  font-weight: 850;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .haven-vital-label {
-  color: var(--color-text-secondary);
-  font-size: 9px;
-  font-weight: 900;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .haven-vital-value {
   margin-top: 2px;
-  color: var(--color-text-primary);
+  overflow: hidden;
+  color: #fff;
   font-family: var(--font-family-display);
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 15px;
+  font-weight: 850;
   line-height: 1.15;
+  letter-spacing: -0.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .haven-vital-ref {
   margin-top: auto;
-  padding-top: 5px;
-  color: var(--color-text-muted);
-  font-size: 8px;
-  font-weight: 800;
-  line-height: 1.2;
+  padding-top: 6px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 7.4px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-/* ==========================================================================
-   3. WHO Growth Chart Sheet
-   ========================================================================== */
+.haven-growth-summary-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.haven-growth-summary-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.haven-growth-summary-strip span svg {
+  color: #b8e4d5;
+}
+
+.haven-growth-summary-strip strong {
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.haven-growth-summary-empty {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.haven-growth-summary-empty-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(210, 244, 233, 0.12);
+  color: #c6ecdf;
+}
+
+.haven-growth-summary-empty div {
+  min-width: 0;
+}
+
+.haven-growth-summary-empty strong {
+  color: #fff;
+  font-family: var(--font-family-display);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.haven-growth-summary-empty p {
+  margin: 3px 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 8.5px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.haven-growth-summary-empty button {
+  grid-column: 1 / -1;
+  min-height: 36px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: #d8f1e8;
+  color: var(--growth-deep);
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+/* Chart */
 .haven-growth-chart-sheet {
-  padding: 17px;
-  border: 1px solid var(--color-border-subtle);
+  padding: 16px;
+  border: 1px solid var(--growth-border);
   border-radius: 24px;
-  background: #ffffff;
-  box-shadow: var(--shadow-card);
+  background: linear-gradient(160deg, #ffffff 0%, #f7fbfa 100%);
+  box-shadow: 0 10px 26px rgba(37, 83, 88, 0.08);
+}
+
+.haven-growth .haven-eyebrow {
+  color: #4f8982;
+}
+
+.haven-growth .haven-sheet-heading h3 {
+  color: #21474d;
+}
+
+.haven-sheet-date {
+  padding: 5px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--growth-mint-soft);
+  color: #4c7d77;
+  font-size: 8px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.haven-growth .haven-text-action {
+  border-color: var(--growth-border);
+  background: var(--growth-mint-soft);
+  color: var(--growth-ink-strong);
 }
 
 .haven-chart-metric-pills {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   margin-bottom: 14px;
-  background: var(--color-card-warm);
   padding: 4px;
+  border: 1px solid #dceae6;
   border-radius: var(--radius-pill);
+  background: #eaf3f1;
 }
 
 .haven-metric-pill-btn {
+  --metric-accent: var(--growth-ink);
+  --metric-icon-soft: #dceee9;
   flex: 1;
-  min-height: 32px;
-  padding: 5px 8px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 7px;
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-text-secondary);
+  color: #6f8582;
   font-family: var(--font-family-body);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   cursor: pointer;
-  transition: all var(--transition-fast);
   text-align: center;
   white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
+.haven-metric-pill-btn.metric-height { --metric-accent: #a67823; --metric-icon-soft: #f7edcf; }
+.haven-metric-pill-btn.metric-head { --metric-accent: #a55f43; --metric-icon-soft: #f5dfd5; }
+
 .haven-metric-pill-btn.active {
-  background: #ffffff;
-  color: var(--color-primary-dark);
-  box-shadow: 0 2px 8px rgba(51, 37, 31, 0.08);
+  --metric-icon-soft: rgba(255, 255, 255, 0.14);
+  background: var(--metric-accent);
+  color: #fff;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--metric-accent) 24%, transparent);
+}
+
+.haven-metric-pill-btn:active {
+  transform: scale(0.97);
 }
 
 .haven-chart-canvas-box {
-  height: 250px;
   position: relative;
+  height: 250px;
   margin-bottom: 12px;
 }
 
@@ -281,82 +430,84 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 8px 10px;
-  background: var(--color-canvas);
-  border-radius: 14px;
+  gap: 10px;
   margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e1ece9;
+  border-radius: 14px;
+  background: #f3f8f7;
 }
 
 .haven-legend-item {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 9.5px;
+  color: #6b807d;
+  font-size: 9px;
   font-weight: 700;
-  color: var(--color-text-secondary);
 }
 
 .haven-legend-indicator {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
   flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .haven-legend-indicator.child {
-  background: var(--color-primary-dark);
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px var(--color-primary-dark);
+  background: var(--growth-ink);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--growth-ink);
 }
 
 .haven-legend-indicator.p50 {
-  background: var(--color-sage);
-  border-radius: 2px;
-  height: 3px;
   width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: #6ba48e;
 }
 
 .haven-legend-indicator.band {
-  background: rgba(245, 184, 66, 0.35);
-  border-radius: 2px;
-  height: 6px;
   width: 14px;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(107, 164, 142, 0.24);
 }
 
 .haven-chart-info-note {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 10px 12px;
-  background: #f1f5eb;
-  border: 1px solid #dfe9d5;
-  border-radius: 16px;
-  font-size: 10px;
-  color: var(--color-primary-brown);
-  line-height: 1.45;
   margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid #d4e6e1;
+  border-radius: 16px;
+  background: #eaf4f1;
+  color: #4f6f6b;
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .haven-chart-info-icon {
-  font-size: 14px;
   flex-shrink: 0;
   margin-top: 1px;
+  color: #39716e;
 }
 
-/* ==========================================================================
-   4. Milestone Roadmap Sheet
-   ========================================================================== */
-.haven-milestones-sheet {
-  padding: 17px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow: var(--shadow-card);
+/* Milestones and measurement journal */
+.haven-milestones-sheet,
+.haven-growth-history-sheet {
+  padding: 7px 2px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.haven-milestones-list {
+.haven-milestones-list,
+.haven-growth-history-list {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .haven-milestone-card {
@@ -364,37 +515,43 @@
   align-items: flex-start;
   gap: 11px;
   padding: 12px;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--growth-border);
   border-radius: 18px;
-  background: var(--color-canvas);
-  transition: all var(--transition-fast);
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(34, 75, 79, 0.045);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .haven-milestone-card.completed {
-  background: #f3f7ed;
-  border-color: #dce7ce;
+  border-color: #cbe5db;
+  background: #edf7f3;
 }
 
 .haven-milestone-card.in-progress {
-  background: #fcf8ee;
-  border-color: #f7e8be;
+  border-color: #eddcae;
+  background: #fff9e9;
+}
+
+.haven-milestone-card:hover {
+  border-color: #bcd8d2;
+  box-shadow: 0 8px 18px rgba(34, 75, 79, 0.07);
+  transform: translateY(-1px);
 }
 
 .haven-milestone-icon-wrap {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: #ffffff;
-  font-size: 17px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(51, 37, 31, 0.05);
+  border-radius: 13px;
+  background: var(--growth-mint-soft);
+  color: #39716e;
 }
 
 .haven-milestone-content {
-  flex: 1;
   min-width: 0;
+  flex: 1;
 }
 
 .haven-milestone-header {
@@ -407,105 +564,112 @@
 
 .haven-milestone-title {
   margin: 0;
+  color: #21474d;
   font-family: var(--font-family-display);
   font-size: 12px;
-  font-weight: 700;
-  color: var(--color-primary-dark);
+  font-weight: 750;
 }
 
 .haven-milestone-toggle-btn {
+  padding: 4px 8px;
   border: 0;
-  padding: 3px 8px;
   border-radius: var(--radius-pill);
   font-size: 8.5px;
   font-weight: 800;
   cursor: pointer;
-  transition: all var(--transition-fast);
   white-space: nowrap;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.haven-milestone-toggle-btn:active {
+  transform: scale(0.96);
 }
 
 .haven-milestone-toggle-btn.achieved {
-  background: var(--color-sage-light);
-  color: var(--color-sage-dark);
+  background: #dcefe8;
+  color: #347064;
 }
 
 .haven-milestone-toggle-btn.progress {
-  background: #feeed2;
-  color: #b5790e;
+  background: #faedc9;
+  color: #9c6e18;
 }
 
 .haven-milestone-toggle-btn.upcoming {
-  background: var(--color-card-warm);
-  color: var(--color-text-muted);
+  background: #f2ece8;
+  color: #8b7a70;
 }
 
 .haven-milestone-window {
-  font-size: 9.5px;
-  color: var(--color-text-muted);
-  font-weight: 700;
   margin-bottom: 3px;
+  color: #81918e;
+  font-size: 9.5px;
+  font-weight: 700;
 }
 
 .haven-milestone-achieved-badge {
   display: inline-block;
+  margin-bottom: 4px;
+  color: #3f7c70;
   font-size: 9px;
   font-weight: 800;
-  color: var(--color-sage-dark);
-  margin-bottom: 4px;
 }
 
 .haven-milestone-desc {
   margin: 0;
+  color: #657b78;
   font-size: 10px;
-  color: var(--color-text-secondary);
-  line-height: 1.4;
-}
-
-/* ==========================================================================
-   5. Measurement History Sheet
-   ========================================================================== */
-.haven-growth-history-sheet {
-  padding: 17px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow: var(--shadow-card);
-}
-
-.haven-growth-history-list {
-  display: grid;
-  gap: 9px;
+  line-height: 1.45;
 }
 
 .haven-growth-history-row {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 12px 13px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 17px;
-  background: var(--color-canvas);
-  transition: border-color var(--transition-fast);
+  gap: 8px;
+  padding: 12px 13px 12px 16px;
+  border: 1px solid var(--growth-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(34, 75, 79, 0.04);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 112px;
+}
+
+.haven-growth-history-row::before {
+  content: '';
+  position: absolute;
+  top: 13px;
+  bottom: 13px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #4f9188, #9fd5c5);
 }
 
 .haven-growth-history-row:hover {
-  border-color: var(--color-border-hover);
+  border-color: #bfd9d4;
+  box-shadow: 0 8px 18px rgba(34, 75, 79, 0.065);
 }
 
 .haven-growth-history-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .haven-growth-history-age {
+  min-width: 0;
+  overflow: hidden;
+  color: #21474d;
   font-family: var(--font-family-display);
   font-size: 12px;
   font-weight: 800;
-  color: var(--color-primary-dark);
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .haven-growth-history-date-box {
@@ -515,96 +679,142 @@
 }
 
 .haven-growth-history-date {
-  font-size: 9.5px;
-  color: var(--color-text-muted);
+  color: #81918e;
+  font-size: 9px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .haven-growth-delete-btn {
+  width: 25px;
+  height: 25px;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid #e2ece9;
   border-radius: 8px;
-  background: #ffffff;
-  color: var(--color-text-muted);
+  background: #f7faf9;
+  color: #82938f;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .haven-growth-delete-btn:hover {
-  color: #e63946;
-  border-color: #f7c5c8;
-  background: #fdf2f2;
+  border-color: #f0c6c4;
+  background: #fff3f2;
+  color: #b44740;
 }
 
 .haven-growth-history-chips {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
 .haven-growth-chip {
+  --growth-chip-icon-soft: #dceee9;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #dceae6;
+  border-radius: var(--radius-pill);
+  background: #f1f7f5;
+  color: #2d625f;
   font-size: 10px;
   font-weight: 800;
-  color: var(--color-text-primary);
-  background: #ffffff;
-  padding: 3px 8px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-pill);
+}
+
+.haven-growth-chip:nth-child(2) {
+  --growth-chip-icon-soft: #f7edcf;
+  border-color: #eee0b9;
+  background: #fff8e7;
+  color: #936919;
+}
+
+.haven-growth-chip:nth-child(3) {
+  --growth-chip-icon-soft: #f5dfd5;
+  border-color: #edd6cb;
+  background: #fff3ed;
+  color: #9a5a40;
 }
 
 .haven-growth-chip-label {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
   font-size: 8.5px;
   font-weight: 700;
-  color: var(--color-text-secondary);
 }
 
 .haven-growth-history-note {
   margin: 0;
-  font-size: 10px;
-  color: var(--color-text-secondary);
-  line-height: 1.4;
-  padding-left: 2px;
+  padding: 7px 9px;
+  border-radius: 11px;
+  background: #f7faf9;
+  color: #647a77;
+  font-size: 9.5px;
+  line-height: 1.45;
 }
 
-/* ==========================================================================
-   6. Mobile Responsive Adjustments
-   ========================================================================== */
+.haven-growth .haven-empty-state {
+  padding: 20px 14px;
+  border: 1px dashed #bfd8d2;
+  border-radius: 18px;
+  background: #f5faf8;
+}
+
+.haven-growth .haven-empty-state > span:not(.haven-sr-only) {
+  color: #39716e;
+  background: #dff0eb;
+}
+
+.haven-growth .haven-empty-action {
+  background: var(--growth-ink);
+}
+
 @media (max-width: 360px) {
-  .haven-growth-hero h2 {
+  .haven-growth-summary-card {
+    padding: 13px;
+  }
+
+  .haven-growth-hero-copy h2 {
     font-size: 25px;
   }
-  .haven-growth-orbit {
-    right: 12px;
-    width: 86px;
-    height: 86px;
+
+  .haven-growth-add-btn {
+    width: 50px;
+    height: 50px;
   }
-  .haven-growth-vitals-sheet,
-  .haven-growth-chart-sheet,
-  .haven-milestones-sheet,
-  .haven-growth-history-sheet {
+
+  .haven-vital-card {
+    min-height: 112px;
+    padding: 9px 7px;
+  }
+
+  .haven-vital-value {
+    font-size: 13.5px;
+  }
+
+  .haven-vital-ref {
+    font-size: 7px;
+  }
+
+  .haven-growth-chart-sheet {
     padding: 14px;
   }
+
   .haven-chart-canvas-box {
     height: 220px;
   }
-  .haven-vital-card {
-    padding: 9px 6px;
-  }
-  .haven-vital-value {
-    font-size: 14px;
+
+  .haven-metric-pill-btn {
+    padding-inline: 4px;
+    font-size: 8.8px;
   }
 }
 
-/* ==========================================================================
-   Haven Custom Vector Icon Badge Styles
-   ========================================================================== */
+/* Shared Haven icon badge styles. */
 .haven-icon-badge {
   display: inline-flex;
   align-items: center;
@@ -672,9 +882,4 @@
   background: #EDF3FD;
   color: #5B8DEF;
   box-shadow: 0 4px 10px rgba(91, 141, 239, 0.08);
-}
-
-.haven-growth-history-row {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 112px;
 }

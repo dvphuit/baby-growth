@@ -49,100 +49,94 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
   const whoRefHeight = whoChart?.height?.whoP50?.[refIndex] ?? 70.6;
   const whoRefHead = whoChart?.headCirc?.whoP50?.[refIndex] ?? 44.1;
 
-  const heroOrbitValue = latest?.weight ? `${latest.weight} kg` : 'Sẵn sàng';
-  const heroOrbitLabel = latest?.weight ? 'Cân nặng gần nhất' : 'Theo dõi thể chất';
   const childName = familyData.childName || 'Bé';
   const ageDescription = currentStageData.currentAgeText
     ? `${childName} · ${currentStageData.currentAgeText}`
     : 'Theo dõi thể chất định kỳ theo chuẩn WHO';
+  const latestDateLabel = latest?.date ? `Ngày ${latest.date}` : 'Chưa có số đo';
+  const vitalCards = latest ? [
+    {
+      key: 'weight',
+      className: 'weight-card',
+      icon: <HavenScaleIcon size={20} color="currentColor" secondaryColor="var(--growth-vital-icon-soft)" />,
+      label: 'Cân nặng',
+      value: `${latest.weight} kg`,
+      delta: weightDelta,
+      reference: `WHO P50: ${whoRefWeight} kg`,
+    },
+    {
+      key: 'height',
+      className: 'height-card',
+      icon: <HavenRulerIcon size={20} color="currentColor" secondaryColor="var(--growth-vital-icon-soft)" />,
+      label: 'Chiều cao',
+      value: `${latest.height} cm`,
+      delta: heightDelta,
+      reference: `WHO P50: ${whoRefHeight} cm`,
+    },
+    {
+      key: 'head',
+      className: 'head-card',
+      icon: <HavenHeadCircIcon size={20} color="currentColor" secondaryColor="var(--growth-vital-icon-soft)" />,
+      label: 'Vòng đầu',
+      value: `${latest.headCirc} cm`,
+      delta: headDelta,
+      reference: `WHO P50: ${whoRefHead} cm`,
+    },
+  ] : [];
 
   return (
     <div className="haven-growth">
-      <section className="haven-growth-hero" aria-labelledby="growth-hero-title">
-        <div className="haven-growth-hero-copy">
-          <span className="haven-eyebrow">NHỊP TĂNG TRƯỞNG</span>
-          <h2 id="growth-hero-title">
-            Hành trình<br />lớn khôn của Bé.
-          </h2>
-          <p>{ageDescription}</p>
-        </div>
-
-        <div className="haven-growth-orbit" aria-label={`Cân nặng gần nhất: ${heroOrbitValue}`}>
-          <strong>{heroOrbitValue}</strong>
-          <span>{heroOrbitLabel}</span>
-        </div>
-
-        <button
-          type="button"
-          id="btnQuickAddGrowthMeasurement"
-          className="haven-growth-add"
-          aria-label="+ Thêm số đo"
-          onClick={onOpenAddMeasurement}
-        >
-          <Plus size={15} />
-          <span>Thêm số đo</span>
-        </button>
-      </section>
-
-      <section className="haven-growth-vitals-sheet" aria-labelledby="growth-vitals-title">
-        <div className="haven-sheet-heading">
-          <div>
-            <span className="haven-eyebrow">CHỈ SỐ THỂ CHẤT</span>
-            <h3 id="growth-vitals-title">Số đo gần nhất</h3>
+      <section className="haven-growth-summary-card" aria-labelledby="growth-hero-title">
+        <div className="haven-growth-ambient" aria-hidden="true" />
+        <div className="haven-growth-summary-header">
+          <div className="haven-growth-hero-copy">
+            <span className="haven-growth-eyebrow">NHỊP TĂNG TRƯỞNG</span>
+            <h2 id="growth-hero-title">Hành trình lớn khôn của {childName}.</h2>
+            <p>{ageDescription}</p>
           </div>
-          <span className="haven-sheet-date">
-            {latest ? (latest.date ? `Ngày ${latest.date}` : 'Gần nhất') : 'Chưa có số đo'}
-          </span>
+
+          <button
+            type="button"
+            id="btnQuickAddGrowthMeasurement"
+            className="haven-growth-add-btn"
+            aria-label="+ Thêm số đo"
+            onClick={onOpenAddMeasurement}
+          >
+            <span><Plus size={22} strokeWidth={2.8} /></span>
+          </button>
         </div>
 
         {latest ? (
-          <div className="haven-growth-vitals-grid">
-            <article className="haven-vital-card weight-card">
-              <div className="haven-vital-top">
-                <span className="haven-vital-icon">
-                  <HavenScaleIcon size={16} />
-                </span>
-                {weightDelta && <span className="haven-vital-delta-badge">{weightDelta}</span>}
-              </div>
-              <span className="haven-vital-label">Cân nặng</span>
-              <strong className="haven-vital-value">{latest.weight} kg</strong>
-              <span className="haven-vital-ref">WHO P50: {whoRefWeight} kg</span>
-            </article>
+          <>
+            <div className="haven-growth-vitals-grid" aria-label="Số đo gần nhất">
+              {vitalCards.map((vital) => (
+                <article className={`haven-vital-card ${vital.className}`} key={vital.key}>
+                  <div className="haven-vital-top">
+                    <span className="haven-vital-icon">{vital.icon}</span>
+                    {vital.delta && <span className="haven-vital-delta-badge">{vital.delta}</span>}
+                  </div>
+                  <span className="haven-vital-label">{vital.label}</span>
+                  <strong className="haven-vital-value">{vital.value}</strong>
+                  <span className="haven-vital-ref">{vital.reference}</span>
+                </article>
+              ))}
+            </div>
 
-            <article className="haven-vital-card height-card">
-              <div className="haven-vital-top">
-                <span className="haven-vital-icon">
-                  <HavenRulerIcon size={16} />
-                </span>
-                {heightDelta && <span className="haven-vital-delta-badge">{heightDelta}</span>}
-              </div>
-              <span className="haven-vital-label">Chiều cao</span>
-              <strong className="haven-vital-value">{latest.height} cm</strong>
-              <span className="haven-vital-ref">WHO P50: {whoRefHeight} cm</span>
-            </article>
-
-            <article className="haven-vital-card head-card">
-              <div className="haven-vital-top">
-                <span className="haven-vital-icon">
-                  <HavenHeadCircIcon size={16} />
-                </span>
-                {headDelta && <span className="haven-vital-delta-badge">{headDelta}</span>}
-              </div>
-              <span className="haven-vital-label">Vòng đầu</span>
-              <strong className="haven-vital-value">{latest.headCirc} cm</strong>
-              <span className="haven-vital-ref">WHO P50: {whoRefHead} cm</span>
-            </article>
-          </div>
+            <div className="haven-growth-summary-strip">
+              <span><Info size={13} /> Lần đo gần nhất</span>
+              <strong>{latestDateLabel}</strong>
+            </div>
+          </>
         ) : (
-          <div className="haven-empty-state">
-            <span>
-              <HavenScaleIcon size={22} />
+          <div className="haven-growth-summary-empty">
+            <span className="haven-growth-summary-empty-icon">
+              <HavenScaleIcon size={24} color="currentColor" secondaryColor="rgba(255, 255, 255, 0.16)" />
             </span>
-            <strong>Chưa có số đo được ghi nhận</strong>
-            <p>Hãy ghi nhận lần cân đo đầu tiên để bắt đầu theo dõi nhịp tăng trưởng thể chất của Bé.</p>
-            <button type="button" className="haven-empty-action" onClick={onOpenAddMeasurement}>
-              Ghi lần cân đo đầu tiên
-            </button>
+            <div>
+              <strong>Chưa có số đo được ghi nhận</strong>
+              <p>Ghi lần cân đo đầu tiên để bắt đầu theo dõi đường cong phát triển của Bé.</p>
+            </div>
+            <button type="button" onClick={onOpenAddMeasurement}>Ghi số đo đầu tiên</button>
           </div>
         )}
       </section>
@@ -158,26 +152,44 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         <div className="haven-chart-metric-pills">
           <button
             type="button"
-            className={`haven-metric-pill-btn ${growthMetric === 'weight' ? 'active' : ''}`}
+            aria-pressed={growthMetric === 'weight'}
+            className={`haven-metric-pill-btn metric-weight ${growthMetric === 'weight' ? 'active' : ''}`}
             onClick={() => setGrowthMetric('weight')}
           >
-            <HavenScaleIcon size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />
+            <HavenScaleIcon
+              size={14}
+              color="currentColor"
+              secondaryColor="var(--metric-icon-soft)"
+              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }}
+            />
             <span>Cân nặng</span>
           </button>
           <button
             type="button"
-            className={`haven-metric-pill-btn ${growthMetric === 'height' ? 'active' : ''}`}
+            aria-pressed={growthMetric === 'height'}
+            className={`haven-metric-pill-btn metric-height ${growthMetric === 'height' ? 'active' : ''}`}
             onClick={() => setGrowthMetric('height')}
           >
-            <HavenRulerIcon size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />
+            <HavenRulerIcon
+              size={14}
+              color="currentColor"
+              secondaryColor="var(--metric-icon-soft)"
+              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }}
+            />
             <span>Chiều cao</span>
           </button>
           <button
             type="button"
-            className={`haven-metric-pill-btn ${growthMetric === 'headCirc' ? 'active' : ''}`}
+            aria-pressed={growthMetric === 'headCirc'}
+            className={`haven-metric-pill-btn metric-head ${growthMetric === 'headCirc' ? 'active' : ''}`}
             onClick={() => setGrowthMetric('headCirc')}
           >
-            <HavenHeadCircIcon size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />
+            <HavenHeadCircIcon
+              size={14}
+              color="currentColor"
+              secondaryColor="var(--metric-icon-soft)"
+              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }}
+            />
             <span>Vòng đầu</span>
           </button>
         </div>
@@ -187,7 +199,7 @@ export const GrowthView: React.FC<GrowthViewProps> = ({ onOpenAddMeasurement }) 
         <div className="haven-chart-info-note">
           <Info size={15} className="haven-chart-info-icon" />
           <span>
-            Đường tham chiếu chuẩn của Tổ chức Y tế Thế giới (WHO). Bé phát triển ổn định theo đường cong tự nhiên là chỉ dấu sức khỏe tốt.
+            Đường tham chiếu của Tổ chức Y tế Thế giới (WHO). Hãy theo dõi xu hướng qua nhiều lần đo thay vì kết luận từ một điểm riêng lẻ.
           </span>
         </div>
       </section>
