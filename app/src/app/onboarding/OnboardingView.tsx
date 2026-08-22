@@ -212,7 +212,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
               <div className="haven-onboarding-icon-wrap auth-icon">
                 <Cloud size={32} />
               </div>
-              <span className="haven-eyebrow">THIẾT LẬP LẦN ĐẦU · HAVEN BABY</span>
+              <span className="haven-eyebrow">THIẾT LẬP LẦN ĐẦU · KINLY</span>
               <h2>Đăng nhập Google Drive</h2>
               <p>
                 Lưu trữ và đồng bộ an toàn toàn bộ hồ sơ của Bé & Mẹ trên Google Drive cá nhân của bạn.
@@ -225,8 +225,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   <ShieldCheck size={18} />
                 </div>
                 <div className="haven-benefit-text">
-                  <strong>Bảo mật & Riêng tư tuyệt đối</strong>
-                  <span>Dữ liệu lưu trong vùng AppData riêng biệt của bạn, chỉ bạn mới có quyền truy cập.</span>
+                  <strong>Riêng tư theo quyền truy cập Google Drive</strong>
+                  <span>Bản sao lưu được lưu trong vùng dữ liệu ứng dụng riêng trên Google Drive.</span>
                 </div>
               </div>
 
@@ -235,7 +235,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   <RefreshCw size={18} />
                 </div>
                 <div className="haven-benefit-text">
-                  <strong>Tự động sao lưu liên tục</strong>
+                  <strong>Tự động sao lưu</strong>
                   <span>Mọi chỉ số tăng trưởng, cữ bú, giấc ngủ, chi tiêu đều tự động lưu lên Cloud.</span>
                 </div>
               </div>
@@ -298,7 +298,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
 
             <footer className="haven-auth-footer">
               <Lock size={12} />
-              <span>Dữ liệu mã hóa trực tiếp và chỉ lưu trên Google Drive cá nhân của bạn.</span>
+              <span>Bản sao lưu được lưu trong vùng ứng dụng riêng của Kinly trên Google Drive của bạn.</span>
             </footer>
           </div>
         )}
@@ -513,7 +513,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onComplete }) =>
                   <div className="haven-avatar-picker-row">
                     <img src={childAvatar} alt="Avatar Bé" className="haven-avatar-preview-img" />
                     <div className="haven-avatar-note">
-                      <strong>Avatar minh họa Haven</strong>
+                      <strong>Avatar minh họa Kinly</strong>
                       <span>Phong cách vẽ vector ấm áp, mộc mạc</span>
                     </div>
                   </div>
