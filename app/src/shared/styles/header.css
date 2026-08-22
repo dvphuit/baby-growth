@@ -14,20 +14,6 @@
   box-shadow: 0 8px 24px rgba(57, 38, 29, 0.055);
 }
 
-/* A quiet translucent seam between the phone status area and the appbar. */
-.app-bar::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: max(1px, env(safe-area-inset-top, 0px));
-  border-bottom: 1px solid rgba(111, 139, 74, 0.16);
-  background: rgba(251, 247, 242, 0.76);
-  box-shadow: 0 1px 10px rgba(57, 38, 29, 0.035);
-  pointer-events: none;
-}
 
 .app-bar::after {
   content: '';
@@ -45,11 +31,6 @@
   background: rgba(253, 247, 246, 0.985);
 }
 
-.app-bar-mom::before {
-  border-bottom-color: rgba(217, 115, 125, 0.16);
-  background: rgba(253, 247, 246, 0.78);
-  box-shadow: 0 1px 10px rgba(112, 66, 75, 0.03);
-}
 
 .app-bar-mom::after {
   background: linear-gradient(90deg, transparent, rgba(217, 115, 125, 0.3), transparent);
