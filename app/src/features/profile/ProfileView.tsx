@@ -23,6 +23,7 @@ import { formatDateDisplay } from '@/utils/date';
 import { getZodiacSign } from '@/utils/zodiac';
 import { getRealGrowthHistory } from '@/features/growth/domain/growthSelectors';
 import { AppBar } from '@/shared/ui/AppBar';
+import './ProfileView.css';
 
 interface ProfileViewProps {
   onOpenEditProfile: () => void;
@@ -87,139 +88,168 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenEditProfile, onO
   ] as const;
 
   return createPortal(
-    <div className="baby-profile-view-container profile-page-overlay">
+    <div className="baby-profile-view-container profile-page-overlay baby-profile-v2">
       <AppBar
-        className="profile-app-bar"
+        className="profile-app-bar baby-profile-v2-appbar"
         tone="baby"
         variant="page"
         ariaLabel="Điều hướng hồ sơ"
-        start={<button type="button" className="profile-icon-btn" onClick={() => navigate('/')} aria-label="Về trang chủ" id="btnBackFromProfile">
-          <ArrowLeft size={20} />
-        </button>}
-        center={<div className="profile-top-heading">
-          <span className="profile-top-eyebrow">HỒ SƠ CỦA BÉ</span>
-          <h1>Thông tin của {family.childName || 'Bé'}</h1>
-        </div>}
-        end={<button type="button" className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop">
-          <Edit3 size={15} />
-          <span>Sửa</span>
-        </button>}
-      />
-
-      <section className="profile-hero-card" aria-labelledby="profile-child-name">
-        <div className="profile-hero-decoration profile-hero-decoration-one" />
-        <div className="profile-hero-decoration profile-hero-decoration-two" />
-        <div className="profile-avatar-frame">
-          <img src={family.childAvatar} alt={`Ảnh của ${family.childName || 'bé'}`} className="profile-avatar-img" />
-          <span className="profile-avatar-sparkle" aria-hidden="true"><Sparkles size={14} /></span>
-        </div>
-        <div className="profile-hero-copy">
-          <p className="profile-hero-kicker">BÉ YÊU CỦA CẢ NHÀ</p>
-          <h2 id="profile-child-name">{family.childName || 'Bé'}</h2>
-          {family.childFullName && <p className="profile-hero-fullname">{family.childFullName}</p>}
-          <div className="profile-hero-badges">
-            <span>{family.gender === 'boy' ? 'Bé trai' : 'Bé gái'}</span>
-            <span>{zodiac}</span>
-          </div>
-        </div>
-        {age && (
-          <div className="profile-age-panel">
-            <span className="profile-age-label">Tuổi hiện tại</span>
-            <strong>{age.primary}</strong>
-            <span>{age.secondary}</span>
+        start={(
+          <button type="button" className="profile-icon-btn" onClick={() => navigate('/')} aria-label="Về trang chủ" id="btnBackFromProfile">
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        center={(
+          <div className="profile-top-heading">
+            <span className="profile-top-eyebrow">HỒ SƠ CỦA BÉ</span>
+            <h1>Thông tin của {family.childName || 'Bé'}</h1>
           </div>
         )}
-      </section>
-
-      <section className="profile-section-block" aria-labelledby="profile-growth-title">
-        <div className="profile-section-heading">
-          <div>
-            <span className="profile-section-kicker">CẬP NHẬT GẦN NHẤT</span>
-            <h2 id="profile-growth-title">Chỉ số tăng trưởng</h2>
-          </div>
-          <button type="button" className="profile-text-action" onClick={() => navigate('/growth')}>
-            Xem chi tiết <ChevronRight size={15} />
+        end={(
+          <button type="button" className="profile-edit-btn" onClick={onOpenEditProfile} id="btnEditProfileTop">
+            <Edit3 size={15} />
+            <span>Sửa</span>
           </button>
-        </div>
+        )}
+      />
 
-        <div className={`profile-growth-card ${latestGrowth ? '' : 'is-empty'}`}>
-          <div className="profile-growth-grid">
-            {growthMetrics.map(({ key, label, value, unit, Icon }) => (
-              <div className={`profile-growth-metric ${key}`} key={key}>
-                <span className="profile-growth-icon"><Icon size={17} /></span>
-                <span className="profile-growth-label">{label}</span>
-                <strong>{value ? `${value}` : '—'} <small>{value ? unit : ''}</small></strong>
+      <main className="baby-profile-v2-main">
+        <section className="baby-profile-v2-identity" aria-labelledby="profile-child-name">
+          <div className="baby-profile-v2-avatar-wrap">
+            <img src={family.childAvatar} alt={`Ảnh của ${family.childName || 'bé'}`} className="baby-profile-v2-avatar" />
+            <span className="baby-profile-v2-sparkle" aria-hidden="true"><Sparkles size={13} /></span>
+          </div>
+
+          <div className="baby-profile-v2-identity-copy">
+            <div className="baby-profile-v2-name-row">
+              <div>
+                <span className="baby-profile-v2-overline">Bé yêu của gia đình</span>
+                <h2 id="profile-child-name">{family.childName || 'Bé'}</h2>
               </div>
-            ))}
+              <button type="button" className="baby-profile-v2-mini-edit" onClick={onOpenEditProfile} aria-label="Chỉnh sửa hồ sơ bé">
+                <Edit3 size={15} />
+              </button>
+            </div>
+            {family.childFullName && <p className="baby-profile-v2-fullname">{family.childFullName}</p>}
+            <div className="baby-profile-v2-tags">
+              <span>{family.gender === 'boy' ? 'Bé trai' : 'Bé gái'}</span>
+              <span>{zodiac}</span>
+            </div>
           </div>
-          <div className="profile-growth-footer">
-            <span>{latestGrowth ? `Đo ngày ${formatDateDisplay(latestGrowth.date)}` : 'Chưa có số đo nào được ghi nhận'}</span>
-            {!latestGrowth && (
-              <button type="button" onClick={() => navigate('/growth')}>Thêm số đo đầu tiên</button>
-            )}
-          </div>
-        </div>
-      </section>
 
-      <section className="profile-section-block" aria-labelledby="profile-info-title">
-        <div className="profile-section-heading">
-          <div>
-            <span className="profile-section-kicker">THÔNG TIN CỦA CON</span>
-            <h2 id="profile-info-title">Hồ sơ cơ bản</h2>
-          </div>
-        </div>
+          {age && (
+            <div className="baby-profile-v2-age">
+              <span>Tuổi hiện tại</span>
+              <strong>{age.primary}</strong>
+              <small>{age.secondary}</small>
+            </div>
+          )}
+        </section>
 
-        <div className="profile-info-card">
-          <div className="profile-info-row">
-            <span className="profile-info-icon sage"><CalendarDays size={17} /></span>
-            <div><span>Ngày sinh</span><strong>{displayValue(formatDateDisplay(family.birthDate))}{family.birthTime ? ` · ${family.birthTime}` : ''}</strong></div>
+        <section className="baby-profile-v2-section" aria-labelledby="profile-growth-title">
+          <div className="baby-profile-v2-section-heading">
+            <div>
+              <span>Cập nhật gần nhất</span>
+              <h2 id="profile-growth-title">Tăng trưởng</h2>
+            </div>
+            <button type="button" onClick={() => navigate('/growth')}>
+              Xem chi tiết <ChevronRight size={16} />
+            </button>
           </div>
-          <div className="profile-info-row">
-            <span className="profile-info-icon clay"><MapPin size={17} /></span>
-            <div><span>Nơi sinh</span><strong>{displayValue(family.hospital)}</strong></div>
+
+          <button type="button" className="baby-profile-v2-growth-card" onClick={() => navigate('/growth')} aria-label="Xem chi tiết tăng trưởng">
+            <div className="baby-profile-v2-growth-grid">
+              {growthMetrics.map(({ key, label, value, unit, Icon }) => (
+                <div className={`baby-profile-v2-growth-metric ${key}`} key={key}>
+                  <span className="baby-profile-v2-growth-icon"><Icon size={17} /></span>
+                  <span>{label}</span>
+                  <strong>{value ? `${value}` : '—'} <small>{value ? unit : ''}</small></strong>
+                </div>
+              ))}
+            </div>
+            <div className="baby-profile-v2-growth-foot">
+              <span>{latestGrowth ? `Đo ngày ${formatDateDisplay(latestGrowth.date)}` : 'Chưa có số đo nào được ghi nhận'}</span>
+              <ChevronRight size={17} />
+            </div>
+          </button>
+        </section>
+
+        <section className="baby-profile-v2-section" aria-labelledby="profile-info-title">
+          <div className="baby-profile-v2-section-heading">
+            <div>
+              <span>Thông tin của con</span>
+              <h2 id="profile-info-title">Hồ sơ cơ bản</h2>
+            </div>
           </div>
-          <div className="profile-info-row">
-            <span className="profile-info-icon honey"><Scale size={17} /></span>
-            <div><span>Chỉ số lúc chào đời</span><strong>{displayValue(birthVitals)}</strong></div>
+
+          <div className="baby-profile-v2-info-card">
+            <article>
+              <span className="baby-profile-v2-info-icon sage"><CalendarDays size={18} /></span>
+              <div><span>Ngày sinh</span><strong>{displayValue(formatDateDisplay(family.birthDate))}{family.birthTime ? ` · ${family.birthTime}` : ''}</strong></div>
+            </article>
+            <article>
+              <span className="baby-profile-v2-info-icon clay"><MapPin size={18} /></span>
+              <div><span>Nơi sinh</span><strong>{displayValue(family.hospital)}</strong></div>
+            </article>
+            <article>
+              <span className="baby-profile-v2-info-icon honey"><Scale size={18} /></span>
+              <div><span>Lúc chào đời</span><strong>{displayValue(birthVitals)}</strong></div>
+            </article>
+            <article>
+              <span className="baby-profile-v2-info-icon rose"><Droplet size={18} /></span>
+              <div><span>Nhóm máu</span><strong>{displayValue(family.bloodType)}</strong></div>
+            </article>
+            <article className="baby-profile-v2-info-wide">
+              <span className="baby-profile-v2-info-icon sage"><ShieldCheck size={18} /></span>
+              <div><span>Dị ứng</span><strong>{family.allergies?.length ? family.allergies.join(', ') : 'Chưa ghi nhận dị ứng'}</strong></div>
+            </article>
           </div>
-          <div className="profile-info-row">
-            <span className="profile-info-icon rose"><Droplet size={17} /></span>
-            <div><span>Nhóm máu</span><strong>{displayValue(family.bloodType)}</strong></div>
-          </div>
-          <div className="profile-info-row">
-            <span className="profile-info-icon sage"><ShieldCheck size={17} /></span>
-            <div><span>Dị ứng</span><strong>{family.allergies?.length ? family.allergies.join(', ') : 'Chưa ghi nhận dị ứng'}</strong></div>
-          </div>
+
           {family.notes && (
-            <div className="profile-note-box">
+            <div className="baby-profile-v2-note">
               <span>Ghi chú của gia đình</span>
               <p>{family.notes}</p>
             </div>
           )}
-        </div>
-      </section>
+        </section>
 
-      <section className="profile-section-block" aria-labelledby="profile-care-title">
-        <div className="profile-section-heading">
-          <div>
-            <span className="profile-section-kicker">CHĂM SÓC HẰNG NGÀY</span>
-            <h2 id="profile-care-title">Nhắc nhở cho gia đình</h2>
+        <section className="baby-profile-v2-section" aria-labelledby="profile-care-title">
+          <div className="baby-profile-v2-section-heading">
+            <div>
+              <span>Chăm sóc hằng ngày</span>
+              <h2 id="profile-care-title">Tiện ích cho gia đình</h2>
+            </div>
           </div>
+
+          <div className="baby-profile-v2-actions">
+            <button type="button" onClick={onOpenNotifications}>
+              <span className="baby-profile-v2-action-icon"><Bell size={20} /></span>
+              <span>
+                <strong>Lịch nhắc chăm sóc bé</strong>
+                <small>Cữ bú, giấc ngủ, thay tã và lịch hẹn</small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+            <button type="button" onClick={() => navigate('/growth')}>
+              <span className="baby-profile-v2-action-icon growth"><HeartPulse size={20} /></span>
+              <span>
+                <strong>Theo dõi tăng trưởng</strong>
+                <small>Xem biểu đồ và thêm số đo mới</small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </section>
+
+        <div className="baby-profile-v2-system-separator">
+          <span>Dữ liệu & thiết bị</span>
         </div>
-        <button type="button" className="profile-reminder-card" onClick={onOpenNotifications}>
-          <span className="profile-reminder-icon"><Bell size={20} /></span>
-          <span className="profile-reminder-copy">
-            <strong>Lịch nhắc chăm sóc bé</strong>
-            <span>Cữ bú, giấc ngủ, thay tã và lịch hẹn</span>
-          </span>
-          <ChevronRight size={18} />
-        </button>
-      </section>
 
-      <GoogleSyncCard onShowToast={onShowToast} />
-      <ResetTrackingDataSection onShowToast={onShowToast} />
+        <GoogleSyncCard onShowToast={onShowToast} />
+        <ResetTrackingDataSection onShowToast={onShowToast} />
 
-      <p className="profile-zodiac-note">Cung hoàng đạo chỉ mang tính giải trí, không dùng để đánh giá sức khỏe hoặc đưa ra nhắc nhở chăm sóc.</p>
+        <p className="profile-zodiac-note">Cung hoàng đạo chỉ mang tính giải trí, không dùng để đánh giá sức khỏe hoặc đưa ra nhắc nhở chăm sóc.</p>
+      </main>
     </div>,
     document.body,
   );
