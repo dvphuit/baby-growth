@@ -193,6 +193,16 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense, on
     <div className="haven-expenses">
       <section className="haven-expense-summary-card" aria-labelledby="expense-summary-title">
         <div className="haven-summary-ambient-glow" aria-hidden="true" />
+        <img
+          className="haven-expense-card-decor"
+          src="/assets/decor/expense-wallet.png"
+          alt=""
+          width={256}
+          height={256}
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
 
         <div className="haven-summary-month-nav">
           <button
@@ -381,6 +391,17 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({ onOpenAddExpense, on
       </section>
 
       <section className="haven-expense-timeline-section" aria-label="Dòng thời gian chi tiêu">
+        <div className="haven-expense-sheet-heading">
+          <div>
+            <span className="haven-expense-eyebrow">NHỊP CHI TIÊU</span>
+            <h3>Dòng tiền tháng này</h3>
+          </div>
+          <span className="haven-expense-sheet-count">
+            <Receipt size={12} />
+            {displayedExpenses.length} khoản
+          </span>
+        </div>
+
         {selectedCategoryFilter && (
           <div className="haven-timeline-filter-banner">
             <span className="haven-filter-banner-text">Đang lọc danh mục: <strong>{selectedCategoryFilter}</strong></span>
