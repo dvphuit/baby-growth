@@ -71,6 +71,8 @@ describe('appSnapshot', () => {
     });
     const snapshot = exportAppSnapshot(new Date('2026-08-20T09:00:00.000Z'));
 
+    expect(parseAppSnapshot(snapshot)).toEqual(snapshot);
+
     resetChildStoresToDefaults();
     useActivityStore.getState().resetTrackingData();
     useExpenseStore.getState().resetTrackingData();
@@ -81,6 +83,91 @@ describe('appSnapshot', () => {
     expect(useActivityStore.getState().babyActivities[0]?.type).toBe('diaper');
     expect(useExpenseStore.getState().monthlyBudget).toBe(7_000_000);
     expect(useExpenseStore.getState().expenses).toHaveLength(1);
+  });
+
+  it('rejects invalid nested domain records before they reach feature stores', () => {
+    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2026-08-01' });
+    const valid = exportAppSnapshot(new Date('2026-08-20T09:00:00.000Z'));
+    const malformedSnapshots: unknown[] = [
+      {
+        ...valid,
+        profile: {
+          ...valid.profile,
+          familyData: { ...valid.profile.familyData, gender: 'unknown' },
+        },
+      },
+      {
+        ...valid,
+        activities: {
+          ...valid.activities,
+          baby: [{
+            id: 'activity-bad',
+            owner: 'baby',
+            type: 'temperature',
+            occurredAt: '2026-08-20T08:00:00.000Z',
+            createdAt: '2026-08-20T08:00:00.000Z',
+            temperatureC: '38.5',
+          }],
+        },
+      },
+      {
+        ...valid,
+        growth: {
+          currentStage: 'stage_0_1',
+          completedHabitIds: [],
+          stages: {
+            stage_0_1: {
+              measurements: [{
+                id: 'growth-bad',
+                date: '2026-08-20',
+                weight: -1,
+                height: 50,
+                headCirc: 35,
+                note: '',
+              }],
+              milestones: [],
+            },
+          },
+        },
+      },
+      {
+        ...valid,
+        timeline: { items: [{ id: 'timeline-bad' }] },
+      },
+      {
+        ...valid,
+        expenses: {
+          monthlyBudget: 5_000_000,
+          records: [{
+            id: 'expense-bad',
+            amount: -1,
+            category: 'Khác',
+            occurredAt: '2026-08-20T08:00:00.000Z',
+            createdAt: '2026-08-20T08:00:00.000Z',
+            updatedAt: '2026-08-20T08:00:00.000Z',
+          }],
+        },
+      },
+      {
+        ...valid,
+        reminders: {
+          ...valid.reminders,
+          items: [{
+            id: 'reminder-bad',
+            type: 'feeding',
+            title: 'Feed',
+            enabled: 'yes',
+            mode: 'fixed',
+            createdAt: '2026-08-20T08:00:00.000Z',
+            updatedAt: '2026-08-20T08:00:00.000Z',
+          }],
+        },
+      },
+    ];
+
+    for (const malformed of malformedSnapshots) {
+      expect(() => parseAppSnapshot(malformed)).toThrow(/generation 2/i);
+    }
   });
 
   it('rejects legacy or malformed snapshots at the boundary', () => {
