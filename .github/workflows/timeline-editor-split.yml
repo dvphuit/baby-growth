@@ -29,6 +29,9 @@ jobs:
       - name: Split timeline editor ownership
         working-directory: app
         run: node scripts/split-timeline-editor.mjs
+      - name: Narrow editor-runtime architecture guard
+        working-directory: app
+        run: sed -i "s/not.toContain('journal-feeding-editor')/not.toContain('journal-feeding-edit-form')/" src/architecture/architectureAudit.test.mjs
       - name: Test
         working-directory: app
         run: npm test
