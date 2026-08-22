@@ -55,13 +55,14 @@ export const AppContent: React.FC = () => {
 
   const { toasts, addToast } = useToast();
   const modals = useAppModals();
+  const isFullScreenOverlayOpen = Boolean(modals.activityLogMode || modals.isAddPostOpen || modals.lightboxSrc);
   const { handleQuickAction } = modals;
   const openAddTimelineEntry = useCallback(
     () => handleQuickAction('diary'),
     [handleQuickAction],
   );
 
-  useThemeColor({ pathname: location.pathname, isModalOpen: modals.isAnyModalOpen, profileMode });
+  useThemeColor({ pathname: location.pathname, isModalOpen: isFullScreenOverlayOpen, profileMode });
   useReminderLifecycle({ onQuickLog: handleQuickAction, onOpenNotifications: modals.openNotifications });
 
   if (!isInitialized) {

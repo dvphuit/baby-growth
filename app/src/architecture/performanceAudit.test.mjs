@@ -7,6 +7,13 @@ const source = (path) => readFileSync(join(ROOT, 'src', path), 'utf8');
 const appFile = (path) => readFileSync(join(ROOT, path), 'utf8');
 
 describe('interaction performance audit', () => {
+  it('keeps BottomSheet overlays on the appbar status-bar surface', () => {
+    const app = source('app/App.tsx');
+    expect(app).toContain('const isFullScreenOverlayOpen = Boolean');
+    expect(app).toContain('isModalOpen: isFullScreenOverlayOpen');
+    expect(app).not.toContain('isModalOpen: modals.isAnyModalOpen');
+  });
+
   it('keeps timeline pointer drag off the React state render path', () => {
     const timeline = source('features/timeline/TimelineView.tsx');
     expect(timeline).not.toContain('const [weekDragX, setWeekDragX]');
@@ -77,6 +84,7 @@ describe('interaction performance audit', () => {
     const header = source('app/components/Header.tsx');
     const nativeTransitions = source('shared/styles/native-transitions.css');
     const nativeAnimations = source('shared/styles/native-animations.css');
+    const bottomSheetCss = source('shared/styles/bottom-sheet.css');
     const bottomSheet = source('shared/ui/BottomSheet.tsx');
     const dialog = source('shared/ui/HavenDialog.tsx');
     const mediaPreview = source('features/timeline/components/MomentMediaPreview.tsx');
@@ -92,6 +100,8 @@ describe('interaction performance audit', () => {
     expect(nativeTransitions).toContain('animation: havenRouteContentIn 260ms');
     expect(nativeTransitions).toContain('view-transition-name: none;');
     expect(nativeAnimations).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(bottomSheetCss).toContain('box-shadow: none;');
+    expect(bottomSheetCss).not.toContain('box-shadow: 0 -12px 48px');
     expect(bottomSheet).toContain('onPointerMove={handlePointerMove}');
     expect(bottomSheet).toContain('animateElement(');
     expect(dialog).toContain('useNativePresence');
