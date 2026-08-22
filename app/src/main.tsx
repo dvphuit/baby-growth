@@ -3,16 +3,20 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
 import './index.css';
-import { createAppSnapshotRuntime } from '@/app/lifecycle/appSnapshotRuntime';
 import { useActivityStore } from '@/features/activities/store/useActivityStore';
 import { useGrowthStore } from '@/features/growth/store/useGrowthStore';
 import { useProfileStore } from '@/features/profile/store/useProfileStore';
 import { useExpenseStore } from '@/features/expenses/store/useExpenseStore';
 import { useReminderStore } from '@/features/reminders/store/useReminderStore';
-import { configureAppSnapshotRuntime } from '@/features/sync';
 import { useTimelineStore } from '@/features/timeline/store/useTimelineStore';
 
-configureAppSnapshotRuntime(createAppSnapshotRuntime());
+async function configureSnapshotRuntime(): Promise<void> {
+  const [{ createAppSnapshotRuntime }, { configureAppSnapshotRuntime }] = await Promise.all([
+    import('@/app/lifecycle/appSnapshotRuntime'),
+    import('@/features/sync'),
+  ]);
+  configureAppSnapshotRuntime(createAppSnapshotRuntime());
+}
 
 async function handleResetRequest(): Promise<boolean> {
   const params = new URLSearchParams(window.location.search);
@@ -49,18 +53,22 @@ async function bootstrapMockData(): Promise<void> {
   }
 }
 
-void handleResetRequest().then((didReset) => {
+async function startApp(): Promise<void> {
+  await configureSnapshotRuntime();
+  const didReset = await handleResetRequest();
   if (didReset) return;
-  void bootstrapMockData().finally(() => {
-    const root = document.getElementById('root');
-    if (!root) throw new Error('Missing #root application element.');
 
-    createRoot(root).render(
-      <StrictMode>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </StrictMode>,
-    );
-  });
-});
+  await bootstrapMockData();
+  const root = document.getElementById('root');
+  if (!root) throw new Error('Missing #root application element.');
+
+  createRoot(root).render(
+    <StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </StrictMode>,
+  );
+}
+
+void startApp();
