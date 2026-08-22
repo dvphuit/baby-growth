@@ -28,6 +28,15 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['@/services/googleDriveSync', 'Google Drive sync must use the sync feature boundary'],
 ];
 
+const IMPORT_PATTERN = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]|import\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
+
+// Existing debt is named explicitly so the shared boundary can be enforced now
+// without turning this guard PR into an unrelated feature-ownership refactor.
+// Remove an exception as soon as its owning feature absorbs the module.
+const LEGACY_SHARED_FEATURE_IMPORTS = new Set([
+  'shared/ui/HavenMedicationPicker.tsx -> @/features/activities/domain/medicationCatalog',
+]);
+
 function productionFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
@@ -38,6 +47,14 @@ function productionFiles(directory) {
   });
 }
 
+function importsFrom(content) {
+  const imports = [];
+  for (const match of content.matchAll(IMPORT_PATTERN)) {
+    imports.push(match[1] ?? match[2]);
+  }
+  return imports;
+}
+
 function findForbiddenTokens() {
   const issues = [];
   for (const file of productionFiles(SRC)) {
@@ -46,6 +63,21 @@ function findForbiddenTokens() {
       if (content.includes(token)) {
         issues.push(`${relative(ROOT, file)}: ${reason} (${token})`);
       }
+    }
+  }
+  return issues;
+}
+
+function findSharedFeatureImports() {
+  const sharedRoot = join(SRC, 'shared');
+  const issues = [];
+  for (const file of productionFiles(sharedRoot)) {
+    const sourcePath = relative(SRC, file).replaceAll('\\', '/');
+    const content = readFileSync(file, 'utf8');
+    for (const specifier of importsFrom(content)) {
+      if (!specifier.startsWith('@/features/')) continue;
+      const issue = `${sourcePath} -> ${specifier}`;
+      if (!LEGACY_SHARED_FEATURE_IMPORTS.has(issue)) issues.push(issue);
     }
   }
   return issues;
@@ -62,6 +94,10 @@ describe('architecture acceptance guard', () => {
       expect(existsSync(featurePath), `${feature} feature should exist`).toBe(true);
       expect(statSync(featurePath).isDirectory(), `${feature} should be a directory`).toBe(true);
     }
+  });
+
+  it('prevents shared production code from taking new feature dependencies', () => {
+    expect(findSharedFeatureImports()).toEqual([]);
   });
 
   it('does not keep the removed modal or mom-store modules', () => {
