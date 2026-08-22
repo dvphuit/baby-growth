@@ -17,6 +17,18 @@ describe('startup critical path', () => {
     expect(main).toContain('void snapshotRuntimeReady.catch(reportSnapshotRuntimeFailure);');
   });
 
+  it('emits durable startup marks without changing the render-before-sync invariant', () => {
+    const main = source('main.tsx');
+    const renderMarkIndex = main.indexOf("markStartup('render-requested');");
+    const snapshotStartIndex = main.indexOf("markStartup('snapshot-runtime-start');");
+
+    expect(main).toContain("markStartup('entry-evaluated');");
+    expect(main).toContain("markStartup('snapshot-runtime-ready');");
+    expect(main).toContain("markStartup('snapshot-runtime-failed');");
+    expect(renderMarkIndex).toBeGreaterThan(-1);
+    expect(snapshotStartIndex).toBeGreaterThan(-1);
+  });
+
   it('keeps development store hydration out of the production entry module', () => {
     const main = source('main.tsx');
     const bootstrap = source('data/bootstrapMockData.ts');

@@ -4,12 +4,21 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './app/App';
 import './index.css';
 
+function markStartup(name: string): void {
+  if (typeof performance === 'undefined' || typeof performance.mark !== 'function') return;
+  performance.mark(`kinly:startup:${name}`);
+}
+
+markStartup('entry-evaluated');
+
 async function configureSnapshotRuntime(): Promise<void> {
+  markStartup('snapshot-runtime-start');
   const [{ createAppSnapshotRuntime }, { configureAppSnapshotRuntime }] = await Promise.all([
     import('@/app/lifecycle/appSnapshotRuntime'),
     import('@/features/sync'),
   ]);
   configureAppSnapshotRuntime(createAppSnapshotRuntime());
+  markStartup('snapshot-runtime-ready');
 }
 
 function hasResetRequest(): boolean {
@@ -32,9 +41,11 @@ function renderApp(): void {
       </BrowserRouter>
     </StrictMode>,
   );
+  markStartup('render-requested');
 }
 
 async function reportSnapshotRuntimeFailure(error: unknown): Promise<void> {
+  markStartup('snapshot-runtime-failed');
   console.error('[startup] Không thể khởi tạo snapshot runtime:', error);
   try {
     const { failAppSnapshotRuntimeInitialization } = await import('@/features/sync');

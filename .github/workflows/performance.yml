@@ -27,6 +27,9 @@ jobs:
       - name: Run performance regression tests
         run: npm test
 
+      - name: Benchmark sync snapshot serialization
+        run: npm run bench:sync
+
       - name: Check native animation source regressions
         working-directory: .
         run: |
