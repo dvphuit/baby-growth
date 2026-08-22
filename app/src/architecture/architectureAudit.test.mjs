@@ -1,6 +1,11 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  findFeatureBoundaryViolations,
+  findMissingFeaturePublicApis,
+  productionSourceFiles,
+} from './importGraph.mjs';
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, 'src');
@@ -28,61 +33,27 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['@/services/googleDriveSync', 'Google Drive sync must use the sync feature boundary'],
 ];
 
-const IMPORT_PATTERN = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]|import\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
-
-// Existing debt is named explicitly so the shared boundary can be enforced now
-// without turning this guard PR into an unrelated feature-ownership refactor.
-// Remove an exception as soon as its owning feature absorbs the module.
-const LEGACY_SHARED_FEATURE_IMPORTS = new Set([
+// Existing dependency debt is named as exact edges so architecture enforcement
+// can start without changing runtime behavior. The graph assertion also rejects
+// stale entries, so remove an edge from this list as soon as the dependency moves
+// behind the target feature's public API.
+const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
   'shared/ui/HavenMedicationPicker.tsx -> @/features/activities/domain/medicationCatalog',
   'shared/ui/HavenMilkAmountInput.tsx -> @/features/activities/domain/dailyCareTargets',
   'shared/ui/HavenMilkAmountInput.tsx -> @/features/growth/store/useGrowthStore',
   'shared/ui/HavenMilkAmountInput.tsx -> @/features/profile/store/useProfileStore',
   'shared/ui/HavenTemperatureInput.tsx -> @/features/activities/domain/dailyCareTargets',
   'shared/ui/Header.tsx -> @/features/profile/hooks/useFamily',
-]);
-
-function productionFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return productionFiles(path);
-    if (!entry.isFile()) return [];
-    if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(entry.name)) return [];
-    return /\.[cm]?[jt]sx?$/.test(entry.name) ? [path] : [];
-  });
-}
-
-function importsFrom(content) {
-  const imports = [];
-  for (const match of content.matchAll(IMPORT_PATTERN)) {
-    imports.push(match[1] ?? match[2]);
-  }
-  return imports;
-}
+].sort();
 
 function findForbiddenTokens() {
   const issues = [];
-  for (const file of productionFiles(SRC)) {
+  for (const file of productionSourceFiles(SRC)) {
     const content = readFileSync(file, 'utf8');
     for (const [token, reason] of FORBIDDEN_PRODUCTION_TOKENS) {
       if (content.includes(token)) {
         issues.push(`${relative(ROOT, file)}: ${reason} (${token})`);
       }
-    }
-  }
-  return issues;
-}
-
-function findSharedFeatureImports() {
-  const sharedRoot = join(SRC, 'shared');
-  const issues = [];
-  for (const file of productionFiles(sharedRoot)) {
-    const sourcePath = relative(SRC, file).replaceAll('\\', '/');
-    const content = readFileSync(file, 'utf8');
-    for (const specifier of importsFrom(content)) {
-      if (!specifier.startsWith('@/features/')) continue;
-      const issue = `${sourcePath} -> ${specifier}`;
-      if (!LEGACY_SHARED_FEATURE_IMPORTS.has(issue)) issues.push(issue);
     }
   }
   return issues;
@@ -101,8 +72,12 @@ describe('architecture acceptance guard', () => {
     }
   });
 
-  it('prevents shared production code from taking new feature dependencies', () => {
-    expect(findSharedFeatureImports()).toEqual([]);
+  it('requires every feature to expose a public index entry point', () => {
+    expect(findMissingFeaturePublicApis(SRC)).toEqual([]);
+  });
+
+  it('keeps cross-boundary feature imports on public APIs without adding new debt', () => {
+    expect(findFeatureBoundaryViolations(SRC)).toEqual(LEGACY_FEATURE_BOUNDARY_VIOLATIONS);
   });
 
   it('does not keep the removed modal or mom-store modules', () => {
