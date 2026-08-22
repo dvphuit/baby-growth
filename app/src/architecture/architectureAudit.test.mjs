@@ -1,6 +1,11 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  findFeatureBoundaryViolations,
+  findMissingFeaturePublicApis,
+  productionSourceFiles,
+} from './importGraph.mjs';
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, 'src');
@@ -28,19 +33,92 @@ const FORBIDDEN_PRODUCTION_TOKENS = [
   ['@/services/googleDriveSync', 'Google Drive sync must use the sync feature boundary'],
 ];
 
-function productionFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return productionFiles(path);
-    if (!entry.isFile()) return [];
-    if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(entry.name)) return [];
-    return /\.[cm]?[jt]sx?$/.test(entry.name) ? [path] : [];
-  });
-}
+// Existing dependency debt is named as exact edges so architecture enforcement
+// can start without changing runtime behavior. The graph assertion also rejects
+// stale entries, so remove an edge from this list as soon as the dependency moves
+// behind the target feature's public API.
+const LEGACY_FEATURE_BOUNDARY_VIOLATIONS = [
+  'app/App.tsx -> @/features/profile/store/useProfileStore',
+  'app/App.tsx -> @/features/reminders/hooks/useReminderLifecycle',
+  'app/App.tsx -> @/features/sync/hooks/useAutoSyncLifecycle',
+  'app/hooks/useAppModals.ts -> @/features/activities/ActivityLogModal',
+  'app/lifecycle/resetRequest.ts -> @/features/sync/googleDriveSync',
+  'app/lifecycle/trackingDataReset.ts -> @/features/activities/store/useActivityStore',
+  'app/lifecycle/trackingDataReset.ts -> @/features/expenses/store/useExpenseStore',
+  'app/lifecycle/trackingDataReset.ts -> @/features/growth/store/useGrowthStore',
+  'app/lifecycle/trackingDataReset.ts -> @/features/profile/store/useProfileStore',
+  'app/lifecycle/trackingDataReset.ts -> @/features/reminders/store/useReminderStore',
+  'app/lifecycle/trackingDataReset.ts -> @/features/timeline/store/useTimelineStore',
+  'data/mockData.ts -> @/features/activities/store/useActivityStore',
+  'data/mockData.ts -> @/features/expenses/store/useExpenseStore',
+  'data/mockData.ts -> @/features/growth/store/useGrowthStore',
+  'data/mockData.ts -> @/features/reminders/store/useReminderStore',
+  'data/mockData.ts -> @/features/timeline/store/useTimelineStore',
+  'features/growth/GrowthView.tsx -> @/features/profile/store/useProfileStore',
+  'features/home/components/BabyHomeView.tsx -> @/features/activities/domain/activitySelectors',
+  'features/home/components/BabyHomeView.tsx -> @/features/activities/domain/dailyCareTargets',
+  'features/home/components/BabyHomeView.tsx -> @/features/activities/store/useActivityStore',
+  'features/home/components/BabyHomeView.tsx -> @/features/growth/domain/growthSelectors',
+  'features/home/components/BabyHomeView.tsx -> @/features/growth/store/useGrowthStore',
+  'features/home/components/BabyHomeView.tsx -> @/features/profile/hooks/useFamily',
+  'features/home/components/LazyMomentMediaPreview.tsx -> @/features/timeline/components/MomentMediaPreview',
+  'features/home/components/LazyTimelineEntryDialog.tsx -> @/features/timeline/components/TimelineEntryDialog',
+  'features/home/components/MomHomeView.tsx -> @/features/activities/domain/activitySelectors',
+  'features/home/components/MomHomeView.tsx -> @/features/activities/store/useActivityStore',
+  'features/home/components/TimelinePreviewContent.tsx -> @/features/activities/domain/activitySelectors',
+  'features/home/components/TimelinePreviewContent.tsx -> @/features/activities/store/useActivityStore',
+  'features/home/components/TimelinePreviewContent.tsx -> @/features/timeline/components/HomeMomentStoryItem',
+  'features/home/components/TimelinePreviewContent.tsx -> @/features/timeline/components/NotebookStory',
+  'features/home/components/TimelinePreviewContent.tsx -> @/features/timeline/domain/timelineSelectors',
+  'features/home/hooks/useHomeTimeline.ts -> @/features/timeline/components/MomentMediaPreview',
+  'features/home/hooks/useHomeTimeline.ts -> @/features/timeline/components/TimelineEntryDialog',
+  'features/home/hooks/useHomeTimeline.ts -> @/features/timeline/domain/timelineMedia',
+  'features/home/hooks/useHomeTimeline.ts -> @/features/timeline/store/useTimelineStore',
+  'features/profile/GoogleDriveDataView.tsx -> @/features/timeline/store/useTimelineStore',
+  'features/profile/ProfileView.tsx -> @/features/growth/domain/growthSelectors',
+  'features/profile/ProfileView.tsx -> @/features/growth/store/useGrowthStore',
+  'features/profile/profileLifecycle.ts -> @/features/growth/store/useGrowthStore',
+  'features/reminders/ReminderList.tsx -> @/features/activities/store/useActivityStore',
+  'features/reminders/hooks/useReminderLifecycle.ts -> @/features/activities/store/useActivityStore',
+  'features/sync/appSnapshot.ts -> @/features/activities/domain/medicationCatalog',
+  'features/sync/appSnapshot.ts -> @/features/activities/store/useActivityStore',
+  'features/sync/appSnapshot.ts -> @/features/expenses/store/useExpenseStore',
+  'features/sync/appSnapshot.ts -> @/features/growth/store/growthPersistence',
+  'features/sync/appSnapshot.ts -> @/features/growth/store/useGrowthStore',
+  'features/sync/appSnapshot.ts -> @/features/profile/store/useProfileStore',
+  'features/sync/appSnapshot.ts -> @/features/reminders/store/useReminderStore',
+  'features/sync/appSnapshot.ts -> @/features/timeline/store/useTimelineStore',
+  'features/sync/timelineMediaDriveSync.ts -> @/features/timeline/store/useTimelineStore',
+  'features/timeline/TimelineView.tsx -> @/features/activities/store/useActivityStore',
+  'features/timeline/TimelineView.tsx -> @/features/growth/domain/growthSelectors',
+  'features/timeline/TimelineView.tsx -> @/features/growth/store/useGrowthStore',
+  'features/timeline/TimelineView.tsx -> @/features/profile/store/useProfileStore',
+  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/domain/activityAssessments',
+  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/domain/dailyCareTargets',
+  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/activities/store/useActivityStore',
+  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/growth/store/useGrowthStore',
+  'features/timeline/components/TimelineEntryDialog.tsx -> @/features/profile/store/useProfileStore',
+  'features/timeline/components/TimelineMediaSyncBadge.tsx -> @/features/sync/timelineMediaSyncProgress',
+  'features/timeline/hooks/useTimelineMediaUrl.ts -> @/features/sync/googleDriveSync',
+  'features/timeline/store/useTimelineStore.ts -> @/features/growth/store/useGrowthStore',
+  'features/timeline/store/useTimelineStore.ts -> @/features/profile/store/useProfileStore',
+  'main.tsx -> @/features/activities/store/useActivityStore',
+  'main.tsx -> @/features/expenses/store/useExpenseStore',
+  'main.tsx -> @/features/growth/store/useGrowthStore',
+  'main.tsx -> @/features/profile/store/useProfileStore',
+  'main.tsx -> @/features/reminders/store/useReminderStore',
+  'main.tsx -> @/features/timeline/store/useTimelineStore',
+  'shared/ui/HavenMedicationPicker.tsx -> @/features/activities/domain/medicationCatalog',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/activities/domain/dailyCareTargets',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/growth/store/useGrowthStore',
+  'shared/ui/HavenMilkAmountInput.tsx -> @/features/profile/store/useProfileStore',
+  'shared/ui/HavenTemperatureInput.tsx -> @/features/activities/domain/dailyCareTargets',
+  'shared/ui/Header.tsx -> @/features/profile/hooks/useFamily',
+].sort();
 
 function findForbiddenTokens() {
   const issues = [];
-  for (const file of productionFiles(SRC)) {
+  for (const file of productionSourceFiles(SRC)) {
     const content = readFileSync(file, 'utf8');
     for (const [token, reason] of FORBIDDEN_PRODUCTION_TOKENS) {
       if (content.includes(token)) {
@@ -62,6 +140,14 @@ describe('architecture acceptance guard', () => {
       expect(existsSync(featurePath), `${feature} feature should exist`).toBe(true);
       expect(statSync(featurePath).isDirectory(), `${feature} should be a directory`).toBe(true);
     }
+  });
+
+  it('requires every feature to expose a public index entry point', () => {
+    expect(findMissingFeaturePublicApis(SRC)).toEqual([]);
+  });
+
+  it('keeps cross-boundary feature imports on public APIs without adding new debt', () => {
+    expect(findFeatureBoundaryViolations(SRC)).toEqual(LEGACY_FEATURE_BOUNDARY_VIOLATIONS);
   });
 
   it('does not keep the removed modal or mom-store modules', () => {
