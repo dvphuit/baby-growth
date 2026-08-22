@@ -1,9 +1,14 @@
-import { exportAppSnapshot, parseAppSnapshot, applyAppSnapshot, subscribeAppSnapshotChanges, type AppSnapshot } from './appSnapshot';
+import { exportAppSnapshot, applyAppSnapshot, subscribeAppSnapshotChanges, type AppSnapshot } from './appSnapshot';
 import { serializeSyncSnapshotPayload, type SyncSnapshotSerializationInput } from './syncSnapshotSerialization';
 import { serializeSyncSnapshotOffMainThread } from './syncSnapshotWorker';
+import { parseSyncSnapshot, SyncSnapshotIntegrityError, type SyncSnapshot } from './syncSnapshotEnvelope';
 import { getLocalRecord, setLocalRecord } from '@/data/localDb';
 import { logDiagnostic } from '@/app/diagnostics/diagnosticLog';
 import { scheduleIdleTask } from '@/shared/lib/idleTask';
+
+export { SyncSnapshotIntegrityError };
+export type { SyncSnapshot };
+export type { SyncSnapshotIntegrityReason } from './syncSnapshotEnvelope';
 
 const SYNC_FILE_NAME = 'babygrowth-sync-v2.json';
 const LEGACY_SYNC_FILE_NAME = 'babygrowth-sync.json';
@@ -53,14 +58,6 @@ declare global {
 }
 
 export type SyncConflictReason = 'first_sync' | 'both_changed';
-
-export interface SyncSnapshot {
-  schemaVersion: 2;
-  updatedAt: string;
-  deviceId: string;
-  fingerprint: string;
-  data: AppSnapshot;
-}
 
 interface PreparedSyncSnapshot {
   snapshot: SyncSnapshot;
@@ -540,15 +537,6 @@ async function findSyncFile(interactive: boolean): Promise<DriveFile | null> {
   return legacyFile;
 }
 
-function parseSyncSnapshot(value: unknown): SyncSnapshot {
-  if (typeof value !== 'object' || value === null) throw new Error('Tệp đồng bộ trên Google Drive không đúng định dạng BabyGrowth.');
-  const candidate = value as Partial<SyncSnapshot>;
-  if (candidate.schemaVersion !== 2 || !candidate.updatedAt || !candidate.deviceId || !candidate.fingerprint) {
-    throw new Error('Tệp đồng bộ không thuộc persistence generation hiện tại của BabyGrowth.');
-  }
-  return { ...candidate, data: parseAppSnapshot(candidate.data) } as SyncSnapshot;
-}
-
 async function readRemoteSnapshot(fileId: string, interactive: boolean): Promise<SyncSnapshot> {
   const result = await driveRequest<unknown>(
     `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
@@ -748,6 +736,10 @@ async function syncWithGoogleDriveUnlocked(options: { interactive?: boolean } = 
     return result;
   } catch (error) {
     if (error instanceof GoogleAuthRequiredError) publishSyncState({ status: 'auth-required', error: error.message });
+    else if (error instanceof SyncSnapshotIntegrityError) {
+      logDiagnostic('drive-sync', 'error', 'Drive snapshot integrity check failed', { reason: error.reason });
+      publishSyncState({ status: 'error', error: error.message });
+    }
     else if (!navigator.onLine) publishSyncState({ status: 'offline', error: 'Đang offline; dữ liệu vẫn được lưu cục bộ.' });
     else publishSyncState({ status: 'error', error: error instanceof Error ? error.message : 'Không thể đồng bộ Google Drive.' });
     throw error;

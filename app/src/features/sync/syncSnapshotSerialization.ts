@@ -21,6 +21,10 @@ function fingerprintSerializedData(value: string): string {
   return (result >>> 0).toString(16).padStart(8, '0');
 }
 
+export function fingerprintAppSnapshot(data: AppSnapshot): string {
+  return fingerprintSerializedData(JSON.stringify(data));
+}
+
 export function serializeSyncSnapshotPayload(
   input: SyncSnapshotSerializationInput,
 ): SyncSnapshotSerializationResult {
