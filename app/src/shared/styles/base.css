@@ -86,9 +86,8 @@ body {
 .bottom-safe-spacer {
   display: block !important;
   width: 100% !important;
-  height: 84px !important;
-  height: calc(76px + env(safe-area-inset-bottom, 12px)) !important;
-  min-height: 76px !important;
+  height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  min-height: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
   flex-shrink: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;

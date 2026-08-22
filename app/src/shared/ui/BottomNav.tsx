@@ -8,13 +8,13 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { to: '/', label: 'Trang chủ', Icon: Home, id: 'navTabHome' },
-  { to: '/timeline', label: 'Nhật ký', Icon: CalendarHeart, id: 'navTabTimeline' },
+  { to: '/', label: 'Trang chủ', Icon: Home, id: 'navTabHome', theme: 'home' },
+  { to: '/timeline', label: 'Nhật ký', Icon: CalendarHeart, id: 'navTabTimeline', theme: 'timeline' },
 ] as const;
 
 const navItemsRight = [
-  { to: '/growth', label: 'Tăng trưởng', Icon: TrendingUp, id: 'navTabGrowth' },
-  { to: '/expenses', label: 'Chi tiêu', Icon: Wallet, id: 'navTabExpenses' },
+  { to: '/growth', label: 'Tăng trưởng', Icon: TrendingUp, id: 'navTabGrowth', theme: 'growth' },
+  { to: '/expenses', label: 'Chi tiêu', Icon: Wallet, id: 'navTabExpenses', theme: 'expenses' },
 ] as const;
 
 const NavContent = ({ label, Icon, isActive }: { label: string; Icon: typeof Home; isActive: boolean }) => (
@@ -35,13 +35,13 @@ export const BottomNav = memo(function BottomNav({ onOpenQuickLog, onRouteIntent
 
   return (
     <nav className="bottom-nav-container">
-      {navItems.map(({ to, label, Icon, id }) => (
+      {navItems.map(({ to, label, Icon, id, theme }) => (
         <NavLink
           key={to}
           to={to}
           end={to === '/'}
           viewTransition
-          className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
+          className={({ isActive }) => `nav-tab-item nav-tab-item-${theme} ${isActive ? 'active' : ''}`}
           id={id}
           data-route={to}
           onPointerDown={handleRouteIntent}
@@ -65,12 +65,12 @@ export const BottomNav = memo(function BottomNav({ onOpenQuickLog, onRouteIntent
         </button>
       </div>
 
-      {navItemsRight.map(({ to, label, Icon, id }) => (
+      {navItemsRight.map(({ to, label, Icon, id, theme }) => (
         <NavLink
           key={to}
           to={to}
           viewTransition
-          className={({ isActive }) => `nav-tab-item ${isActive ? 'active' : ''}`}
+          className={({ isActive }) => `nav-tab-item nav-tab-item-${theme} ${isActive ? 'active' : ''}`}
           id={id}
           data-route={to}
           onPointerDown={handleRouteIntent}
