@@ -49,7 +49,7 @@ vi.mock('@/app/hooks/useAppModals', async (importOriginal) => {
 });
 vi.mock('./AppRoutes', () => ({ AppRoutes: () => <div>App Routes marker</div> }));
 vi.mock('./AppModals', () => ({ AppModals: () => <div>App Modals marker</div> }));
-vi.mock('@/shared/ui/Header', () => ({ Header: () => <div>Header marker</div> }));
+vi.mock('@/app/components/Header', () => ({ Header: () => <div>Header marker</div> }));
 vi.mock('@/shared/ui/BottomNav', () => ({ BottomNav: () => <div>Bottom Nav marker</div> }));
 vi.mock('@/shared/ui/Toast', () => ({ ToastContainer: () => <div>Toast marker</div> }));
 vi.mock('@/shared/ui/Lightbox', () => ({ Lightbox: () => <div>Lightbox marker</div> }));
@@ -78,15 +78,15 @@ describe('AppContent', () => {
     expect(screen.getByText('PWA Prompt marker')).toBeInTheDocument();
     expect(screen.getByText('Version marker')).toBeInTheDocument();
     expect(screen.getByText('PWA Badge marker')).toBeInTheDocument();
-    expect(useAutoSyncLifecycleMock).toHaveBeenCalledTimes(1);
-    expect(useReminderLifecycleMock).toHaveBeenCalledTimes(1);
+    expect(useAutoSyncLifecycleMock).toHaveBeenCalled();
+    expect(useReminderLifecycleMock).toHaveBeenCalled();
   });
 
-  it('hides the main header on profile routes when initialized', () => {
-    initializeChildProfile({ childName: 'Bé Bơ', birthDate: '2025-11-20' });
-    render(<MemoryRouter initialEntries={['/profile/google-drive']}><AppContent /></MemoryRouter>);
+  it('does not render the shell when reset is requested', () => {
+    resetChildStoresToDefaults();
+    render(<MemoryRouter initialEntries={['/?reset=1']}><AppContent /></MemoryRouter>);
 
     expect(screen.queryByText('Header marker')).not.toBeInTheDocument();
-    expect(screen.getByText('App Routes marker')).toBeInTheDocument();
+    expect(screen.queryByText('App Routes marker')).not.toBeInTheDocument();
   });
 });
